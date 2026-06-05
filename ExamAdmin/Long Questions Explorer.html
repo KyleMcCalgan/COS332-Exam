@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>COS332 Long Questions Explorer</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #17202a;
+      --muted: #5d6978;
+      --line: #d9dee7;
+      --accent: #7c3aed;
+      --accent-soft: #ede9fe;
+      --warn: #b45309;
+      --warn-soft: #fef3c7;
+      --shadow: 0 10px 30px rgba(23,32,42,0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+    .wrap {
+      width: min(1440px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+    .topbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 0 18px;
+    }
+    h1 { margin: 0 0 6px; font-size: 28px; line-height: 1.15; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(110px, 1fr));
+      gap: 10px;
+      min-width: 380px;
+    }
+    .stat {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .stat b { display: block; font-size: 22px; line-height: 1.1; }
+    .stat span { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+    main { padding: 18px 0 32px; }
+    .filters {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+    .filter-grid {
+      display: grid;
+      grid-template-columns: minmax(200px, 1.4fr) minmax(150px, 0.7fr) minmax(150px, 0.7fr) minmax(160px, 0.7fr) minmax(170px, 0.7fr);
+      gap: 12px;
+      align-items: end;
+    }
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    input[type="search"], select {
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 0 10px;
+      font-size: 14px;
+    }
+    .checks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 40px;
+      align-items: center;
+    }
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: #fff;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .check input { margin: 0; accent-color: var(--accent); }
+    .filter-row {
+      display: grid;
+      grid-template-columns: minmax(200px, 1fr) minmax(200px, 1fr) minmax(150px, 0.5fr);
+      gap: 12px;
+      margin-top: 12px;
+      align-items: end;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    button {
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 0 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .result-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 10px 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .view { display: grid; gap: 10px; }
+    .lq {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(23,32,42,0.05);
+      overflow: hidden;
+    }
+    .lq-head {
+      display: grid;
+      grid-template-columns: 54px minmax(0,1fr) auto;
+      gap: 12px;
+      align-items: start;
+      padding: 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .lq-head:hover { background: #f8fafc; }
+    .lq-id {
+      width: 42px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: #edf1f5;
+      color: #344054;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .lq-meta {
+      min-width: 0;
+    }
+    .lq-source {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .lq-preview {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--text);
+      /* clamp to 2 lines */
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .lq-head.open .lq-preview {
+      -webkit-line-clamp: unset;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+      align-items: flex-start;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge.seen { background: var(--warn-soft); color: var(--warn); }
+    .badge.study { background: var(--accent-soft); color: var(--accent); }
+    .badge.marks { background: #f1f5f9; color: #475569; }
+    .badge.expand {
+      background: #f1f5f9;
+      color: #475569;
+      cursor: pointer;
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .lq-body {
+      border-top: 1px solid var(--line);
+      padding: 18px 20px;
+      display: none;
+    }
+    .lq-body.open { display: block; }
+    /* Markdown rendering inside lq-body */
+    .lq-body h3, .lq-body h4 {
+      margin: 16px 0 6px;
+      font-size: 15px;
+    }
+    .lq-body p { margin: 0 0 10px; line-height: 1.55; }
+    .lq-body pre {
+      background: #f1f5f9;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px 14px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0 0 12px;
+    }
+    .lq-body code {
+      background: #f1f5f9;
+      border-radius: 4px;
+      padding: 1px 4px;
+      font-size: 13px;
+    }
+    .lq-body pre code { background: none; padding: 0; }
+    .lq-body ul, .lq-body ol {
+      margin: 0 0 10px 20px;
+      padding: 0;
+      line-height: 1.55;
+    }
+    .lq-body li { margin-bottom: 3px; }
+    .lq-body table {
+      border-collapse: collapse;
+      margin: 0 0 12px;
+      font-size: 13px;
+      width: 100%;
+    }
+    .lq-body th, .lq-body td {
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      text-align: left;
+    }
+    .lq-body th { background: #f8fafc; font-weight: 700; }
+    .lq-body hr { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
+    .lq-body blockquote {
+      border-left: 3px solid var(--line);
+      margin: 0 0 10px;
+      padding: 4px 12px;
+      color: var(--muted);
+    }
+    .empty {
+      background: var(--panel);
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      color: var(--muted);
+    }
+    @media (max-width: 1100px) {
+      .filter-grid { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .topbar { flex-direction: column; align-items: stretch; }
+      .stats { min-width: 0; grid-template-columns: 1fr 1fr 1fr; }
+      .filter-grid, .filter-row { grid-template-columns: 1fr; }
+      .actions { justify-content: flex-start; }
+      .lq-head { grid-template-columns: 42px minmax(0,1fr); }
+      .badges { grid-column: 1 / -1; justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap topbar">
+      <div>
+        <h1>COS332 Long Questions Explorer</h1>
+        <p class="subtitle">All longer questions (Q2+) extracted from past papers. Filter by topic to see what types repeat. Questions from 2026 ST1/ST2 are flagged low-priority for the upcoming exam.</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="stat-total">64</b><span>total questions</span></div>
+        <div class="stat"><b id="stat-visible">64</b><span>visible now</span></div>
+        <div class="stat"><b id="stat-current">8</b><span>in 2026 tests</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <section class="filters" aria-label="Filters">
+        <div class="filter-grid">
+          <div>
+            <label for="search">Search</label>
+            <input id="search" type="search" placeholder="Search question text or source…">
+          </div>
+          <div>
+            <label for="topicFilter">Topic</label>
+            <select id="topicFilter"><option value="all">All topics</option><option value="Application Protocols">Application Protocols</option><option value="DNS">DNS</option><option value="Data Link Layer">Data Link Layer</option><option value="Encoding &amp; Presentation">Encoding &amp; Presentation</option><option value="IP Addressing &amp; Subnetting">IP Addressing &amp; Subnetting</option><option value="Routing Algorithms">Routing Algorithms</option><option value="Transport Layer (TCP/UDP/QUIC)">Transport Layer (TCP/UDP/QUIC)</option></select>
+          </div>
+          <div>
+            <label for="seenFilter">2026 status</label>
+            <select id="seenFilter">
+              <option value="all">All questions</option>
+              <option value="unseen">Only study (not in 2026 tests)</option>
+              <option value="seen">Only seen in 2026 tests</option>
+            </select>
+          </div>
+          <div>
+            <label for="sourceFilter">Specific paper</label>
+            <select id="sourceFilter"><option value="all">All papers</option><option value="2022 Exam">2022 Exam (10)</option><option value="2022 ST2">2022 ST2 (3)</option><option value="2023 ST1">2023 ST1 (4)</option><option value="2023 ST2">2023 ST2 (4)</option><option value="2023 Exam">2023 Exam (7)</option><option value="2024 ST1">2024 ST1 (4)</option><option value="2024 ST2">2024 ST2 (4)</option><option value="2024 Exam">2024 Exam (8)</option><option value="2025 ST1">2025 ST1 (4)</option><option value="2025 ST2">2025 ST2 (4)</option><option value="2025 Exam">2025 Exam (4)</option><option value="2026 ST1">2026 ST1 (4)</option><option value="2026 ST2">2026 ST2 (4)</option></select>
+          </div>
+          <div>
+            <label for="sortBy">Sort</label>
+            <select id="sortBy">
+              <option value="source">Source (year/paper)</option>
+              <option value="topic">Topic</option>
+              <option value="status">Study status first</option>
+              <option value="id">Table order</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div>
+            <label>Years</label>
+            <div class="checks" id="yearChecks"><label class="check"><input type="checkbox" value="2022" checked> 2022</label><label class="check"><input type="checkbox" value="2023" checked> 2023</label><label class="check"><input type="checkbox" value="2024" checked> 2024</label><label class="check"><input type="checkbox" value="2025" checked> 2025</label><label class="check"><input type="checkbox" value="2026" checked> 2026</label></div>
+          </div>
+          <div>
+            <label>Paper types</label>
+            <div class="checks" id="paperChecks"><label class="check"><input type="checkbox" value="ST1" checked> ST1</label><label class="check"><input type="checkbox" value="ST2" checked> ST2</label><label class="check"><input type="checkbox" value="Exam" checked> Exam</label></div>
+          </div>
+          <div class="actions">
+            <button id="resetBtn" type="button">Reset</button>
+            <button id="expandAllBtn" type="button">Expand all</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="result-meta">
+        <span id="resultText"></span>
+        <span id="sourceText"></span>
+      </div>
+
+      <section id="results" class="view" aria-live="polite"></section>
+    </div>
+  </main>
+
+  <script>
+    const DATA = [{"id": 1, "year": "2022", "paper": "Exam", "number": 2, "marks": "", "text": "The 'code point' (or sequence number) of a Unicode character is written as 'U+' (to indicate that it is a Unicode code point), followed by the code of the character in hexadecimal. The Latin Capital letter Z is, for example, represented as U+005A. When UTF-8 representation is used, the shortest possible sequence of bytes will be used-hence the leading byte will never encode a 0 (except for the null character).\n\n* a) Translate the following characters to UTF-8. In other words, provide the sequence of bytes (in hexadecimal) that would represent the character in UTF-8. Leave a space between the bytes in your answer.\n\n\n* (i) The Cyrillic Capital Letter Ukrainian Ie (U+0404)\n\n\n* (ii) The Beating Heart Emoji $(U+1F493)$\n\n\n\n* b) Consider the following string encoded in UTF-8: 4E CE B5 E0 9F 85 83. Which Unicode code points does this string represent?", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2022 Exam Q2", "isCurrent": false, "studyStatus": "Study"}, {"id": 2, "year": "2022", "paper": "Exam", "number": 3, "marks": "", "text": "* Provide the acronyms that identify the five Regional Internet Registries (RIRs). For each acronym state the region for which the RIR manages the allocation and registration of Internet number resources. Provide the region that is identified in the acronym.", "topic": "Encoding & Presentation", "topicColour": "#dc2626", "topicBg": "#fee2e2", "sourceLabel": "2022 Exam Q3", "isCurrent": false, "studyStatus": "Study"}, {"id": 3, "year": "2022", "paper": "Exam", "number": 4, "marks": "", "text": "Your company uses 172.33.0.0/16 as its network address. The company plans to open a new branch. The subnet 172.33.64.0/18 is assigned to this branch. (In general they use an 18-bit network prefix to address branches.) You are tasked to subnet this subnet, such that at least 30 departments in this branch may each be assigned its own subnet address and each of these subnets should be able to handle at least 500 hosts.\n\n* a) On which branch subnet is 172.33.123.141 located?\n\n\n* b) On which branch subnet is 172.33.201.141 located?\n\n\n* c) The network address of department 4 at this branch will have the form 172.33.X.Y/Z. What is the value of X?\n\n\n* d) The network address of department 4 at this branch will have the form 172.33.X.Y/Z. What is the value of Y?\n\n\n* e) The network address of department 4 at this branch will have the form 172.33.X.Y/Z. What is the value of Z?\n\n\n* f) The broadcast address of department 4 at this branch will have the form 172.33.X.Y. What is the value of X?\n\n\n* g) The broadcast address of department 4 at this branch will have the form 172.33.X.Y. What is the value of Y?\n\n\n* h) The netmask of any department at this branch will have the form 255.255.X.Y. What is the value of X?\n\n*(Use subnet 172.33.64.0/18 for questions c-h.)*", "topic": "IP Addressing & Subnetting", "topicColour": "#7c3aed", "topicBg": "#ede9fe", "sourceLabel": "2022 Exam Q4", "isCurrent": false, "studyStatus": "Study"}, {"id": 4, "year": "2022", "paper": "Exam", "number": 5, "marks": "", "text": "Your organisation uses the network address 192.168.201.0/24. (For the purposes of this question assume it is a public IP address whether or not it is actually public.) However, your organisation has grown to such an extent that it needs a larger address space; in fact you now need the ability to address up to 800 hosts. You speak to the ISP and they indicate that the address you have is part of a larger (supernetted) block that has been allocated to them. Moreover, the blocks from 192.168.177.0/24 to 192.168.220.0/24 are not allocated to customers yet, and they are willing to provide you with a supernet that includes your current block (192.168.201.0/24) that will be able to accommodate the 800 hosts you now need to handle. However, they will provide the smallest such supernet that meets your needs. Your new address will be of the form 192.168.X.Y/Z. The broadcast address is of the form 192.168.P.Q.\n\n* a) What is the value of X?\n\n\n* b) What is the value of Y?\n\n\n* c) What is the value of Z?\n\n\n* d) What is the value of P?\n\n\n* e) What is the value of Q?", "topic": "IP Addressing & Subnetting", "topicColour": "#7c3aed", "topicBg": "#ede9fe", "sourceLabel": "2022 Exam Q5", "isCurrent": false, "studyStatus": "Study"}, {"id": 5, "year": "2022", "paper": "Exam", "number": 6, "marks": "", "text": "Consider the following star-topology network where node E is at the centre, connected to routers A, B, C, and D.\n\nThe network addresses in use on the various networks are:\n\n* A - 192.168.1.0/8\n* B - 192.168.2.0/8\n* C - 192.168.3.0/8\n* D - 192.168.4.0/8\n* E - 192.168.5.0/8\n\nThe interfaces of the routers connecting the various networks to node E are:\n\n* A - 192.168.1.1\n* B - 192.168.2.1\n* C - 192.168.3.1\n* D - 192.168.4.1\n\nNode E has four interfaces (despite using the network 192.168.5.0/8 for addresses within E):\n\n* Connected to A - 192.168.1.11\n* Connected to B - 192.168.2.11\n* Connected to C - 192.168.3.11\n* Connected to D - 192.168.4.11\n\nNode D also has an interface 192.168.6.100 that is connected to address 192.168.6.1 of the Internet gateway.\n\n* Your task is to compile a routing table for the router in network C that connects the various networks. This routing table will consist of two columns: The destination network, and the next hop. The destination network has to be specified in CIDR notation. The next hop will be an ordinary IPv4 address.", "topic": "Routing Algorithms", "topicColour": "#1d4ed8", "topicBg": "#dbeafe", "sourceLabel": "2022 Exam Q6", "isCurrent": false, "studyStatus": "Study"}, {"id": 6, "year": "2022", "paper": "Exam", "number": 7, "marks": "", "text": "Consider a zone file for the domain xx.co.za.\n\n* a) The address associated with aa.xx.co.za is 10.1.1.1. How would you state this in the xx.co.za zone file?\n\n\n* b) Mail to any email addres .@xx.co.za should be delivered at example.org. Provide the entry that you will use in the xx.co.za zone file to achieve this.\n\n\n* c) Suppose zz.xx.co.za should resolve to the same IP address as example.com. What entry will you use in the xx.co.za zone file to achieve this?\n\n\n* d) Suppose you want to use nslookup to determine the IPv6 address of some host. Write down the set command that you will enter, before you enter the name to be resolved.\n\n\n* e) Suppose the name yy.xx.co.za resolves to 192.168.3.5. Which 'name' would be created (with the aid of a DNS PTR RR) in the appropriate zone file to map the address back to the name? Just provide this name as a FQDN.", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2022 Exam Q7", "isCurrent": false, "studyStatus": "Study"}, {"id": 7, "year": "2022", "paper": "Exam", "number": 8, "marks": "", "text": "Assume processes A and B are communicating using TCP. For the sake of this question assume that all actions are atomic; when a message is sent it is received essentially immediately at the other end. Stated differently, two events will never overlap, with one exception: see events 3 and 4 below.\n\nAssume A has just sent a message to B with SEQ=100, LEN=500, ACK=1000 and WIN=2000. Immediately after that B sent a message to A with LEN=300 and WIN=1000. Then the following events happen in sequence:\n\n1. A sends a message to B with LEN=200.\n2. B consumes 500 bytes from its buffer.\n3. A sends a message to B with LEN=600. *(simultaneous with event 4)*\n4. B sends a message to A with LEN=200. *(simultaneous with event 3)*\n5. A consumes 1000 bytes from its buffer.\n6. A sends a message to B with LEN=300.\n\n* During events 1, 3, 4 and 6 messages are sent between A and B. For each of these messages, indicate on your answer sheet what:\n\n* **a)** The sequence number (Seq),\n\n* **b)** Acknowledgement number (Ack), and\n\n* **c)** Window advertisement (Win)\n\nare in the header of the respective segment.", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2022 Exam Q8", "isCurrent": false, "studyStatus": "Study"}, {"id": 8, "year": "2022", "paper": "Exam", "number": 9, "marks": "", "text": "Suppose a network uses the Bellman-Ford algorithm to perform routing. At some time t0 the routing tables at routers C, D, and E contain the information below. Each routing table consists of three columns: destination, cost, and the next hop.\n\n*(Note: The original routing table values in the exam paper were not fully recoverable from the scanned source. The table data includes entries such as Dest: A, Cost: 20, Next Hop: B across nodes C, D, and E.)*\n\nThe only exchanges of routing tables that occur during the time period of interest are: at time t1 > t0, node C sends its routing table to node D; at time t2 ≥ t1, node E sends its routing table to node D.\n\n* **a)** What will the entry for destination A be in node D's routing table, after receiving (and processing) the routing table from node C (but prior to t2)?\n\n* **b)** What will the entry for destination B be in node D's routing table, after receiving (and processing) the routing table from node C (but prior to t2)?\n\n* **c)** What will the entry for destination F be in node D's routing table, after receiving (and processing) the routing table from node E?\n\n* **d)** What will the entry for destination G be in node D's routing table, after receiving (and processing) the routing table from node E?", "topic": "Routing Algorithms", "topicColour": "#1d4ed8", "topicBg": "#dbeafe", "sourceLabel": "2022 Exam Q9", "isCurrent": false, "studyStatus": "Study"}, {"id": 9, "year": "2022", "paper": "Exam", "number": 10, "marks": "", "text": "Dijkstra's algorithm works by adding one node at a time to a set S of nodes reachable from a given source. If we determine routes from node A, then S = {A} during round 1, and the round number i = |S| at the start of that round.\n\nAssume your network consists of five routers: A, B, C, D, E. The direct link costs are:\n\n* A ↔ B: 1\n* A ↔ C: 10\n* B ↔ D: 2\n* C ↔ D: 5\n* C ↔ E: 1\n* D ↔ E: 3\n\n* **a)** Which node is added to S when progressing from round 3 to round 4?\n\n* **b)** What will the initial cost be to send a message between A and C (during round 1)?\n\n* **c)** Which node will perform the final delivery to node C at the end of round 3?\n\n* **d)** What will the calculated cost be to send a message between A and C at the end of round 4?\n\n* **e)** During which round does node E become reachable from node A?", "topic": "Routing Algorithms", "topicColour": "#1d4ed8", "topicBg": "#dbeafe", "sourceLabel": "2022 Exam Q10", "isCurrent": false, "studyStatus": "Study"}, {"id": 10, "year": "2022", "paper": "Exam", "number": 11, "marks": "", "text": "Assume that IPv6 addresses that start with the prefix fd00::/8 are deemed to be \"private\" addresses.\n\n* **a)** Briefly, but clearly, describe the bit pattern that would identify an address as an IPv6 private address.\n\n\n* **b)** The next part of such an address is a 40-bit random number for uniqueness. In what sense is such an address unique?\n\n* **c)** What is the intended use of the 16-bit subnet field that follows?\n\n* **d)** Given the inclusion of the subnet field, what is the expected length of the routing prefix of such a 'private' address (in bits)?\n\n* **e)** The maximum number of hosts that may be addressed with such a private address is about 10^z. What is the value of z?\n\n* **f)** Consider the address prefix fc00::/7. Do private addresses (as defined above) fit in the block defined by this prefix? Briefly justify your answer.\n\n* **g)** Is an address with the prefix fe00::/8 a valid private address (as defined above)?", "topic": "IP Addressing & Subnetting", "topicColour": "#7c3aed", "topicBg": "#ede9fe", "sourceLabel": "2022 Exam Q11", "isCurrent": false, "studyStatus": "Study"}, {"id": 11, "year": "2022", "paper": "ST2", "number": 2, "marks": "", "text": "* Name any five (5) fields in a TCP header, excluding the Flags field, as well as excluding any specific flags that may occur in the Flags field.", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2022 ST2 Q2", "isCurrent": false, "studyStatus": "Study"}, {"id": 12, "year": "2022", "paper": "ST2", "number": 3, "marks": "", "text": "The 'code point' (or sequence number) of a Unicode character is written as 'U+' (to indicate that it is a Unicode code point), followed by the code of the character in hexadecimal. The Latin Capital letter Z is, for example, represented as U+005A. When UTF-8 representation is used, the shortest possible sequence of bytes will be used-hence the leading byte will never encode a 0 (except for the null character).\n\n* **a)** Translate the following characters to UTF-8. In other words, provide the sequence of bytes (in hexadecimal) that would represent the character in UTF-8.\n* (i) The Cyrillic capital letter A (U+0410)\n* (ii) The Anchor Emoji (U+2693)\n\n\n* **b)** Consider the following string encoded in UTF-8: F0 9F 96 A7 F0 9F 92 A9. Which Unicode code points does this string represent?", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2022 ST2 Q3", "isCurrent": false, "studyStatus": "Study"}, {"id": 13, "year": "2022", "paper": "ST2", "number": 4, "marks": "", "text": "Unlike other IPv4 addresses the so-called class E IPv4 addresses all start with the bit pattern 1111, that are followed by 28 other bits. These class E addresses have been reserved for future use. Suppose IANA decides the future is now. These class E addresses are to be distributed as blocks of routable addresses amongst the five regional Internet registries. In alphabetic order, AfriNIC is the first of the five and RIPE the last of the five. IANA decides to number them from 0 to 4. In this sequence APNIC is therefore number 1, ARIN number 2 and LACNIC number 3. The division occurs exactly like subnetting with the proviso that each of these registries will get the largest possible block of addresses (with all blocks being of equal size). The numbers provided above serve as the number of the 'subnet' for each block.\n\n* a) What is the network address of this class E address (in CIDR notation) before it is divided?\n* b) What is the network address of the block assigned to LACNIC? Provide your answer in CIDR notation.\n* c) ARIN decides it will split its block into at least 100 blocks (of the same size) that are as large as possible. While it will end up with more than 100 blocks, the last of these 100 (numbered 99) is allocated to an ISP called Acme. What is Acme's network address (in CIDR)?\n* d) Acme decides to split its block into network addresses that would enable a customer to address more than 1000, but less than 2000 hosts. This effectively subnets Acme's block, with subnets numbered from 0. What is the network address that is based on Acme's subnet number 99? Provide your answer in CIDR notation.\n* e) The customer who obtains this 'Acme subnet 99' convinces Acme to provide it with a supernet that includes 'Acme subnet 99' but allows them to address at least 3000, but not more than 5000 hosts. What is the network address of this supernet (in CIDR notation)?", "topic": "IP Addressing & Subnetting", "topicColour": "#7c3aed", "topicBg": "#ede9fe", "sourceLabel": "2022 ST2 Q4", "isCurrent": false, "studyStatus": "Study"}, {"id": 14, "year": "2023", "paper": "ST1", "number": 2, "marks": "", "text": "*Consider the SMTP protocol.*\n\n**a)** If SMTP server X forwards a message to SMTP server Y, which well-known port will Y typically use? **(1)**\n\n**b)** Suppose a client wants to send an email to `u@xx.co.za`. What message will be sent to the SMTP server to instruct the server to do so? **(1)**\n\n**c)** An email to be transferred via SMTP will usually consist of a header and a body, as specified in RFC822. What separates the header from the body? **(1)**\n\n**d)** The `data` message is used to indicate that the email itself would be sent next. What does the client send to the server to indicate that it has transmitted the entire message? Use words to describe this 'token' that signifies the end of the message. **(1)**\n\n**e)** Is it possible to send an email to someone where the email includes a full stop on a line of its own? (Yes/No). **(1)**\n\n**[5]**\n\n---", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2023 ST1 Q2", "isCurrent": false, "studyStatus": "Study"}, {"id": 15, "year": "2023", "paper": "ST1", "number": 3, "marks": "", "text": "*Consider the Telnet protocol.*\n\n**a)** What is the intended purpose of Telnet? Provide your answer as a descriptive phrase, rather than stating that it enables one to execute commands on remote computers. **(1)**\n\n**b)** Which well-known port is typically used by a Telnet server? **(1)**\n\n**c)** Suppose you are using a Telnet server. The outputs of your commands are displayed correctly. However, whenever you type something at the client, you cannot see what you are typing. Which property should you adjust at the client to rectify the problem? **(1)**\n\n**d)** Suppose you want to use the Telnet client to interact with `www.example.com` using manually entered HTTP commands. Provide the full command you will enter on the command-line interface to open the connection. **(1)**\n\n**e)** When opening a Telnet connection, the Telnet client displays a character combination that one may enter to open the Telnet console. (This is often `^]`.) What is this sequence called by the client? **(1)**\n\n**[5]**\n\n---", "topic": "Application Protocols", "topicColour": "#16a34a", "topicBg": "#dcfce7", "sourceLabel": "2023 ST1 Q3", "isCurrent": false, "studyStatus": "Study"}, {"id": 16, "year": "2023", "paper": "ST1", "number": 4, "marks": "", "text": "*The data link layer is used to logically connect two neighbouring nodes in a network to one another.*\n\n**a)** Name the three primary functions of the data link layer. **(3)**\n\n**b)** Name one example of a data link layer protocol. **(1)**\n\n**c)** Network layers are supposed to be independent, but this is often not possible. Provide an example of how layer 1 may impact on one of the three functions you named at question (a). **(1)**\n\n**[5]**\n\n---", "topic": "Data Link Layer", "topicColour": "#0f766e", "topicBg": "#ccfbf1", "sourceLabel": "2023 ST1 Q4", "isCurrent": false, "studyStatus": "Study"}, {"id": 17, "year": "2023", "paper": "ST1", "number": 5, "marks": "", "text": "*On the answer sheet you will find a partial zone file for `xx.co.za`. You are expected to add resource records to it to enable the server to provide the answers described below. (Note that you will not repeat `xx.co.za` in any of your answers, because it is known that this zone file deals with `xx.co.za`.)*\n\n**a)** The IP address of `www.xx.co.za` is 10.9.8.7. **(1)**\n\n**b)** Any traffic addressed to `yy.xx.co.za` should be sent to `xx.org.za`. **(1)**\n\n**c)** Mail to any mailbox in `xx.co.za` should preferably be sent to 192.168.1.1. **(1)**\n\n**d)** If 192.168.1.1 is down, mail to any mailbox in `xx.co.za` should be sent to 192.168.99.99. **(1)**\n\n**e)** 172.16.16.16 is a name server for `xx.co.za`. **(1)**\n\n**[5]**\n\n---\n\n**TOTAL: [40]**\n\n---\n\n---\n\n# MEMO - Paper 1 (13 March 2023)", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2023 ST1 Q5", "isCurrent": false, "studyStatus": "Study"}, {"id": 18, "year": "2023", "paper": "ST2", "number": 2, "marks": "", "text": "*Consider the following IP addressing scenario.*\n\nYour organisation uses the following IP address as part of the block assigned to them: **170.170.170/16**.\n\nThey decide to subnet their address space such that they have at least 1000 subnets that can each handle at least 60 hosts.\n\n**a)** What netmask will they use for the subnets? **(1)**\n\n**b)** Consider *subnet* number 170. What is the network address of this subnet? Express it using CIDR notation. **(2)**\n\n**c)** What is the broadcast address of subnet 170? **(1)**\n\n**d)** What is the last (or 'biggest') address that may be assigned to a host on subnet 170? **(1)**\n\n**e)** On which subnet will the host with the IP address 170.170.170 be? Just provide the number of the subnet. **(1)**\n\nThe organisation decides that it needs a bigger subnet in the laboratory where 170.170.170.170 is located. They decide to combine a number of subnets into a supernet that can handle at least 1000 hosts. However, they want to sacrifice as few subnets as possible to create this supernet.\n\n**f)** Provide the netmask associated with this supernet. **(1)**\n\n**g)** Provide the network address of this supernet using CIDR notation. **(1)**\n\n**h)** What is the *number* of the first subnet that will be lost once this supernet has been created? **(1)**\n\n**[10]**\n\n---", "topic": "IP Addressing & Subnetting", "topicColour": "#7c3aed", "topicBg": "#ede9fe", "sourceLabel": "2023 ST2 Q2", "isCurrent": false, "studyStatus": "Study"}, {"id": 19, "year": "2023", "paper": "ST2", "number": 3, "marks": "", "text": "**a)** Consider the following UTF-8 byte sequence:\n```\nE1 A1 80 41 EF A4 9A\n```\nConvert this sequence to Unicode codepoints in the form U+xxxx.\n\n*Note that the answer sheet contains more open blocks than what you need. Just place a dash in blocks that are not necessary.* **(5)**\n\n**b)** Consider the following Unicode codepoints:\n```\nU+00C6  U+10000\n```\nConvert this sequence to a UTF-8 byte sequence where each byte is represented in hexadecimal.\n\n*Note that the answer sheet contains more open blocks than what you need. Just place a dash in blocks that are not necessary.* **(5)**\n\n**[5]** *(combined mark)*\n\n---", "topic": "Encoding & Presentation", "topicColour": "#dc2626", "topicBg": "#fee2e2", "sourceLabel": "2023 ST2 Q3", "isCurrent": false, "studyStatus": "Study"}, {"id": 20, "year": "2023", "paper": "ST2", "number": 4, "marks": "", "text": "The TCP header includes a flags field that consists of various flags. Name any five (5) *other* fields that occur in the TCP header. **(5)**\n\n---", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2023 ST2 Q4", "isCurrent": false, "studyStatus": "Study"}, {"id": 21, "year": "2023", "paper": "ST2", "number": 5, "marks": "", "text": "Node A is busy communicating with node B via a TCP connection. At some time *t* the next byte that A will send is byte number 300. The next byte that B will send is byte number 500. The window size at A is 1000. The window size at B is 100. At time *t*, both A and B have successfully received all previous messages sent by its counterpart.\n\nAt time *t* + 1 A wants to send 200 bytes to node B. Call the message that A actually sends *m*₁.\n\nAt time *t* + 2 B consumes 100 bytes from its buffer.\n\nAt time *t* + 3 B sends a message containing 50 bytes to A. Let us call this message *m*₃.\n\nAt time *t* + 4 A sends a message to B to acknowledge receipt of *m*₃. A also includes all residual data it may have to send. Let us call this message *m*₄.\n\nAt time *t* + 5 B sends an empty acknowledgement message to A to acknowledge *m*₄. Let us call this acknowledgement message *m*₅.\n\n**a)** What is the sequence number included with *m*₁? **(1)**\n\n**b)** What is the acknowledgement number included with *m*₁? **(1)**\n\n**c)** What is the length of *m*₄? **(1)**\n\n**d)** What is the window advertisement included with *m*₄? **(1)**\n\n**e)** What is the window advertisement included with *m*₅? **(1)**\n\n**[5]**\n\n---\n\n**TOTAL: [50]**\n\n---\n\n---\n\n# MEMO - Paper 2 (15 May 2023)", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2023 ST2 Q5", "isCurrent": false, "studyStatus": "Study"}, {"id": 22, "year": "2023", "paper": "Exam", "number": 2, "marks": "", "text": "*Assume you receive the following 8-bit characters encoded with a single bit correction Hamming code. Bits are numbered from right to left and even parity is used. In each case say which bit has changed (in the range 1-12). If no bit has changed, simply write 0 on your answer sheet.*\n\n**a)** `000000000110` **(2)**\n\n**b)** `101000000110` **(2)**\n\n**c)** `011100110010` **(2)**\n\n*Also answer the following questions about Hamming codes:*\n\n**d)** How many parity bits need to be added to create a code that would provide single bit correction for 12 data bits? **(2)**\n\n**e)** Consider a single-bit Hamming code capable of correcting single bit error that results in 20-bit messages. How many of those 20 bits would be data bits? **(2)**\n\n**[10]**\n\n---", "topic": "Encoding & Presentation", "topicColour": "#dc2626", "topicBg": "#fee2e2", "sourceLabel": "2023 Exam Q2", "isCurrent": false, "studyStatus": "Study"}, {"id": 23, "year": "2023", "paper": "Exam", "number": 3, "marks": "", "text": "*Dijkstra's algorithm has been used to calculate the cheapest routes from node A. Complete the table by writing the values that have been omitted (and indicated with lowercase letters in brackets) on your answer sheet. Question marks also indicate values that have been omitted but you do not have to supply those values.*\n\n```\nGraph:\n\n        B ---1--- C\n       /|          \\\n      3 |           1\n     /  9            \\\n    A   |             D\n     \\  |            /\n     17 |          4\n       \\|          /\n        F ---12--- I ---11--- E\n             |\n             (also: A-F = 17, B-F = 9, C-D = 1, D-E = 4, B-C = 1, A-B = 3)\n```\n\n| Step | S | W | X | B | C | D | E | F | Prior B | Prior C | Prior D | Prior E | Prior F |\n|------|---|---|---|---|---|---|---|---|---------|---------|---------|---------|---------|\n| 1 | A | ? | B | 3 | ∞ | ∞ | (a) | 17 | A | - | - | - | A |\n| 2 | A, B | ? | C | 3 | 4 | 11 | ∞ | 15 | A | B | A | - | B |\n| 3 | ? | ? | C | 3 | 4 | (b) | (c) | 15 | A | B | ? | - | B |\n| 4 | ? | ? | ? | 3 | 4 | ? | 9 | 15 | A | B | ? | D | B |\n| 5 | ? | ? | ? | 3 | 4 | ? | 9 | (d) | A | B | C | D | (e) |\n\n**[5]**\n\n---", "topic": "Routing Algorithms", "topicColour": "#1d4ed8", "topicBg": "#dbeafe", "sourceLabel": "2023 Exam Q3", "isCurrent": false, "studyStatus": "Study"}, {"id": 24, "year": "2023", "paper": "Exam", "number": 4, "marks": "", "text": "*Suppose a network uses the Bellman-Ford algorithm to perform routing. At some time t₀ the routing tables at routers C, D and E contain the information provided below. Each routing table consists of three columns: destination, cost, and the next hop to achieve delivery at the indicated cost.*\n\n**Node C's routing table:**\n\n| Destination | Cost | Next |\n|-------------|------|------|\n| A | 9 | B |\n| B | 2 | B |\n| C | 3 | C |\n| B | 2 | B |\n| D | 3 | D |\n\n**Node D's routing table:**\n\n| Destination | Cost | Next |\n|-------------|------|------|\n| A | 20 | E |\n| B | 3 | C |\n| E | 4 | E |\n| G | 8 | E |\n\n**Node E's routing table:**\n\n| Destination | Cost | Next |\n|-------------|------|------|\n| A | 6 | F |\n| B | 2 | E |\n| D | 4 | D |\n| F | 5 | F |\n\n*The only exchanges of routing tables that occur during the time period of interest are the following: At time t₁ > t₀ node C sends its routing table to node D. At time t₂ > t₁ node E sends its routing table to node D.*\n\n**a)** What will the entry for destination A be in node D's routing table, after receiving (and processing) the routing table from node C (but prior to t₂)? **(1)**\n\n**b)** What will the entry for destination B be in node D's routing table, after receiving (and processing) the routing table from node C (but prior to t₂)? **(1)**\n\n**c)** What will the entry for destination C be in node D's routing table, after receiving (and processing) the routing table from node C (but prior to t₂)? **(1)**\n\n**d)** What will the entry for destination A be in node D's routing table, after receiving (and processing) the routing table from node E? **(1)**\n\n**e)** What will the entry for destination B be in node D's routing table, after receiving (and processing) the routing table from node E? **(1)**\n\n**[5]**\n\n---", "topic": "Routing Algorithms", "topicColour": "#1d4ed8", "topicBg": "#dbeafe", "sourceLabel": "2023 Exam Q4", "isCurrent": false, "studyStatus": "Study"}, {"id": 25, "year": "2023", "paper": "Exam", "number": 5, "marks": "", "text": "*Consider the following zone files at various DNS servers. Assume that records and fields that are not shown (such as SOA records) are not material.*\n\n*(Zone files 2 through 10 are shown, with node 9 as the root name server.)*\n\n*Perform recursive name resolutions for the following FQDNs, for the query provided. If the FQDN is preceded by an NS, you should perform an NS query. If the FQDN is preceded by an A, you should perform an A query. Write the address found (as a single number), or write N/A if the query cannot be resolved with the information provided.*\n\n**a)** NS b.a **(1)**\n\n**b)** A b.a **(1)**\n\n**c)** NS a.a.a **(1)**\n\n**d)** A a.a.a **(1)**\n\n**e)** NS a.b **(1)**\n\n**f)** A b.a.b **(1)**\n\n*Now insert resource records in the appropriate zone files to achieve the goals set out in the questions below. If you, for example, want to insert an NS record of the form `c NS 7` at node 5, simply write \"At: 5; c NS 7\".*\n\n**g)** Mail to b.a should be delivered to address 10. You are *not* allowed to add a record to node 3, 6 or 9 to achieve this. **(1)**\n\n**h)** If node 10 is unavailable, mail to b.a should be delivered to address 15. You are *not* allowed to add a record to node 3, 6 or 9 to achieve this. **(1)**\n\n**i)** c.a.a should be an alias for b.a.b. **(1)**\n\n**j)** The IPv6 address of a.a.b is `2001::2001`. **(1)**\n\n**[10]**\n\n---", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2023 Exam Q5", "isCurrent": false, "studyStatus": "Study"}, {"id": 26, "year": "2023", "paper": "Exam", "number": 6, "marks": "", "text": "**a)** Consider the following UTF-8 byte sequence:\n```\nD0 A3 D0 BA D1 60\n```\nConvert this sequence to Unicode codepoints in the form U+xxxx.\n\n*Note that the answer sheet contains more open blocks than what you need. Just place a dash in blocks that are not necessary.* **(5)**\n\n**b)** Consider the following Unicode codepoints:\n```\nU+1F64F  U+00A1\n```\nConvert this sequence to a UTF-8 byte sequence where each byte is represented in hexadecimal.\n\n*Note that the answer sheet contains more open blocks than what you need. Just place a dash in blocks that are not necessary.* **(5)**\n\n**[5]** *(combined mark)*\n\n---", "topic": "Encoding & Presentation", "topicColour": "#dc2626", "topicBg": "#fee2e2", "sourceLabel": "2023 Exam Q6", "isCurrent": false, "studyStatus": "Study"}, {"id": 27, "year": "2023", "paper": "Exam", "number": 7, "marks": "", "text": "*Suppose nodes A and B want to communicate using TCP. Three messages are sent to establish the connection; refer to these messages as m₁, m₂ and m₃. Assume sequence numbers start at 0.*\n\n**a)** Name a flag that will be set in the header of *m*₁. **(1)**\n\n**b)** Name two flags that will be set in the header of *m*₂. **(1)**\n\n**c)** What is the acknowledgement value of *m*₁? **(1)**\n\n**d)** What is the acknowledgement value of *m*₂? **(1)**\n\n**e)** What is the acknowledgement value of *m*₃? **(1)**\n\n**[5]**\n\n---", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2023 Exam Q7", "isCurrent": false, "studyStatus": "Study"}, {"id": 28, "year": "2023", "paper": "Exam", "number": 8, "marks": "", "text": "*Your organisation uses the following IP address as part of the block assigned to them:*\n**204.204.204/16**\n\n*They decide to subnet their address space such that they have at least 2000 subnets that can each handle at least 30 hosts.*\n\n**a)** What netmask will they use for the subnets? **(1)**\n\n**b)** Consider *subnet* number 204. What is the network address of this subnet? Express it using CIDR notation. **(2)**\n\n**c)** What is the broadcast address of subnet 204? **(1)**\n\n**d)** What is the last (or 'biggest') address that may be assigned to a host on subnet 85? **(1)**\n\n**e)** On which subnet will the host with the IP address 204.204.204.204 be? Just provide the number of the subnet. **(1)**\n\n*The organisation decides that it needs a much bigger subnet in the laboratory where 204.204.204.204 is located. They decide to combine a number of subnets into a supernet that can handle at least 4000 hosts. However, they want to sacrifice as few subnets as possible to create this supernet.*\n\n**f)** Provide the netmask associated with this supernet. **(1)**\n\n**g)** Provide the network address of this supernet using CIDR notation. **(2)**\n\n**h)** When using this supernet, it is possible to address more hosts than would have been possible using the subnets that have been sacrificed to create the supernet. How many more? **(1)**\n\n**[10]**\n\n---\n\n**TOTAL: [100]**\n\n---\n\n---\n\n# MEMO - Paper 3 (21 July 2023)", "topic": "IP Addressing & Subnetting", "topicColour": "#7c3aed", "topicBg": "#ede9fe", "sourceLabel": "2023 Exam Q8", "isCurrent": false, "studyStatus": "Study"}, {"id": 29, "year": "2024", "paper": "ST1", "number": 2, "marks": "5", "text": "As a message moves down the protocol stack, headers are typically added on each layer and then interpreted and removed by the peer layer. The headers that are thus added consist of various fields. For this question you are expected to provide one example of a field that may be added on the indicated layer. Remember to include \"source\" or \"destination\" as part of the field name where appropriate.\n\nThe header added for the application layer obviously depends on the specific application layer protocol. Assume HTTP is used; a request is sent from a browser to a server. Just provide a name for any header field, rather than a complete line from the header.\n\nProvide one field for each of the following layers:\n\n- 7\n- 6\n- 4\n- 3\n- 2\n\n---", "topic": "Application Protocols", "topicColour": "#16a34a", "topicBg": "#dcfce7", "sourceLabel": "2024 ST1 Q2", "isCurrent": false, "studyStatus": "Study"}, {"id": 30, "year": "2024", "paper": "ST1", "number": 3, "marks": "5", "text": "At the time of setting this paper, the IP address of `xx.co.za` was `41.203.18.59`.\n\n### a)\nProvide a command that, when entered on the CLI of a typical modern operating system, will determine the current IP address of `xx.co.za`.\n\n### b)\nName a FQDN that would provide ownership information of a domain such as `xx.co.za`, unless the ownership information has been redacted. The FQDN should exist and use domain name hacking.\n\n### c)\nWhich type of organisation stores ownership information of domains such as `xx.co.za`?\n\n### d)\nWhich type of organisation stores ownership information of IP addresses, such as `41.203.18.59`?\n\n**Note:** An ISP owns the address; hence the question is where information about such an owning ISP is stored.\n\n### e)\nAssuming `41.203.18.59` is located in South Africa, name the organisation where WHOIS details of `41.203.18.59` can be obtained.\n\n---", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2024 ST1 Q3", "isCurrent": false, "studyStatus": "Study"}, {"id": 31, "year": "2024", "paper": "ST1", "number": 4, "marks": "5", "text": "Consider the Telnet protocol.\n\n### a)\nWhat is the intended purpose of Telnet? Provide your answer as a descriptive phrase, rather than stating that it enables one to execute commands on remote computers.\n\n### b)\nWhich well-known port is typically used by a Telnet server?\n\n### c)\nSuppose you are using a Telnet server. The outputs of your commands are displayed correctly. However, whenever you type something at the client, you cannot see what you are typing. Which property should you adjust at the client to rectify the problem?\n\n### d)\nSuppose you want to use the Telnet client to interact with `www.example.com` using manually entered HTTP commands. Provide the full command you will enter on the command-line interface to open the connection.\n\n### e)\nWhen opening a Telnet connection, the Telnet client displays a character combination that one may enter to open the Telnet console. This is often `^]`. What is this sequence called by the client?\n\n---", "topic": "Application Protocols", "topicColour": "#16a34a", "topicBg": "#dcfce7", "sourceLabel": "2024 ST1 Q4", "isCurrent": false, "studyStatus": "Study"}, {"id": 32, "year": "2024", "paper": "ST1", "number": 5, "marks": "6", "text": "Consider the following zone files at various DNS servers. Assume that records and fields that are not shown, such as SOA records, are not material.\n\n| Server | Records |\n|---|---|\n| 2 | `a A 11`<br>`b A 7`<br>`a NS 4`<br>`b NS 6` |\n| 3 | `a A 13`<br>`b A 10`<br>`a NS 2`<br>`b NS 5` |\n| 4 | `a A 14`<br>`b A 15`<br>`a NS 2`<br>`b NS 5` |\n| 5 | `a A 3`<br>`b A 5`<br>`a NS 9`<br>`b NS 2` |\n| 9 | `a A 4`<br>`b A 3`<br>`a NS 3`<br>`b NS 4` |\n| 10 | `a A 8`<br>`b A 12`<br>`a NS 3`<br>`b NS 5` |\n\nNote that these files break some of the rules for zone files; the root name server, for example, contains A resource records. A number of entries create cycles. However, these issues are not material for the questions that follow. The number in bold at the top of each table is the address of the node on which that zone file occurs.\n\n**Node 5 is the root name server.**\n\nPerform recursive name resolutions for the following FQDNs, for the query provided. If the FQDN is preceded by an `NS`, you should perform an NS query. If the FQDN is preceded by an `A`, you should perform an A query. Write the address found as a single number, or write `N/A` if the query cannot be resolved with the information provided.\n\n### a)\n`NS b.a`\n\n### b)\n`A b.a`\n\n### c)\n`NS a.a.a`\n\n### d)\n`A a.a.a`\n\n### e)\n`NS a.b`\n\n### f)\n`A b.a.b`\n\n---\n\n**Total: 40 marks**\n\n**End of paper**", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2024 ST1 Q5", "isCurrent": false, "studyStatus": "Study"}, {"id": 33, "year": "2024", "paper": "ST2", "number": 2, "marks": "", "text": "You receive a sequence of bytes that are supposed to be UTF-8 encoded. However, some bytes have been lost during transmission. You are expected to recover all the characters that can be extracted. Where a sequence of one or more bytes does not constitute a character, you have to indicate it using an `X`. Use the form `U+xxxx` to represent the Unicode characters. Suppose you find five subsequences in the sequence where subsequence 1, 2 and 4 are valid Unicode characters, but subsequence 3 and 5 are not, then your answer may look as follows: `1) U+0001 2) U+0002 3) X 4) U+0009 5) X`. Note that more spaces may have been provided on the answer sheet than actual subsequences of characters.\n\nThe byte sequence to process is the following:\n\n```text\n41 D7 90 EF BA 5E\n91 D0 90 D0 F0 9F\n98 80 F0 90 A4 80\nF0 90 8E A0 5A 87\n```\n\n**[5]**\n\n---", "topic": "Encoding & Presentation", "topicColour": "#dc2626", "topicBg": "#fee2e2", "sourceLabel": "2024 ST2 Q2", "isCurrent": false, "studyStatus": "Study"}, {"id": 34, "year": "2024", "paper": "ST2", "number": 3, "marks": "", "text": "Node A is busy communicating with node B via a TCP connection. At some time `t` the next byte that A will send is byte number 300. The next byte that B will send is byte number 500. The window size at A is 1000. The window size at B is 100. At time `t`, both A and B have successfully received all previous messages sent by its counterpart.\n\nAt time `t + 1` A wants to send 300 bytes to node B. Call the message that A actually sends `m2`.\n\nAt time `t + 2` B consumes 200 bytes from its buffer.\n\nAt time `t + 3` B sends a message containing 50 bytes to A. Let us call this message `m3`.\n\nAt time `t + 4` A sends a message to B to acknowledge receipt of `m3`. A also includes all residual data it may have to send. Let us call this message `m4`.\n\nAt time `t + 5` B sends an empty acknowledgement message to A to acknowledge `m4`. Let us call this acknowledgement message `m5`.\n\n### a)\nWhat is the sequence number included with `m2`?\n\n### b)\nWhat is the acknowledgement number included with `m4`?\n\n### c)\nWhat is the length of `m4`?\n\n### d)\nWhat is the window advertisement included with `m4`?\n\n### e)\nWhat is the window advertisement included with `m5`?\n\n**[5]**\n\n---", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2024 ST2 Q3", "isCurrent": false, "studyStatus": "Study"}, {"id": 35, "year": "2024", "paper": "ST2", "number": 4, "marks": "", "text": "Briefly define or describe the following terms:\n\n### a)\nTCP slow start\n\n### b)\nTCP acknowledgement timer\n\n### c)\nRound trip time\n\n### d)\nMiddlebox, especially in the context of layer 4\n\n### e)\nProtocol ossification\n\n**[5]**\n\n---", "topic": "Routing Algorithms", "topicColour": "#1d4ed8", "topicBg": "#dbeafe", "sourceLabel": "2024 ST2 Q4", "isCurrent": false, "studyStatus": "Study"}, {"id": 36, "year": "2024", "paper": "ST2", "number": 5, "marks": "", "text": "Assume that the costs between nodes of a network are as follows:\n\n```text\nA-E: 2    D-E: 5\nB-E: 1    D-F: 1\nB-G: 1    E-F: 10\nC-F: 5\n```\n\nUse Dijkstra's algorithm to determine the routes from A.\n\nUse the notation used in this module to show your calculations, in the table provided on the answer sheet.\n\n**[10]**\n\n---\n\n**TOTAL: [50]**\n\n**END OF PAPER**", "topic": "Routing Algorithms", "topicColour": "#1d4ed8", "topicBg": "#dbeafe", "sourceLabel": "2024 ST2 Q5", "isCurrent": false, "studyStatus": "Study"}, {"id": 37, "year": "2024", "paper": "Exam", "number": 2, "marks": "5", "text": "Provide the following commands/requests that a client would send to a server. Case is not important, but punctuation is. Where the command/request consists of more than one line, you only have to provide the first line of the request.\n\n1. A POP3 client tells the server it wants to download message 5 from the server. (1)\n2. An SMTP client informs the server that the destination address of an email is `d@xx.co.za`. (1)\n3. An SMTP client informs the server that it is about to send the email, consisting of the email headers and email body, to the server. (1)\n4. An HTTP client requests the default/start page from a server. It uses version 1.1 of HTTP. The name of this start page is not known. It may, for example, be `index.html`, but it may also be almost anything else. (1)\n5. An FTP client instructs a server to use passive mode. (1)\n\n---", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2024 Exam Q2", "isCurrent": false, "studyStatus": "Study"}, {"id": 38, "year": "2024", "paper": "Exam", "number": 3, "marks": "5", "text": "In the following table Dijkstra's algorithm was used to calculate the cheapest routes from node A. Complete the table by writing the values that have been omitted, and indicated with lowercase letters in brackets, on your answer sheet. Question marks also indicate values that have been omitted but you do not have to supply those values.\n\n### Network\n\nEdges shown in the diagram:\n\n```text\nA-B: 2\nA-D: 12\nA-F: 13\nB-C: 10\nB-D: 9\nB-F: 8\nC-D: 0\nD-E: 4\nE-F: 1\n```\n\n### Table\n\n| Step | S | W | X | Cost B | Cost C | Cost D | Cost E | Cost F | Prior B | Prior C | Prior D | Prior E | Prior F |\n|---|---|---|---|---:|---:|---:|---:|---:|---|---|---|---|---|\n| 1 | A | ? | B | 2 | ∞ | ? | ∞ | 13 | A | - | A | - | A |\n| 2 | A, B | ? | ? | 2 | (a) | (b) | ∞ | 10 | A | ? | B | - | B |\n| 3 | ? | ? | ? | 2 | ? | ? | ? | (c) | A | ? | B | ? | B |\n| 4 | ? | ? | ? | 2 | ? | ? | ? | 10 | A | (d) | B | ? | B |\n| 5 | ? | ? | ? | 2 | (e) | ? | ? | 10 | A | ? | B | ? | B |\n\n---", "topic": "Routing Algorithms", "topicColour": "#1d4ed8", "topicBg": "#dbeafe", "sourceLabel": "2024 Exam Q3", "isCurrent": false, "studyStatus": "Study"}, {"id": 39, "year": "2024", "paper": "Exam", "number": 4, "marks": "5", "text": "Suppose a network uses the Bellman-Ford algorithm to perform routing. At some time `t0` the routing tables at routers C, D and E contain the information provided below. Each routing table consists of three columns: destination, cost, and the next hop to achieve delivery at the indicated cost.\n\n```text\nNode C              Node D              Node E\nA  7  B             A  20 E             A  6  F\nB  1  B             C  3  C             B  1  F\nD  3  D             E  2  E             D  2  D\nF  2  B             F  7  E             F  4  F\n```\n\nThe only exchanges of routing tables that occur during the time period of interest are the following: At time `t1 > t0` node C sends its routing table to node D. At time `t2 > t1`, node E sends its routing table to node D.\n\n1. What will the entry for destination A be in node D's routing table, after receiving and processing the routing table from node C, but prior to `t2`? (1)\n2. What will the entry for destination B be in node D's routing table, after receiving and processing the routing table from node C, but prior to `t2`? (1)\n3. What will the entry for destination A be in node D's routing table, after receiving and processing the routing table from node E? (1)\n4. What will the entry for destination B be in node D's routing table, after receiving and processing the routing table from node E? (1)\n5. What will the entry for destination F be in node D's routing table, after receiving and processing the routing table from node E? (1)\n\n---", "topic": "Routing Algorithms", "topicColour": "#1d4ed8", "topicBg": "#dbeafe", "sourceLabel": "2024 Exam Q4", "isCurrent": false, "studyStatus": "Study"}, {"id": 40, "year": "2024", "paper": "Exam", "number": 5, "marks": "10", "text": "Assume computer addresses consist of single digits. Consider the following zone files at various DNS servers. Assume that records and fields that are not shown, such as SOA records, are not material. Node 1 is the root name server.\n\n> The scan contains a table of zone files at nodes 1 to 6. Use the zone-file table from the paper when answering the questions below.\n\nPerform recursive name resolutions for the following FQDNs. Each line starts with the query that should be performed for the FQDN, A, NS or MX. Name resolution will lead to an address, which, as stated, will consist of a single digit. Write this digit on your answer sheet. If the query cannot be resolved with the information provided, write `N/A` on your answer sheet.\n\n1. `NS b.a` (1)\n2. `A b.a` (1)\n3. `MX b.a` (1)\n4. `NS a.a.a` (1)\n5. `MX a.a.a` (1)\n6. `A b.a.b` (1)\n\nNow insert resource records in the appropriate zone files to achieve the goals set out in the questions below. If you, for example, want to insert an NS record of the form `c NS 7` at node 5, simply write `At 5: c NS 7`. Note that more than one answer may be correct. Provide only one correct answer for each question.\n\n7. Mail to `b.a` should be delivered to address 9. Consider question (h) and any relevant pre-existing RR entry before answering this question. (1)\n8. If node 9 is unavailable, mail to `b.a` should be delivered to address 8. Consider question (g) and any relevant pre-existing RR entry before answering this question. (1)\n9. `c.a.a` should be an alias for `b.a.b`. (1)\n10. The IPv6 address of `a.a.b` is `2001::2001`. (1)\n\n---", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2024 Exam Q5", "isCurrent": false, "studyStatus": "Study"}, {"id": 41, "year": "2024", "paper": "Exam", "number": 6, "marks": "5", "text": "You receive a sequence of bytes that are supposed to be UTF-8 encoded. This sequence of bytes is provided below; it is one long sequence that has been split into several lines for the sake of readability. Unfortunately, some bytes have been lost during transmission. You are expected to recover all the characters that can be extracted. Where a sequence of one or more bytes does not constitute a character, you have to indicate it using an `X`. Use the form `U+xxxx` to represent the Unicode characters. Suppose you find five subsequences in the sequence where subsequence 1, 2 and 4 are valid Unicode characters, but subsequence 3 and 5 are not, then your answer may look as follows: `1) U+0001 2) U+0002 3) X 4) U+0009 5) X`. Note that more spaces may have been provided on the answer sheet than actual subsequences of characters.\n\nThe single byte sequence to process is the following:\n\n```text\nC9 90 E1 83 90 F0 9F\nA4 E2 9A 93 E1 E1 61\nA0 F0 9F 90 A0 F0 9F\n8C 8D F2 99 E1 80 80\n```\n\n---", "topic": "Encoding & Presentation", "topicColour": "#dc2626", "topicBg": "#fee2e2", "sourceLabel": "2024 Exam Q6", "isCurrent": false, "studyStatus": "Study"}, {"id": 42, "year": "2024", "paper": "Exam", "number": 7, "marks": "5", "text": "Two TCP nodes, A and B, are busy communicating. At some time A is ready to transmit byte 5000, has just received byte 3000, has a window of 2000 bytes and thinks that the window at B consists of 100 bytes.\n\nA wants to transmit 1000 bytes. It sends the largest segment possible. Provide the values that it places in the following header fields. Note that some fields may consist of components or be implied; you are expected to provide the \"logical\" value in terms of a byte count, rather than the actual way in which it may be represented in the TCP header.\n\n1. Sequence number\n2. Acknowledgement number\n3. Length\n4. Window advertisement\n5. SYN flag\n\n---", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2024 Exam Q7", "isCurrent": false, "studyStatus": "Study"}, {"id": 43, "year": "2024", "paper": "Exam", "number": 8, "marks": "10", "text": "Your organisation uses the following IP address as part of the block assigned to them:\n\n```text\n204.204.204.204/18\n```\n\nThey decide to subnet their address space such that they have at least 250 subnets that can each handle at least 50 hosts.\n\n1. What netmask will they use for the subnets? (1)\n2. Consider subnet number 204. What is the network address of this subnet? Express it using CIDR notation. (2)\n3. What is the broadcast address of subnet 204? (1)\n4. What is the last or \"biggest\" address that may be assigned to a host on subnet 85? (1)\n5. On which subnet will the host with the IP address `204.204.204.204` be? Just provide the number of the subnet. (1)\n\nThe organisation decides that it needs a much bigger subnet in the laboratory where `204.204.204.204` is located. They decide to combine a number of subnets into a supernet that can handle at least 2000 hosts. However, they want to sacrifice as few subnets as possible to create this supernet.\n\n6. Provide the netmask associated with this supernet. (1)\n7. Provide the network address of this supernet using CIDR notation. (2)\n8. When using this supernet, it is possible to address more hosts than would have been possible using the subnets that have been sacrificed to create the supernet. How many more? (1)\n\n---", "topic": "IP Addressing & Subnetting", "topicColour": "#7c3aed", "topicBg": "#ede9fe", "sourceLabel": "2024 Exam Q8", "isCurrent": false, "studyStatus": "Study"}, {"id": 44, "year": "2024", "paper": "Exam", "number": 9, "marks": "5", "text": "1. Which IPv4 header field makes it possible to implement the `traceroute` or `tracert` command? Name a header field that is intentionally set by this command, but has no special meaning to implement, say, the `ping` command. (1)\n2. Which ICMP message is typically used to implement the `traceroute` command, given the context of question (a)? Provide the name or number of the ICMP message. (1)\n3. Which ICMP request is sent by the client to perform a `ping` command? Provide the name or number of the ICMP command. (1)\n4. Which IPv4 addresses are reserved for link-local addresses? Provide the answer in CIDR notation. (1)\n5. Provide the IPv4 entry that is used as the destination in a routing table to identify the default gateway. Note that the question deals with the destination and not the next hop. Use CIDR notation to provide your answer. (1)\n\n---\n\n**Total:** 100", "topic": "Routing Algorithms", "topicColour": "#1d4ed8", "topicBg": "#dbeafe", "sourceLabel": "2024 Exam Q9", "isCurrent": false, "studyStatus": "Study"}, {"id": 45, "year": "2025", "paper": "ST1", "number": 2, "marks": "5", "text": "Fill in the blanks in the following paragraph by providing the missing words or phrases on your answer sheet:\n\nSam finds that the domain `xx.co.za` was not renewed and is available for registration. Sam approaches xneelo to register this domain, which xneelo does. In this scenario, xneelo acts as the **[a]** of the domain when they add the domain to the `co.za` registry. The `co.za` registry is operated by **[b]**.\n\nAfter registration, Sam performs a whois query for the domain on the registry; the addresses of three parties, who may be the same, are returned as a result. In sequence, the details of the **[c]**, as well as the information to contact the **[d]** and **[e]** \"departments\" associated with the domain. In this particular case, the latter two responses may provide contact details at xneelo.\n\nHowever, in recent years, the returned information is often of little use, since it is typically **[f]**. As an aside, the whois service is usually associated with port **[g]**.\n\nIt may also be possible to retrieve whois information from a URL that uses domain name hacking and which is available at `https://`**[h]**.\n\nGiven that the `xx.co.za` is in South Africa, it, like other South African domain names, has to abide by the general Internet policies, as well as policies imposed by **[i]**. Recall that `za.` is a **[j]** TLD.", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2025 ST1 Q2", "isCurrent": false, "studyStatus": "Study"}, {"id": 46, "year": "2025", "paper": "ST1", "number": 3, "marks": "5", "text": "Compile a zone file for a name server for the domain `xx.co.za`.\n\n- Do not include the SOA (Start of Authority) entry.\n- Only provide the other resource records (RRs) that are required based on the specification below.\n- Provide one RR per line on your answer sheet.\n- Omit the `IN` entry, used to indicate the record is for the Internet.\n- In most cases, a resource record will consist of a triple:  \n  `(name, type, value)`  \n  but note the few exceptions to this format and handle them correctly.\n\nSpecification:\n\n- `xx.co.za` exists as a single computer at address `41.203.18.59`.\n- It hosts a web server accessible via `https://xx.co.za`.\n- The same server is also accessible via `https://www.xx.co.za`, but the owner wants to avoid multiple RRs if the IP address changes.\n- The primary mail server: `ASPMX.L.GOOGLE.COM`.\n- The secondary mail server: `ALT1.ASPMX.L.GOOGLE.COM`.\n- The primary name server: `ns1.host-h.net`.\n- The secondary name server: `ns2.host-h.net`.\n- The domain has a subdomain `abc.xx.co.za`, which uses the same name servers as the main domain.\n- The IPv6 address of the computer is `2001::1234`.\n- The owner wants DNS to indicate that this machine is a Raspberry Pi.\n\nThe SOA record, which you are to omit, indicates that this zone file is for `xx.co.za`. Therefore, all names you include in the zone file will be interpreted as prefixes to `xx.co.za`, and must not include `xx.co.za` itself.\n\nLeave any unused lines blank.", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2025 ST1 Q3", "isCurrent": false, "studyStatus": "Study"}, {"id": 47, "year": "2025", "paper": "ST1", "number": 4, "marks": "5", "text": "Assume the costs to transmit packets in a network are as follows, regardless of direction:\n\n| Link | Cost |\n|---|---:|\n| A-B | 1 |\n| A-F | 10 |\n| B-C | 6 |\n| B-E | 1 |\n| C-D | 1 |\n| D-E | 3 |\n| E-F | 2 |\n\nYou are applying Dijkstra's algorithm to determine the cheapest routes from node A.\n\n- At the end of iteration 1, you determine that routing to neighbour B, at a cost of 1, is the cheapest alternative at this stage.\n- At the start of iteration 2, you add B to the set of finalised nodes, and then consider the neighbours of this updated set.\n\nAnswer the following questions based on your continued application of Dijkstra's algorithm:\n\n**a)** Which node is picked as the cheapest alternative at the end of iteration 3?\n\n**b)** After completing iteration 3, but before starting iteration 4, what is the cost to reach node C from node A?\n\n**c)** After completing iteration 3, but before starting iteration 4, which node will, at this stage, finally deliver a packet en route to node C?\n\n**d)** Which node is added to the set of finalised nodes at the end of iteration 4?\n\n**e)** After completing iteration 4, but before starting iteration 5, what is the cost to reach node C from node A?", "topic": "Routing Algorithms", "topicColour": "#1d4ed8", "topicBg": "#dbeafe", "sourceLabel": "2025 ST1 Q4", "isCurrent": false, "studyStatus": "Study"}, {"id": 48, "year": "2025", "paper": "ST1", "number": 5, "marks": "5", "text": "**a)** On Unix and Linux systems, BIND is a popular name server. What does the \"d\" in BIND stand for?\n\n**b)** Apache is a well-known server - particularly, but not solely, on Linux systems. Apache is typically deployed to handle a specific protocol. Name the protocol. If the protocol has encrypted and non-encrypted variants, name the variant that does not use encryption.\n\n**c)** What service does the Telnet protocol offer?\n\n**d)** When a DNS server converts a domain name to an IP address, the correct terminology would be that the server _____ the domain name.\n\n**e)** The Linux file `/etc/hosts` contains a list of pairs. Each pair consists of two entries separated by a space. The second entry is a name. What is the first entry of each pair?", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2025 ST1 Q5", "isCurrent": false, "studyStatus": "Study"}, {"id": 49, "year": "2025", "paper": "ST2", "number": 2, "marks": "10", "text": "All values in this question are expressed in hexadecimal notation.\n\nConvert the following Unicode characters to byte sequences. Represent byte sequences as 2-digit hexadecimal numbers with a space between all bytes. Your answers should resemble a format like: `12 bf 3a`.\n\n**a)** `U+1842`\n\n**b)** `U+10AD0`\n\n**c)** `U+2CA0`\n\nUTF-8 encoding is self-synchronising. Consider the following byte sequence, which is not a valid UTF-8 encoding:\n\n```text\n47 CE B5 C4 85 E1 80 AA E1 9C A0\nBA AD F0 90 8F 8C 57 73 E1 83 A8\n```\n\n**d)** Provide the first valid Unicode character that occurs in this sequence. Format: `U+xxxx`.\n\n**e)** Provide the second valid Unicode character that occurs in this sequence. Format: `U+xxxx`.\n\n**f)** Provide the subsequence of bytes that are invalid.\n\n**g)** Convert the bytes starting at the point where synchronisation is re-established, extract the first Unicode character formed. Format: `U+xxxx`.\n\n**h)** Provide the last valid Unicode character in this sequence. Format: `U+xxxx`.\n\nWe did not discuss UTF-16 and UTF-32 in detail, but UTF-16 represents Unicode characters using 16-bit words. UTF-32 uses 32-bit words. When represented as bytes, endianness matters: Big-endian means `1234 → 12 34`, and `12345678 → 12 34 56 78`. Use big-endian representations for the following:\n\n**i)** Represent `U+0048` in UTF-16 as a byte sequence.\n\n**ii)** Represent `U+0F40` in UTF-32 as a byte sequence.", "topic": "Encoding & Presentation", "topicColour": "#dc2626", "topicBg": "#fee2e2", "sourceLabel": "2025 ST2 Q2", "isCurrent": false, "studyStatus": "Study"}, {"id": 50, "year": "2025", "paper": "ST2", "number": 3, "marks": "5", "text": "Very briefly state what happens when the following TCP timers expire.\n\nKeep your answers short and precise. For example, if expiration of a timer causes a segment to be transmitted, simply state: A segment containing data is transmitted.\n\n**a)** Retransmission timer\n\n**b)** Acknowledgement timer\n\n**c)** Persistence timer\n\n**d)** Keepalive timer\n\n**e)** Quiet timer", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2025 ST2 Q3", "isCurrent": false, "studyStatus": "Study"}, {"id": 51, "year": "2025", "paper": "ST2", "number": 4, "marks": "5", "text": "TCP is a reliable protocol. List five mechanisms used by TCP to provide this reliability. Keep your answers brief; no explanation are required.", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2025 ST2 Q4", "isCurrent": false, "studyStatus": "Study"}, {"id": 52, "year": "2025", "paper": "ST2", "number": 5, "marks": "5", "text": "Answer the following questions about IPv4 addresses. Use CIDR notation for all your answers.\n\n**a)** Which IPv4 address is used in a routing table to indicate that the routing table entry points to the default gateway?\n\n**b)** A block of 256 'class C' network addresses is reserved for private use. Provide the first-class C network address that occurs within this block.\n\n**c)** A block of 16 'class B' network addresses is reserved for private use. Provide the last class B network address that occurs within this block.\n\n**d)** `137.215.98.140` is a host on the University of Pretoria network. What is the UP-network address?\n\n**e)** `8.8.8.8` is a popular DNS server provided by Google. If this address were still part of a class-based address, what would the broadcast address on this network be?\n\nPlease recall that CIDR notation has to be used for all your answers in this question.", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2025 ST2 Q5", "isCurrent": false, "studyStatus": "Study"}, {"id": 53, "year": "2025", "paper": "Exam", "number": 2, "marks": "", "text": "All values in this question are expressed in hexadecimal notation.\n\nConvert the following Unicode characters to UTF-8 byte sequences. Represent byte sequences as 2-digit hexadecimal numbers with a space between all bytes. Your answers will therefore be similar to a string such as `12 bf 3a`.\n\n### a)\n`U+1842`  \n**[1]**\n\n### b)\n`U+10AD0`  \n**[1]**\n\n### c)\n`U+2CA0`  \n**[1]**\n\nUTF-8 encoding is self-synchronising. Consider the following byte sequence, which is not a valid UTF-8 encoding:\n\n```text\n9D CE B5 C4 85 F1 9C A0\n```\n\n### d)\nProvide the first valid Unicode character that occurs in this sequence. Provide an answer in the form `U+xxxx`.  \n**[1]**\n\n### e)\nProvide the second valid Unicode character that occurs in this sequence. Provide an answer in the form `U+xxxx`.  \n**[1]**\n\n### f)\nProvide the subsequence of bytes that are invalid.  \n**[1]**\n\n### g)\nConvert the bytes starting at the point where synchronisation is re-established, convert those that form the first Unicode character, and provide that character in the typical format `U+xxxx` on your answer sheet.  \n**[1]**\n\n### h)\nProvide the last valid Unicode character that occurs in this sequence. Provide an answer in the form `U+xxxx`.  \n**[1]**\n\nSome emojis are represented by a combination of Unicode characters. One set of these combinations join so-called Regional Indicator Symbols. The first is Regional Indicator Symbol Letter A at `U+1F1E6` and it continues up to Regional Indicator Symbol Letter Z at `U+1F1FF`. When these Regional Indicator Symbols are rendered in isolation, they are typically rendered as black squares. However, when a pair is used, the flag of the country represented by that standard two-letter country code will be rendered, on platforms that support this functionality, such as iPhones, X and WhatsApp.\n\n### i)\nProvide the UTF-8 byte stream that will render the South African flag as an emoji.  \n**[2]**\n\n**[10]**\n\n---", "topic": "Encoding & Presentation", "topicColour": "#dc2626", "topicBg": "#fee2e2", "sourceLabel": "2025 Exam Q2", "isCurrent": false, "studyStatus": "Study"}, {"id": 54, "year": "2025", "paper": "Exam", "number": 3, "marks": "", "text": "Currently the IPv4 block of addresses `41.1.16.0` - `41.1.31.255` is assigned to Vodacom for use in their Wimax services. Assume that Vodacom no longer offers Wimax services and that AfriNIC is therefore keen to assign these addresses to other ISPs. However, given the scarcity of IPv4 addresses, AfriNIC wants to subnet this block into at least 20 subnets that each would be able to accommodate at least 100 hosts.\n\n### a)\nWhat is the network address of the block `41.1.16.0` - `41.1.31.255`? Provide your answer in CIDR notation.  \n**[2]**\n\n### b)\nWhat is the network address of the first subnet that will be created within this block? Provide your answer in CIDR notation.  \n**[2]**\n\n### c)\nNote that subnetting may result in more than 20 subnets. What is the network address of the 20th subnet that will be created in this block? This address will have the value 19 in the subnet portion of its address. Provide your answer in CIDR notation.  \n**[2]**\n\n### d)\nAfriNIC realises that such subnetting does indeed result in more than ten subnets. They decide to supernet the last four of these subnets into a supernet for use by Vodacom. What is the network address of this supernet? Provide your answer in CIDR notation.  \n**[2]**\n\n### e)\nProvide the broadcast address of the supernet created in the previous question.  \n**[1]**\n\n### f)\nWhat was the broadcast address of the original block `41.1.16.0` - `41.1.31.255`?  \n**[1]**\n\n**[10]**\n\n---", "topic": "IP Addressing & Subnetting", "topicColour": "#7c3aed", "topicBg": "#ede9fe", "sourceLabel": "2025 Exam Q3", "isCurrent": false, "studyStatus": "Study"}, {"id": 55, "year": "2025", "paper": "Exam", "number": 4, "marks": "", "text": "Consider the following trace obtained from Wireshark. The first host is the sender, while the second in each line is the recipient. Hence, as an example, line 1 represents a segment transmitted from the Client to the Server.\n\n```text\n1)  Client  Server  [SYN]       Seq=0   Ack=0   Win=64240   Len=0\n2)  Server  Client  [SYN, ACK]  Seq=0   Ack=1   Win=64240   Len=0\n3)  Client  Server  [ACK]       Seq=1   Ack=1   Win=263168  Len=0\n4)  Client  Server  [ACK]       Seq=1   Ack=1   Win=263168  Len=365\n5)  Server  Client  [ACK]       Seq=1   Ack=366 Win=64128   Len=0\n6)  Server  Client  [ACK]       Seq=1   Ack=366 Win=64128   Len=568\n7)  Server  Client  [FIN, ACK]  Seq=569 Ack=366 Win=64128   Len=0\n8)  Client  Server  [ACK]       Seq=366 Ack=570 Win=262400  Len=0\n9)  Client  Server  [FIN, ACK]  Seq=366 Ack=570 Win=262400  Len=0\n10) Client  Server  [FIN, ACK]  Seq=366 Ack=570 Win=262400  Len=0\n11) Server  Client  [ACK]       Seq=570 Ack=367 Win=64128   Len=0\n```\n\nWireshark was configured to show layer 4 packets by default. All the packets shown are TCP packets. Only two IP addresses were associated with the captured packets; those addresses have been replaced by the words Client and Server in the trace above. The port number associated with the client was a high-order port, while the port associated with the server was 80. For the sake of readability, the port numbers are not shown in the trace. Following the Wireshark convention, TCP flags that are set in a segment are shown in uppercase in square brackets; flags that are not shown are reset in the segment. Other relevant header and calculated fields complete the trace summary. For ease of reference, lines have been numbered in a style that differs from the style used by Wireshark.\n\nAnswer the questions that follow based on the trace provided.\n\n### a)\nWhich line completes the opening handshake? Simply provide a number from 1 to 3.  \n**[1]**\n\n### b)\nLine 2 implies that line 1 contained a data byte. State the observation from line 2 from which this can be derived.  \n**[1]**\n\n### c)\nIn contrast to the previous question, line 1 stipulates that `Len=0`; therefore line 1 does not seem to carry a data byte at all. What type of byte is \"included\" in the packet from line 1?  \n**[1]**\n\n### d)\nDoes line 3 \"include\" a similar byte to that mentioned in the previous question? Why not?  \n**[1]**\n\n### e)\nThe packet from line 4 carries 365 data bytes to the server. How many bytes has the server apparently consumed at the time it first acknowledges the packet from line 4?  \n**[1]**\n\n### f)\nThe server then, in line 6, sends a response consisting of 568 bytes to the client. In which line does the client first acknowledge this data from the server?  \n**[1]**\n\n### g)\nNote that the server transmits a packet with `Seq=569` in line 7; in fact `Seq=569` is what one would expect at this time. However, in line 11 it transmits a packet with `Seq=570`. Which packet caused the sequence number to be increased? Simply provide a number from 1 to 11.  \n**[1]**\n\n### h)\nHow many of the 568 bytes that the server transmitted in line 6 have been consumed by the client at the time the client transmits its final message in this trace, line 10? Very briefly explain.  \n**[1]**\n\n### i)\nThe packet in line 7 obviously plays a role in the termination handshake, but seems unexpected at this time given the theory discussed in the module. Is it part 1, 2, or 3 of the handshake? Very briefly justify your answer.  \n**[1]**\n\n### j)\nWhy was it necessary to transmit the packet in line 10?  \n**[1]**\n\n**[10]**\n\n---", "topic": "IP Addressing & Subnetting", "topicColour": "#7c3aed", "topicBg": "#ede9fe", "sourceLabel": "2025 Exam Q4", "isCurrent": false, "studyStatus": "Study"}, {"id": 56, "year": "2025", "paper": "Exam", "number": 5, "marks": "", "text": "Assume the following:\n\n- `za1.dnsnode.net` is able to resolve names in the `za.` zone.\n- `coza1.dnsnode.net` is able to resolve names in the `co.za` zone.\n- `ns1.host-h-net` is able to resolve names in the `xx.co.za` zone; it is the primary name server for `xx.co.za`.\n- `ns2.host-h-net` is able to resolve names in the `xx.co.za` zone; it is the secondary name server for `xx.co.za`.\n- The IPv4 address of `xx.co.za` is `41.203.18.59`.\n- The IPv4 address of `ftp.xx.co.za` is `197.221.2.30`.\n- The IPv6 address of `xx.co.za` is `2606:4700:20::ec5`.\n- The servers accepting email at `xx.co.za` are `ASPMX.L.GOOGLE.COM` and `ALT1.ASPMX.L.GOOGLE.COM`, where the latter should be used when the former is not available.\n\nAssume that all the name servers used in this question are primary name servers.\n\nIn some questions below the zone is specified, typically `xx.co.za`. In other cases you have to infer the zone from the context; the root name servers, for example, provide information about the root zone. Recall that a zone file defines entries relative to the zone for which the zone file exists. The zone file for `com.` will have an entry that points to, say, the `ibm.com` domains; that entry will simply define `ibm` in that zone file, since the `com.` all definitions in that zone file will be followed by a `.com`.\n\nUse names as the definitions of your resource records; you, for example, do not know what the IPv4 address of, say, `za1.dnsnode.net` is.\n\nUse this information to provide the following zone records. Your zone records will, in general, consist of three columns: the entry being defined, the resource record type and the definition, with additional information only in cases where the resource record requires additional information.\n\n### a)\nProvide the resource record for the zone file at `a.root-servers.net` that may be useful to recursively resolve `ftp.xx.co.za`.  \n**[1]**\n\n### b)\nProvide the resource record for the zone file at `za1.dnsnode.net` that may be useful to recursively resolve `ftp.xx.co.za`.  \n**[1]**\n\n### c)\nProvide the resource record for the zone file at `coza1.dnsnode.net` that may be useful to recursively resolve `ftp.xx.co.za`.  \n**[1]**\n\n### d)\nProvide the resource record for the zone file at `ns1.host-h-net` to indicate that it is the primary name server for `xx.co.za`.  \n**[1]**\n\n### e)\nProvide the resource record for the zone file of `xx.co.za` that may be useful to recursively resolve `ftp.xx.co.za`.  \n**[1]**\n\n### f)\nProvide the resource record for the zone file of `xx.co.za` that may be useful to recursively resolve `xx.co.za` to an IPv4 address.  \n**[1]**\n\n### g)\nProvide the resource record for the zone file of `xx.co.za` that may be useful to recursively resolve `ftp.xx.co.za` to an IPv6 address.  \n**[1]**\n\n### h)\nProvide the resource record for the zone file of `xx.co.za` that may be useful to recursively resolve the details of the primary email server for `xx.co.za`.  \n**[1]**\n\n### i)\nProvide the resource record for the zone file of `xx.co.za` that may be useful to recursively resolve the details of the secondary mail server for `xx.co.za`.  \n**[1]**\n\n### j)\nProvide a resource record for the zone file of `xx.co.za` that will add an entry of the form `x=1` to the zone.  \n**[1]**\n\n**[10]**\n\n---\n\n> Note: The supplied PDF contains scanned pages up to the displayed continuation marker after Question 5. No additional page was available in the uploaded file.", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2025 Exam Q5", "isCurrent": false, "studyStatus": "Study"}, {"id": 57, "year": "2026", "paper": "ST1", "number": 2, "marks": "", "text": "a) Which gTLD is used by American universities?\n\nb) What is the process of converting a fully qualified domain name to an address called?\n\nc) To create the domain `xx.co.za` the registrar of `co.za` has to insert NS entries in the `co.za` zone file; these NS entries will point to the name servers of the new domain. What is the process of inserting such entries called? *(Hint: Phrased somewhat differently, the registrar has to ... authority; the missing word should assist you to find the answer.)*\n\nd) Who is in control of the `za.` ccTLD? Provide the acronym used by this entity; the question does not refer to the `co.za` registry operator, nor to entities that exert control over all TLDs.\n\ne) Which committee has the authority to approve new top-level domains? Provide the acronym that identifies this committee.\n\n---", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2026 ST1 Q2", "isCurrent": true, "studyStatus": "Skip for exam review"}, {"id": 58, "year": "2026", "paper": "ST1", "number": 3, "marks": "", "text": "In some network nodes P and Q are neighbours. Communication between them costs 6 units. Below, the partial routing tables at P and Q are provided at some initial time $t_0$. Each entry in a routing table is a triple consisting of a destination, the next hop en route to that destination and the total cost of sending data to the destination via the current route. The network uses the Bellman-Ford algorithm.\n\nAt some time $t_1$, Q shares its routing table with P, and P makes all the updates it can, based on the received information. At some later time $t_2$, P shares its updated routing table with Q and Q makes all the updates it can, based on the received update.\n\nThe questions below consist of a node (P or Q), a time ($t_1$ or $t_2$) and a destination. You are expected to consult the routing table of the node as updated by the shared information at the time noted, and provide the next-hop and cost for the destination mentioned. As an example, the initial entry in P's table for destination Q is `(P, Q, 6)`. The information received by P at time $t_1$ does not affect this entry and it therefore remains `(P, Q, 6)` after $t_1$. Therefore, the expected answer for the question \"P after $t_1$\" would be \"Q, 6\".\n\n### Initial routing table at P\n\n| Destination | Next hop | Cost |\n|---|---:|---:|\n| A | M | 15 |\n| B | M | 22 |\n| F | L | 14 |\n| H | Q | 18 |\n| K | K | 6 |\n| L | K | 7 |\n| R | Q | 12 |\n| U | Q | 11 |\n\n### Initial routing table at Q\n\n| Destination | Next hop | Cost |\n|---|---:|---:|\n| A | P | 21 |\n| C | D | 15 |\n| H | P | 12 |\n| K | P | 14 |\n| R | R | 6 |\n| U | U | 5 |\n| Z | Z | 7 |\n\nAnswer the following:\n\na) $t_1$, C =  \nb) $t_1$, H =  \nc) $t_2$, K =  \nd) $t_2$, H =  \ne) $t_2$, Z =  \n\n---", "topic": "Routing Algorithms", "topicColour": "#1d4ed8", "topicBg": "#dbeafe", "sourceLabel": "2026 ST1 Q3", "isCurrent": true, "studyStatus": "Skip for exam review"}, {"id": 59, "year": "2026", "paper": "ST1", "number": 4, "marks": "", "text": "### a) Convert the following Unicode characters to UTF-8.\n\n(i) `U+00E4`  \n(ii) `U+039E`  \n(iii) `U+179F`  \n(iv) `U+1F9A7`\n\n### b) Consider the following sequence of bytes. It is UTF-8 encoded, but contains some errors. Decode the characters that are properly encoded, and list them one per line in the sequence in which they occur in the byte sequence, and write them on the answer sheet separated by commas, for example `U+1234`, `U+5678`. Ignore any bytes in the byte string that do not form part of a complete UTF-8 character.\n\n```text\nEF BB AF BC C2 AA F1 83\nE0 AA AA F0 90 AB C3 D5\n```\n\n---", "topic": "Encoding & Presentation", "topicColour": "#dc2626", "topicBg": "#fee2e2", "sourceLabel": "2026 ST1 Q4", "isCurrent": true, "studyStatus": "Skip for exam review"}, {"id": 60, "year": "2026", "paper": "ST1", "number": 5, "marks": "", "text": "The code provided below forms part of a possible submission for practical assignment 3 in a Java-like language. Recall that this assignment required you to implement a web server that emulated a clock; when one clicked on the name of a city, the local time in that city would be displayed. It should be simple enough to follow even for those not quite familiar with Java.\n\nTo help those not quite familiar with Java, consider line 06 as an example. The variable `rL` is declared and read. It reads a line from the socket just opened; hence it would read the first line of the HTTP request.\n\nNext, consider line 08. It defines `rT` as a character `String` array with as many elements as required (indexed from 0). The content of `rL` is split into several strings; the split is made wherever a space occurs in this character string. Every substring is then stored into a subsequent element of `rT`. Hence, if the line `ab cd ef` was read, then `rT[0]` would be `ab`, `rT[1]` would be `cd` and `rT[2]` would be `ef`.\n\nStudy the code fragment and then answer the following questions. Answer the questions in terms of the protocol and not by just explaining what the code does. If you are, for example, asked about line 06 it would not be worth any marks to say that a line is read from the socket and stored in `rL`. As you know, an HTTP request consists of several lines; from studying the code, it should be clear that line 06 reads the first line of the HTTP request. Mentioning the HTTP request turns the answer into one that says something about the protocol. Please omit the initial words of your answer, such as \"Its purpose is to\"; start writing your answer with the word that would follow such an introduction.\n\na) Very briefly explain the purpose of line 17.  \nb) Very briefly explain the purpose of line 18.  \nc) Very briefly explain the purpose of line 19.  \nd) Very briefly explain the purpose of line 24.  \ne) What should the missing code in line 13 do?\n\n```java\n01  while (true) {\n02      Socket clientSocket = serverSocket.accept();\n03      BufferedReader in = new BufferedReader(new\n            InputStreamReader(clientSocket.getInputStream()));\n04      OutputStream out = clientSocket.getOutputStream();\n\n06      String rL = in.readLine();\n\n07      if (rL != null) {\n08          String[] rT = rL.split(\" \");\n09          String rM = rT[0];\n10          String rU = rT[1];\n\n12          if (rM == \"HEAD\") {\n13              ...\n14          }\n\n16          else if (rM == \"GET\") {\n17              out.write(\"HTTP/1.1 200 OK\\r\\n\");\n18              out.write(\"Content-Type: text/html\\r\\n\");\n19              out.write(\"\\r\\n\");\n20              if (rU.startsWith(\"/?City=\")) {\n21                  ...\n22                  String ExtractedcityName = rU.substring(7);\n23                  ...\n24                  out.write(\"<!DOCTYPE html>\");\n25                  out.write(\"<html><head>\");\n26                  out.write(\"<meta http-equiv=\\\"REFRESH\\\" content=\\\"4\\\">\");\n27                  out.write(\"<title> World Clock <\/title>\");\n28                  ...\n29              }\n30              else {\n31                  ...\n32              }\n33          }\n34          out.close();\n35          in.close();\n36          clientSocket.close();\n37      }\n38  }\n```", "topic": "Application Protocols", "topicColour": "#16a34a", "topicBg": "#dcfce7", "sourceLabel": "2026 ST1 Q5", "isCurrent": true, "studyStatus": "Skip for exam review"}, {"id": 61, "year": "2026", "paper": "ST2", "number": 2, "marks": "", "text": "Two nodes, A and B, are communicating using TCP. At time `t0` node A is ready to send byte 100, expects byte 300, has a window size of 500 and thinks that B has a window size of 300. These values perfectly match what node B knows about the connection. Nodes A and B subsequently exchange a couple of messages, `m1` to `m5`. The following table provides the length, direction, transmission and arrival time of each message. Some messages are received almost instantaneously, while other messages are received only after some delay. However, no acknowledgement time-outs ever occur.\n\n| Message | Direction | Length | Transmission time | Arrival time |\n|---|---|---:|---|---|\n| `m1` | A → B | 10 | `t1` | `t1` |\n| `m2` | B → A | 20 | `t2` | `t2` |\n| `m3` | A → B | 30 | `t3` | `t4` |\n| `m4` | B → A | 40 | `t3` | `t4` |\n| `m5` | A → B | 50 | `t5` | `t5` |\n\nProvide the values of the following header fields of the various messages.\n\n1. Acknowledgement number of `m1`.\n2. Sequence number of `m2`.\n3. Acknowledgement number of `m3`.\n4. Acknowledgement number of `m4`.\n5. Window advertisement of `m5`.\n\n---", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2026 ST2 Q2", "isCurrent": true, "studyStatus": "Skip for exam review"}, {"id": 62, "year": "2026", "paper": "ST2", "number": 3, "marks": "", "text": "You are strongly encouraged to write your answers in your script and copy them afterwards to your answer sheet - in particular for this question.\n\nThe computer H is a host on Acme Corporation's network. Its IP address is `222.222.222.222`. At this stage Acme Corporation does not use any subnetting. Provide all IP addresses in CIDR notation. Note that CIDR notation is never used for a netmask.\n\n1. Provide Acme Corporation's network address.\n2. Provide the broadcast address for Acme Corporation.\n3. Provide the netmask used by Acme Corporation.\n\nAcme Corporation wants to subnet its network into at least 10 subnets, such that each subnet can handle at least 50 hosts. Assume the IP address of host H is not changed.\n\n4. Provide the netmask that Acme Corporation now uses on its internal network.\n5. Provide the network address of the subnet on which H now resides.\n6. Provide the broadcast address of the subnet on which H now resides.\n7. According to Acme Corporation's plan ten subnets, numbered from 0 to 9, had to be created. What is the number of the subnet on which H is now located? A logical answer would be a number from 0 to 9. However, the subnetting process could have created more than these ten subnets.\n8. According to Acme Corporation's plans, each subnet would support at least 50 hosts, numbered from 1 to 50. However, the subnetting process could have created support for host numbers beyond 50. What is the host number of H on its new subnet?\n\nAcme Corporation now finds that it needs one subnet that can handle more hosts than what they initially anticipated. They therefore decide to supernet exactly four subnets. One of the four subnets to be used is the subnet on which H resides. The IP address of H has to remain unchanged.\n\n9. Provide the network address of the new supernet that is now created.\n10. Provide the netmask to be used on this new supernet.\n\n---", "topic": "IP Addressing & Subnetting", "topicColour": "#7c3aed", "topicBg": "#ede9fe", "sourceLabel": "2026 ST2 Q3", "isCurrent": true, "studyStatus": "Skip for exam review"}, {"id": 63, "year": "2026", "paper": "ST2", "number": 4, "marks": "", "text": "Some TCP timers are created when necessary. Other TCP timers exist for the duration of a connection. When the former timers are created, they start counting down. When the pre-existing timers are activated, they start counting down. For both these counter types we will simply say that they are activated. A counting timer may be stopped; for the former type of counters, stopping would mean that they are deleted; for the latter type, the counter may simply remain in this stopped state. When a timer reaches 0, it is said to expire; again this may cause the timer to be deleted or to just remain with a 0 value until they are activated again. A counter may be reset, which would mean it starts counting down from its initial value again. For the questions that follow, only provide the name of the timer. If the answer is the persistent timer, simply say persistent. Note that the timer would always be local to the endpoint at which the event, such as receiving a segment, occurs.\n\n1. Name a timer that is activated when an endpoint transmits a segment containing data.\n2. Name a timer that is activated when an endpoint receives a segment containing data.\n3. Name a timer that is reset whenever an endpoint receives any segment.\n4. Name a timer that would cause a probe to be transmitted if it expires.\n5. Name a timer that may be stopped when an endpoint receives a segment that contains an acknowledgement number.\n\n---", "topic": "Transport Layer (TCP/UDP/QUIC)", "topicColour": "#d97706", "topicBg": "#fef3c7", "sourceLabel": "2026 ST2 Q4", "isCurrent": true, "studyStatus": "Skip for exam review"}, {"id": 64, "year": "2026", "paper": "ST2", "number": 5, "marks": "", "text": "Consider the two routing tables provided below.\n\nLet's call the first router R1. R1 has a number of interfaces with names ranging from `eth0` to `eth11`. It also has a loopback interface, `lo`. It runs the EdgeOS operating system, which you have presumably not seen before. However, you should be able to interpret its output based on your knowledge of what one would expect in a routing table.\n\n```text\n$ show ip route\nCodes: K - kernel, C - connected, S - static, R - RIP, B - BGP\n       O - OSPF, IA - OSPF inter area,\n       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2\n       E1 - OSPF external type 1, E2 - OSPF external type 2\n       > - selected route, * - FIB route, p - stale info\n\nIP Route Table for VRF \"default\"\nS    *> 0.0.0.0/0 [1/0] via 192.168.2.14, eth9\nC    *> 10.1.0.0/16 is directly connected, eth0\nC    *> 127.0.0.0/8 is directly connected, lo\nC    *> 192.168.2.0/24 is directly connected, eth9\n```\n\nLet's call the second router R2. The address associated with one of the network interfaces of R2 is `192.168.2.14`. Besides being a router, R2 is also a NAT box that serves as a default route: it would replace the source address of any packet that it cannot deliver with its public address and then forward the IP datagram using the PPPoE protocol to another router from which it will travel to its ultimate destination. R2 uses a version of Linux with which you are presumably not familiar. Some columns of its routing table are not shown to simplify matters. Note the use of Genmask in Linux, which is similar to a netmask. Note the use of Gateway to indicate the next hop, which is `0.0.0.0` for a direct delivery.\n\n```text\n# netstat -r\nKernel IP routing table\nDestination     Gateway        Genmask          Flags  Metric  Iface\n10.1.0.0        192.168.2.13   255.255.0.0      UG     1       br0\n41.170.74.97    0.0.0.0        255.255.255.255  UH     0       ppp0\n192.168.1.0     192.168.2.13   255.255.255.0    UG     1       br0\n192.168.2.0     0.0.0.0        255.255.255.0    U      0       br0\n```\n\nHere is the initial output of a `tracert` command executed from a host on the network. Let's call this host H.\n\n```text\nC:\\>tracert -d 8.8.8.8\n\nTracing route to 8.8.8.8 over a maximum of 30 hops\n\n  1    <1 ms    <1 ms    <1 ms    10.1.1.13\n  2    <1 ms    <1 ms    <1 ms    192.168.2.14\n  3     2 ms     2 ms     1 ms    41.170.74.97\n  ...\n```\n\nSome questions below will ask you about a route, or path, that will be traced by `tracert` or `traceroute`. For the case above this route, or path, would refer to `10.1.1.13`, `192.168.2.14`, `41.170.74.97`, ... The `-d` flag used with the command simply means \"Do no resolve\" - in other words, it should provide the IP addresses, rather than attempt to find a name in the DNS that matches an address.\n\nAssume C1 is a computer connected as `192.168.1.1` and C2 is connected as `192.168.2.1`. Now answer the following questions about the network.\n\n1. To which interface on which router is H connected?\n2. R1 and R2 are obviously directly connected. Name the interface of R1 and the interface of R2 that are connected.\n3. Assume the command `traceroute -d 192.168.2.1` is executed on C1. Provide the path that will be returned.\n4. Assume the command `traceroute -d 192.168.1.1` is executed on C2. C2 is just a plain workstation without any additional network functionality. The route shown will still either be `192.168.2.13` followed by `192.168.1.1`, or it will be `192.168.2.14`, `192.168.2.13` and `192.168.1.1`. Which one of C2's configuration parameters will determine which of the two outcomes will be observed?\n5. Suppose the command `traceroute -d 10.10.10.10` is executed on C1. Provide the second node on the path that would be returned by this command.", "topic": "DNS", "topicColour": "#0e7490", "topicBg": "#cffafe", "sourceLabel": "2026 ST2 Q5", "isCurrent": true, "studyStatus": "Skip for exam review"}];
+    const SOURCE_COUNTS = {"2022 Exam": 10, "2022 ST2": 3, "2023 ST1": 4, "2023 ST2": 4, "2023 Exam": 7, "2024 ST1": 4, "2024 ST2": 4, "2024 Exam": 8, "2025 ST1": 4, "2025 ST2": 4, "2025 Exam": 4, "2026 ST1": 4, "2026 ST2": 4};
+
+    const TOPIC_COLOURS = {"DNS": ["#0e7490", "#cffafe"], "Routing Algorithms": ["#1d4ed8", "#dbeafe"], "IP Addressing & Subnetting": ["#7c3aed", "#ede9fe"], "Network Layer (IP/ICMP/ARP)": ["#be185d", "#fce7f3"], "Transport Layer (TCP/UDP/QUIC)": ["#d97706", "#fef3c7"], "Application Protocols": ["#16a34a", "#dcfce7"], "Encoding & Presentation": ["#dc2626", "#fee2e2"], "Data Link Layer": ["#0f766e", "#ccfbf1"], "General": ["#374151", "#f3f4f6"]};
+
+    const state = {
+      search: "",
+      topic: "all",
+      seen: "all",
+      source: "all",
+      sort: "source",
+      years: new Set(["2022", "2023", "2024", "2025", "2026"]),
+      papers: new Set(["ST1", "ST2", "Exam"]),
+      expandedIds: new Set(),
+      allExpanded: false,
+    };
+
+    const els = {
+      search: document.getElementById("search"),
+      topicFilter: document.getElementById("topicFilter"),
+      seenFilter: document.getElementById("seenFilter"),
+      sourceFilter: document.getElementById("sourceFilter"),
+      sortBy: document.getElementById("sortBy"),
+      yearChecks: document.getElementById("yearChecks"),
+      paperChecks: document.getElementById("paperChecks"),
+      results: document.getElementById("results"),
+      resultText: document.getElementById("resultText"),
+      sourceText: document.getElementById("sourceText"),
+      statVisible: document.getElementById("stat-visible"),
+      resetBtn: document.getElementById("resetBtn"),
+      expandAllBtn: document.getElementById("expandAllBtn"),
+    };
+
+    const paperRank = { ST1: 0, ST2: 1, Exam: 2 };
+
+    function selectedValues(container) {
+      return new Set([...container.querySelectorAll("input:checked")].map(i => i.value));
+    }
+
+    function textOf(row) {
+      return [row.text, row.topic, row.sourceLabel, row.studyStatus].join(" ").toLowerCase();
+    }
+
+    function sourceSort(a, b) {
+      const ya = Number(a.year), yb = Number(b.year);
+      if (ya !== yb) return ya - yb;
+      const pa = paperRank[a.paper] ?? 9, pb = paperRank[b.paper] ?? 9;
+      if (pa !== pb) return pa - pb;
+      return a.number - b.number;
+    }
+
+    function applyFilters() {
+      state.search = els.search.value.trim().toLowerCase();
+      state.topic = els.topicFilter.value;
+      state.seen = els.seenFilter.value;
+      state.source = els.sourceFilter.value;
+      state.sort = els.sortBy.value;
+      state.years = selectedValues(els.yearChecks);
+      state.papers = selectedValues(els.paperChecks);
+
+      let rows = DATA.filter(row => {
+        if (state.search && !textOf(row).includes(state.search)) return false;
+        if (state.topic !== "all" && row.topic !== state.topic) return false;
+        if (state.seen === "seen" && !row.isCurrent) return false;
+        if (state.seen === "unseen" && row.isCurrent) return false;
+        if (state.source !== "all" && row.sourceLabel.split(" Q")[0] !== state.source) return false;
+        if (!state.years.has(row.year)) return false;
+        if (!state.papers.has(row.paper)) return false;
+        return true;
+      });
+
+      rows.sort((a, b) => {
+        if (state.sort === "topic") return a.topic.localeCompare(b.topic) || sourceSort(a, b);
+        if (state.sort === "status") return Number(a.isCurrent) - Number(b.isCurrent) || sourceSort(a, b);
+        if (state.sort === "id") return a.id - b.id;
+        return sourceSort(a, b);
+      });
+
+      render(rows);
+      return rows;
+    }
+
+    function escHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // Minimal markdown-to-HTML renderer
+    function mdToHtml(md) {
+      // Protect code blocks
+      const blocks = [];
+      md = md.replace(/```([\s\S]*?)```/g, (_, code) => {
+        const i = blocks.length;
+        blocks.push(`<pre><code>${escHtml(code.trim())}</code></pre>`);
+        return `\x00BLOCK${i}\x00`;
+      });
+
+      const lines = md.split("\n");
+      const out = [];
+      let inTable = false;
+      let inList = false;
+      let inOl = false;
+
+      function closeList() {
+        if (inList) { out.push("</ul>"); inList = false; }
+        if (inOl) { out.push("</ol>"); inOl = false; }
+      }
+      function closeTable() {
+        if (inTable) { out.push("</tbody></table>"); inTable = false; }
+      }
+
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+
+        // Restore code blocks
+        if (line.includes("\x00BLOCK")) {
+          closeList(); closeTable();
+          out.push(line.replace(/\x00BLOCK(\d+)\x00/g, (_, n) => blocks[Number(n)]));
+          continue;
+        }
+
+        // HR
+        if (/^---+$/.test(line.trim())) {
+          closeList(); closeTable();
+          out.push("<hr>");
+          continue;
+        }
+
+        // Headings
+        const hm = line.match(/^(#(1, 4))\s+(.*)/);
+        if (hm) {
+          closeList(); closeTable();
+          const level = Math.min(hm[1].length + 2, 6); // shift h1→h3, h2→h4, etc.
+          out.push(`<h${level}>${inline(hm[2])}</h${level}>`);
+          continue;
+        }
+
+        // Blockquote
+        if (/^>/.test(line)) {
+          closeList(); closeTable();
+          out.push(`<blockquote>${inline(line.replace(/^>\s*/, ""))}</blockquote>`);
+          continue;
+        }
+
+        // Table rows
+        if (/^\|/.test(line.trim())) {
+          const cells = line.split("|").slice(1, -1).map(c => c.trim());
+          if (!inTable) {
+            closeList();
+            out.push('<table><thead><tr>' + cells.map(c => `<th>${inline(c)}</th>`).join("") + '</tr></thead><tbody>');
+            inTable = true;
+            // skip separator line
+            if (i + 1 < lines.length && /^\|[-:|\s|]+\|$/.test(lines[i+1].trim())) i++;
+            continue;
+          }
+          out.push('<tr>' + cells.map(c => `<td>${inline(c)}</td>`).join("") + '</tr>');
+          continue;
+        } else if (inTable) {
+          closeTable();
+        }
+
+        // Unordered list
+        const ulm = line.match(/^(\s*[-*]\s+)(.*)/);
+        if (ulm) {
+          if (inOl) { out.push("</ol>"); inOl = false; }
+          if (!inList) { out.push("<ul>"); inList = true; }
+          out.push(`<li>${inline(ulm[2])}</li>`);
+          continue;
+        }
+
+        // Ordered list
+        const olm = line.match(/^\s*(\d+)[.)\s]+(.+)/);
+        if (olm) {
+          if (inList) { out.push("</ul>"); inList = false; }
+          if (!inOl) { out.push("<ol>"); inOl = true; }
+          out.push(`<li>${inline(olm[2])}</li>`);
+          continue;
+        }
+
+        closeList(); closeTable();
+
+        // Blank line
+        if (!line.trim()) {
+          out.push("");
+          continue;
+        }
+
+        out.push(`<p>${inline(line)}</p>`);
+      }
+
+      closeList(); closeTable();
+      return out.join("\n");
+    }
+
+    function inline(s) {
+      s = escHtml(s);
+      // Bold
+      s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      // Italic
+      s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+      // Inline code
+      s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+      return s;
+    }
+
+    function render(rows) {
+      els.statVisible.textContent = rows.length;
+      els.resultText.textContent = `${rows.length} visible, ${rows.filter(r => r.isCurrent).length} in 2026 tests`;
+      els.sourceText.textContent = state.source === "all" ? "All sources" : state.source;
+
+      if (!rows.length) {
+        els.results.innerHTML = '<div class="empty">No questions match the current filters.</div>';
+        return;
+      }
+
+      els.results.innerHTML = rows.map(row => {
+        const isOpen = state.allExpanded || state.expandedIds.has(row.id);
+        const statusClass = row.isCurrent ? "seen" : "study";
+        const statusText = row.isCurrent ? "Seen in 2026 tests" : "Study";
+        const marksText = row.marks ? `${row.marks} marks` : "";
+        const preview = row.text.replace(/[\r\n]+/g, " ").replace(/#+\s/g, "").trim().slice(0, 220);
+        const [tc, tb] = TOPIC_COLOURS[row.topic] || ["#374151", "#f3f4f6"];
+
+        return `
+<article class="lq" data-id="${row.id}">
+  <div class="lq-head${isOpen ? " open" : ""}" onclick="toggleCard(${row.id}, this)">
+    <div class="lq-id">#${row.id}</div>
+    <div class="lq-meta">
+      <div class="lq-source">${escHtml(row.sourceLabel)}</div>
+      <p class="lq-preview">${escHtml(preview)}…</p>
+    </div>
+    <div class="badges">
+      <span class="badge" style="color:${tc};background:${tb}">${escHtml(row.topic)}</span>
+      <span class="badge ${statusClass}">${escHtml(statusText)}</span>
+      ${marksText ? `<span class="badge marks">${escHtml(marksText)}</span>` : ""}
+    </div>
+  </div>
+  <div class="lq-body${isOpen ? " open" : ""}">${mdToHtml(row.text)}</div>
+</article>`;
+      }).join("");
+    }
+
+    function toggleCard(id, headEl) {
+      const article = headEl.closest(".lq");
+      const body = article.querySelector(".lq-body");
+      const isOpen = body.classList.contains("open");
+      if (isOpen) {
+        body.classList.remove("open");
+        headEl.classList.remove("open");
+        state.expandedIds.delete(id);
+      } else {
+        body.classList.add("open");
+        headEl.classList.add("open");
+        state.expandedIds.add(id);
+      }
+    }
+
+    function resetFilters() {
+      els.search.value = "";
+      els.topicFilter.value = "all";
+      els.seenFilter.value = "all";
+      els.sourceFilter.value = "all";
+      els.sortBy.value = "source";
+      [...document.querySelectorAll(".checks input")].forEach(i => i.checked = true);
+      state.expandedIds.clear();
+      state.allExpanded = false;
+      els.expandAllBtn.textContent = "Expand all";
+      applyFilters();
+    }
+
+    function toggleExpandAll() {
+      state.allExpanded = !state.allExpanded;
+      els.expandAllBtn.textContent = state.allExpanded ? "Collapse all" : "Expand all";
+      // Re-render to apply expansion state
+      applyFilters();
+    }
+
+    [els.search, els.topicFilter, els.seenFilter, els.sourceFilter, els.sortBy]
+      .forEach(el => el.addEventListener("input", applyFilters));
+    [els.yearChecks, els.paperChecks].forEach(el => el.addEventListener("change", applyFilters));
+    els.resetBtn.addEventListener("click", resetFilters);
+    els.expandAllBtn.addEventListener("click", toggleExpandAll);
+
+    applyFilters();
+  </script>
+</body>
+</html>

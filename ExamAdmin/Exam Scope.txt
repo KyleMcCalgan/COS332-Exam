@@ -1,0 +1,38 @@
+COS332 Exam Scope:
+Okay so i am writing a networks exam next week tuesday.
+Every tests consists out of
+
+50 marks MCQ 
+50 marks longer question
+
+Now we have a way to compile all the mcq out of past papers/tests from the past 5 years.
+but now we need a way to compile all the longer questions, get a list of all the longer questions he's ever asked in the past 5 years, and then filter out the ones that he's asked in ST1 and ST1 of 2026(likelihood that hes going to ask it again is very low then)
+
+So we need to find a way to also generate it very similarly to the mcq so I know exactly the type of longer questions I need to expect.
+
+
+15 marks subnetting super netting
+TCP, calculations
+No hamming or Huffman code
+Longer questions focused on stuff done in class
+Layer 2 - MAC, delineation, trans error, ethernet IEEE 802.3 , token ring 802.5, SDLC, HTLC - flags used to delineate it, Error correction instead of detection(possibly 2 marks)
+Layer 1( at most 5 marks of you listened in class you should get most marks) - twisted pair, RJ45 plug
+
+Subnetting and supernetting
+
+TCP calculations 
+
+Haven’t done hamming, Huffman, CRC —-> don’t need 
+
+Layer 2:
+Schema MAC, Delieation, transmission error —> for Ethernet (IEEE 202.3), TP(IEEE 802.5), SDLC(spoke about the flags used but not MAC)
+Why we want to do error correction instead of detection in wireless transmission 
+
+Layer 1(5-6 marks):
+Shielded and unskilled twisted pair
+
+RJ45 plug 
+
+NRZ, Manchester, differential Manchester, multimodal and singe fire —-> not needed
+
+
