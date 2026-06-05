@@ -21,6 +21,9 @@
   <li><a href="#traps">⚠ Exam Traps</a></li>
   <li><a href="#demo-layers">Interactive: Layer Explorer</a></li>
   <li><a href="#demo-encap">Interactive: Encapsulation Visualiser</a></li>
+  <li><a href="#practice">Practice Questions (MCQ)</a></li>
+  <li><a href="#longform">Practice Questions (Long-Form)</a></li>
+  <li><a href="#memo">Memo / Answer Key</a></li>
 </ul>
 
 <h2 id="history">1.0 History &amp; Context</h2>
@@ -158,6 +161,67 @@
   <strong>Header field examples per layer:</strong><br>
   L7: GET method type &nbsp;|&nbsp; L6: UTF-8 encoding &nbsp;|&nbsp; L4: Port address &nbsp;|&nbsp; L3: IP address &nbsp;|&nbsp; L2: MAC address
 </div>
+
+<h2 id="practice">Practice Questions — Multiple Choice</h2>
+<p><strong>Q1.</strong> A proprietary network protocol is a protocol that:<br>
+A. Has been standardised by some national standards body. &nbsp;&nbsp; B. Is owned by a specific vendor. &nbsp;&nbsp; C. Is developed as an open-source protocol. &nbsp;&nbsp; D. Is now so old that using it has been deprecated. &nbsp;&nbsp; E. Describes the properties of other network protocols.</p>
+<p><strong>Q2.</strong> Which historical event had a profound impact on many design decisions for the Internet (ARPAnet)?<br>
+A. Cold War &nbsp;&nbsp; B. Suez Canal Crisis &nbsp;&nbsp; C. Rise of the Global South &nbsp;&nbsp; D. Bay of Pigs Invasion &nbsp;&nbsp; E. Lockerbie Bombing</p>
+<p><strong>Q3.</strong> When writing an application that will serve as a server in a client-server architecture, the application would (in its role as server) open a socket that would:<br>
+A. Be specified as an address and port number &nbsp;&nbsp; B. Initiate connections &nbsp;&nbsp; C. Wait for connections &nbsp;&nbsp; D. More than one of the above &nbsp;&nbsp; E. All of the above</p>
+<p><strong>Q4.</strong> The phrase "protocol stack" is used in a network context because:<br>
+A. Protocols are "stacked" in layers on top of one another. &nbsp;&nbsp; B. A message is "pushed" down and then "popped" at the receiving end. &nbsp;&nbsp; C. Alternative protocols may exist "next to" one another within a layer. &nbsp;&nbsp; D. Many protocols on higher layers converge to fewer protocols on lower layers. &nbsp;&nbsp; E. The notion of a protocol stack is not used in networking.</p>
+<p><strong>Q5.</strong> The OSI layer that, amongst others, attempts to emulate database transactions where messages can be "rolled back" if the final message in a sequence is not sent, is layer:<br>
+A. 2 &nbsp;&nbsp; B. 3 &nbsp;&nbsp; C. 4 &nbsp;&nbsp; D. 5 &nbsp;&nbsp; E. 6</p>
+<p><strong>Q6.</strong> Which ISO OSI layer is responsible for regulating which node is allowed to transmit next in cases where two computers are directly connected?<br>
+A. 5 &nbsp;&nbsp; B. 4 &nbsp;&nbsp; C. 3 &nbsp;&nbsp; D. 2 &nbsp;&nbsp; E. It may be 2 or 5 depending on factors not mentioned in the question.</p>
+<p><strong>Q7.</strong> Protocols such as SMTP, POP3, and FTP are deemed to be application layer protocols. In addition, they often include functionality associated with the following ISO OSI layer(s):<br>
+A. Only layer 6 &nbsp;&nbsp; B. Layers 6 and 5 &nbsp;&nbsp; C. Layers 5 and 4 &nbsp;&nbsp; D. Layers 4 and 3 &nbsp;&nbsp; E. Only layer 3</p>
+<p><strong>Q8.</strong> If the ISO adopts a standard, countries and organisations:<br>
+A. Must comply within 2 years. &nbsp;&nbsp; B. Must comply if they are ISO members. &nbsp;&nbsp; C. Must comply if their national body voted for it. &nbsp;&nbsp; D. Do not have to comply since standards are not binding. &nbsp;&nbsp; E. Must comply with the parts relevant to their industry.</p>
+<p><strong>Q9.</strong> Which of the following correctly describes the data unit name at the transport layer?<br>
+A. Frame &nbsp;&nbsp; B. Datagram &nbsp;&nbsp; C. Segment &nbsp;&nbsp; D. Request &nbsp;&nbsp; E. Packet</p>
+<p><strong>Q10.</strong> Which layer adds the MAC address to outgoing data?<br>
+A. Layer 7 &nbsp;&nbsp; B. Layer 4 &nbsp;&nbsp; C. Layer 3 &nbsp;&nbsp; D. Layer 2 &nbsp;&nbsp; E. Layer 1</p>
+
+<h2 id="longform">Practice Questions — Long-Form</h2>
+<p><strong>Q11. Layer functions.</strong> Name the three primary functions of the data link layer and briefly explain each. Then give one example of how a noisy physical layer would impact one of these functions. [4]</p>
+<p><strong>Q12. Header fields per layer.</strong> For each of layers 7, 6, 4, 3, and 2, provide one example of a header field that would be added at that layer. [5]</p>
+<p><strong>Q13. Peer layers.</strong> Suppose node X sends a message to node Z, and the message passes through routers R1 and R2 along the way. (i) Which node's Layer 7 is the peer of Layer 7 at X? (ii) Which nodes' Layer 3 is the peer of Layer 3 at X? Explain your answers. [4]</p>
+
+<h2 id="memo">Memo / Answer Key</h2>
+<h3>MCQ Answers</h3>
+<p><strong>A1.</strong> B (Proprietary = owned by a specific vendor).<br>
+<strong>A2.</strong> A (Cold War — ARPAnet was designed to survive nuclear attack).<br>
+<strong>A3.</strong> C (Wait for connections; a server does not initiate). <em>(The socket must also be specified as address+port, but the defining action is waiting.)</em><br>
+<strong>A4.</strong> A (Protocols are stacked in layers on top of one another).<br>
+<strong>A5.</strong> D (Layer 5 — the session layer provides transaction-like rollback).<br>
+<strong>A6.</strong> E (It may be Layer 2 for media access control, or Layer 5 for dialogue control — depends on context).<br>
+<strong>A7.</strong> B (Layers 6 and 5 — SMTP, POP3, FTP all include presentation and session functionality).<br>
+<strong>A8.</strong> D (Standards are not binding; no country must comply).<br>
+<strong>A9.</strong> C (Segment is the transport layer data unit).<br>
+<strong>A10.</strong> D (Layer 2 — the data link layer adds the MAC address).</p>
+<h3>Long-Form Answers</h3>
+<p><strong>A11. Layer 2 functions.</strong></p>
+<ul>
+  <li>a) <strong>Media Access Control (contention control):</strong> Determines which node may transmit when multiple nodes share a medium (e.g., Ethernet CSMA/CD).</li>
+  <li>b) <strong>Data delineation:</strong> Marks the start and end of a frame in a continuous bit stream so the receiver knows where one frame ends and the next begins.</li>
+  <li>c) <strong>Error control:</strong> Checksums (e.g., CRC) are added so the receiver can detect (and sometimes correct) transmission errors.</li>
+</ul>
+<p>Impact of noisy Layer 1: A noisy medium requires <strong>error correction</strong> at Layer 2 (e.g., FEC — forward error correction), whereas a clean medium only needs <strong>error detection</strong> (simpler checksums, with retransmission on error).</p>
+<p><strong>A12. Header fields per layer.</strong></p>
+<ul>
+  <li>Layer 7: <code>GET</code> (HTTP method) / <code>EHLO</code> (SMTP command)</li>
+  <li>Layer 6: <code>UTF-8</code> (character encoding) / <code>base64</code> (Content-Transfer-Encoding)</li>
+  <li>Layer 4: Source Port / Destination Port</li>
+  <li>Layer 3: Source IP Address / Destination IP Address</li>
+  <li>Layer 2: Source MAC Address / Destination MAC Address</li>
+</ul>
+<p><strong>A13. Peer layers.</strong></p>
+<ul>
+  <li>(i) <strong>Layer 7 peer of X:</strong> Only node Z. Routers R1 and R2 do not process Layer 7 headers — they only process up to Layer 3 to route the packet.</li>
+  <li>(ii) <strong>Layer 3 peers of X:</strong> R1, R2, and Z — every node along the path must inspect the Layer 3 (IP) header to make routing decisions, so all of them are Layer 3 peers.</li>
+</ul>
 
 <script>
 const layers = [

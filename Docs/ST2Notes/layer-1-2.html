@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Layer 1 &amp; 2: Data Link &amp; Physical Layers | COS332 Study Notes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header"><div class="header-inner">
+  <nav class="breadcrumb"><a href="index.html">Study Index</a><span>/</span><span>Layer 1 &amp; 2: Data Link &amp; Physical Layers</span></nav>
+  <h1>Layer 1 &amp; 2: Data Link &amp; Physical Layers</h1>
+  <p class="subtitle">Structured study notes covering all examinable Layer 2 (MAC, delineation, error control, Ethernet, Token Ring, SDLC/HDLC) and Layer 1 (NRZ, Manchester encoding, optical fibre) content.</p>
+</div></header>
+<main><div class="layout"><aside class="sidebar panel nav-panel"><p class="nav-title">On This Page</p><ol class="nav-list">
+<li><a href="#scope">Scope &amp; Study Focus</a></li>
+<li><a href="#1-layer-2-overview">1. Layer 2 Overview</a></li>
+<li><a href="#1-1-three-primary-functions">1.1 Three Primary Functions</a></li>
+<li><a href="#2-media-access-control">2. Media Access Control</a></li>
+<li><a href="#2-1-master-slave">2.1 Master/Slave (Polling)</a></li>
+<li><a href="#2-2-token-passing">2.2 Token Passing</a></li>
+<li><a href="#2-3-csma-cd">2.3 CSMA and CSMA/CD</a></li>
+<li><a href="#3-data-delineation">3. Data Delineation</a></li>
+<li><a href="#3-1-bit-stuffing">3.1 Bit Stuffing (SDLC/HDLC)</a></li>
+<li><a href="#3-2-token-ring-delim">3.2 Token Ring Non-bit Patterns</a></li>
+<li><a href="#4-error-control">4. Error Control</a></li>
+<li><a href="#4-1-detect-vs-correct">4.1 Detection vs Correction</a></li>
+<li><a href="#4-2-n-modular">4.2 n-Modular Redundancy</a></li>
+<li><a href="#5-other-functions">5. Other Functions</a></li>
+<li><a href="#5-1-mac-llc">5.1 MAC and LLC Sublayers</a></li>
+<li><a href="#5-2-flow-control">5.2 Flow Control at Layer 2</a></li>
+<li><a href="#5-3-sdlc-hdlc">5.3 SDLC/HDLC Connection-Oriented</a></li>
+<li><a href="#6-protocol-table">6. Protocol Reference Table</a></li>
+<li><a href="#6-1-ethernet-frame">6.1 Ethernet Frame Structure</a></li>
+<li><a href="#7-layer-1-overview">7. Layer 1 Overview</a></li>
+<li><a href="#8-line-coding">8. Line Coding</a></li>
+<li><a href="#8-1-nrz">8.1 NRZ</a></li>
+<li><a href="#8-2-manchester">8.2 Manchester Encoding</a></li>
+<li><a href="#8-3-differential-manchester">8.3 Differential Manchester</a></li>
+<li><a href="#9-transmission-media">9. Transmission Media</a></li>
+<li><a href="#9-1-guided-media">9.1 Guided Media</a></li>
+<li><a href="#9-2-optical-fibre">9.2 Optical Fibre (Multi/Single-mode)</a></li>
+<li><a href="#10-topology">10. Topology</a></li>
+<li><a href="#practice-questions">Practice Questions</a></li>
+<li><a href="#mcq">Multiple Choice</a></li>
+<li><a href="#long-form">Long-Form &amp; Calculation</a></li>
+<li><a href="#memo">Memo / Answer Key</a></li>
+<li><a href="#mcq-answers">MCQ Answers</a></li>
+<li><a href="#long-form-answers">Long-Form Answers</a></li>
+</ol></aside><article class="content">
+
+<section class="study-section scope" id="scope">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge scope">Scope</span></div>
+    <h2>Scope &amp; Study Focus</h2>
+    <blockquote><p><strong>Scope note:</strong> These notes cover <strong>Layer 2 (Data Link Layer)</strong> and <strong>Layer 1 (Physical Layer)</strong> of the ISO OSI model, scoped strictly to what the professor indicated will be examined. Layer 2 is a <strong>major exam focus</strong> covering: the three primary functions (MAC/Delineation/Error Control), Ethernet (IEEE 802.3), Token Ring (IEEE 802.5), and SDLC/HDLC. Layer 1 is a <strong>minor focus (≤5 marks)</strong> covering only: NRZ and Manchester encoding, and the multi-mode vs single-mode fibre distinction. <strong>Not in scope:</strong> Hamming code, CRC calculations, Bisync (beyond brief mention), IEEE 802.4, Reed-Solomon codes, ATM, and any Layer 1 or 2 protocols not covered in lectures.</p></blockquote>
+<hr>
+  </div>
+</section>
+
+<section class="study-section theory" id="1-layer-2-overview">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>1. Layer 2: The Data Link Layer — Overview</h2>
+    <p><strong>The Data Link Layer (Layer 2)</strong> is responsible for getting a frame from one node to the <em>next hop</em> across a direct physical connection. Layer 3 decides where to route a packet; Layer 2 handles the single-hop delivery.</p>
+    <blockquote><p><strong>MCQ fact:</strong> The data unit at Layer 2 is called a <strong>frame</strong>. The header field example added at Layer 2 is the <strong>MAC address</strong>.</p></blockquote>
+    <blockquote><p><strong>MCQ fact:</strong> Layer 2 does <strong>not</strong> absolve higher layers from error checking. Routing errors (L3), congestion failures (L4), synchronisation errors (L5), and misrepresentation errors (L6) are all invisible to Layer 2.</p></blockquote>
+  </div>
+</section>
+
+<section class="study-section theory" id="1-1-three-primary-functions">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>1.1 The Three Primary Functions of Layer 2</h2>
+    <p>Every data link layer protocol must address exactly three core responsibilities:</p>
+    <div class="table-wrap"><table><thead><tr><th>#</th><th>Function</th><th>Problem it solves</th></tr></thead><tbody>
+      <tr><td>1</td><td><strong>Media Access Control (MAC)</strong></td><td>Multiple nodes may try to transmit simultaneously on a shared medium, causing collisions.</td></tr>
+      <tr><td>2</td><td><strong>Data Delineation</strong></td><td>A receiver listening to a continuous bit stream must be able to identify where each frame starts and ends.</td></tr>
+      <tr><td>3</td><td><strong>Error Control</strong></td><td>Bits may be corrupted in transit; the receiver must detect (and possibly correct) this.</td></tr>
+    </tbody></table></div>
+    <blockquote><p><strong>MCQ fact:</strong> The three primary functions of a data link layer protocol are <strong>media access control, data delineation, and error control</strong>. Encoding is <em>not</em> a Layer 2 function — it belongs to Layer 1.<br><em>(Distractor: "Encoding" appears as an option in past papers — Q45 2023 paper. It is NOT a Layer 2 function.)</em></p></blockquote>
+    <blockquote><p><strong>MCQ fact (Layer 1 impact on Layer 2):</strong> A <strong>noisy</strong> Layer 1 medium requires <strong>error correction</strong> on Layer 2 (so the receiver can fix errors without retransmission). A <strong>good</strong> Layer 1 medium only needs <strong>error detection</strong> (retransmission handles the rare error). This is the key reason error correction is preferred on wireless networks — retransmission overhead on a noisy wireless link is prohibitive.</p></blockquote>
+    <blockquote><p><strong>Exam Q:</strong> Why would you prefer error <em>correction</em> over error <em>detection</em> on a wireless network?<br><strong>Answer:</strong> Wireless links experience far higher noise and interference than wired links. With error <em>detection</em> only, every corrupted frame must be retransmitted, consuming significant bandwidth and adding latency on a medium that is already error-prone. Error <em>correction</em> (e.g. forward error correction) allows the receiver to reconstruct the original data without retransmission, making communication far more efficient on a noisy medium.</p></blockquote>
+  </div>
+</section>
+
+<section class="study-section theory" id="2-media-access-control">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>2. Layer 2: Media Access Control</h2>
+    <p><strong>Media Access Control (MAC)</strong> solves the problem of determining which node may transmit at any given moment. Three broad approaches exist.</p>
+  </div>
+</section>
+
+<section class="study-section theory" id="2-1-master-slave">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>2.1 Master/Slave Protocols (Polling)</h2>
+    <p>In a <strong>master/slave protocol</strong>, one node (the master) controls medium access. The master <strong>polls</strong> each slave in turn to ask whether it has data to send.</p>
+    <blockquote><p><strong>MCQ fact:</strong> When one node polls another, it wants to know whether <strong>the other node has something to send</strong>.<br><em>(Distractor: "whether the other node is communicating" — wrong. Polling is specifically about data availability.)</em></p></blockquote>
+    <ul>
+      <li>Used in point-to-point and multipoint configurations.</li>
+      <li>Simple to implement; works well with dumb terminals.</li>
+      <li>Downside: poll messages waste bandwidth; master is a single point of failure; slaves must wait to be polled even when they have urgent data.</li>
+      <li><strong>SDLC</strong> (when used in multipoint mode) is the canonical example.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="study-section theory" id="2-2-token-passing">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>2.2 Token Passing</h2>
+    <p>In a <strong>token passing</strong> protocol, all nodes are equals. A special bit pattern called a <strong>token</strong> circulates on the network. A node may only transmit when it holds the token. After transmitting (or if it has nothing to send), it passes the token to the next node.</p>
+    <blockquote><p><strong>MCQ fact:</strong> In token ring (IEEE 802.5), the node with the <strong>largest MAC address</strong> wins the bully algorithm election to become active monitor.</p></blockquote>
+    <h3>Active Monitor (IEEE 802.5 / Token Ring)</h3>
+    <p>Token ring requires an <strong>active monitor</strong> — one designated node that:</p>
+    <ul>
+      <li>Monitors the ring to ensure the token circulates regularly.</li>
+      <li>Generates a new token if the existing token is lost (e.g. due to electrical interference or a node being switched off).</li>
+      <li>Periodically broadcasts an <em>"active monitor present"</em> message so all nodes know it is alive.</li>
+    </ul>
+    <p><strong>Election (Bully Algorithm) — triggered when no "active monitor present" is seen for too long:</strong></p>
+    <div class="table-wrap"><table><thead><tr><th>Phase</th><th>Action</th></tr></thead><tbody>
+      <tr><td><strong>Phase 1</strong></td><td>Any node that notices the monitor is gone forwards a call for election to its neighbour.</td></tr>
+      <tr><td><strong>Phase 2</strong></td><td>A frame carrying the highest MAC address seen so far is passed around the ring. Each node inserts its own address if it is larger. The node whose address returns unchanged is the winner.</td></tr>
+      <tr><td><strong>Phase 3</strong></td><td>The winner broadcasts a victory message; it becomes the new active monitor.</td></tr>
+    </tbody></table></div>
+    <blockquote><p><strong>MCQ fact:</strong> When no monitor presence is detected on an 802.5 network, <strong>a new monitor is elected by the remaining nodes</strong> using the bully algorithm.<br><em>(Past paper Q46: Answer D — "A new monitor is elected by the remaining nodes.")</em></p></blockquote>
+    <p><em>Example 1:</em> Four nodes A (<code>00:AA</code>), B (<code>00:BB</code>), C (<code>00:CC</code>), D (<code>00:FF</code>). D has the highest MAC address. When the monitor fails, phase 2 passes a frame around. D will replace the address in the frame with its own (<code>00:FF</code>). When <code>00:FF</code> returns to D, D knows it has the largest address and declares victory.</p>
+    <p><em>Example 2 (token passing acknowledgement):</em> In IEEE 802.5, when data travels around the ring past the intended recipient, the recipient sets the <strong>"Address Recognised"</strong> bits. If it can copy the frame into its buffers, it also sets the <strong>"Frame Copied"</strong> bits. When the frame returns to the sender, the sender can determine whether delivery was successful.</p>
+  </div>
+</section>
+
+<section class="study-section theory" id="2-3-csma-cd">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>2.3 Multiple Access: CSMA and CSMA/CD</h2>
+    <p><strong>Multiple Access (MA):</strong> any node may transmit whenever it wants. Works on quiet networks; degrades under heavy load due to collisions.</p>
+    <p><strong>CSMA (Carrier Sense Multiple Access):</strong> a node <em>senses</em> whether the medium is busy before transmitting. Reduces (but does not eliminate) collisions.</p>
+    <ul>
+      <li><strong>1-persistent CSMA:</strong> wait until medium is idle, then transmit immediately → near-certain collision if two nodes were waiting simultaneously.</li>
+      <li><strong>Non-persistent CSMA:</strong> if medium is busy, wait a <em>random</em> time before trying again.</li>
+      <li><strong>p-persistent CSMA:</strong> if medium is idle, transmit with probability <em>p</em>, else wait → balances utilisation and collision probability.</li>
+    </ul>
+    <blockquote><p><strong>MCQ fact:</strong> <strong>Ethernet</strong> uses <strong>CSMA/CD</strong> (Carrier Sense Multiple Access with <strong>Collision Detection</strong>). The corresponding IEEE standard is <strong>IEEE 802.3</strong>.</p></blockquote>
+    <p><strong>CSMA/CD:</strong> nodes keep listening while transmitting. If a collision is detected:</p>
+    <ol>
+      <li>All involved nodes abort transmission.</li>
+      <li>A <strong>jamming signal</strong> is broadcast so all nodes detect the collision.</li>
+      <li>Nodes retry after a random back-off.</li>
+    </ol>
+    <p><strong>Hidden node problem (wireless):</strong> Node A and C cannot hear each other but both can hear B. CSMA is not viable here because A cannot detect C's transmission. Solution: <strong>CSMA/CA</strong> (Collision Avoidance) — used by IEEE 802.11 (WiFi).</p>
+  </div>
+</section>
+
+<section class="study-section theory" id="3-data-delineation">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>3. Layer 2: Data Delineation</h2>
+    <p><strong>Data delineation</strong> is the process of marking the start and end of a frame in the continuous bit stream arriving at a node.</p>
+    <p>The core challenge is the <strong>transparency problem</strong>: any framing character or pattern chosen may naturally appear in the data, causing the receiver to prematurely terminate the frame.</p>
+    <p>Three techniques exist:</p>
+    <div class="table-wrap"><table><thead><tr><th>Technique</th><th>Used by</th><th>Mechanism</th></tr></thead><tbody>
+      <tr><td>Special characters (byte stuffing)</td><td>Bisync</td><td>DLE-STX and DLE-ETX; DLE escaped by inserting another DLE</td></tr>
+      <tr><td>Special bit pattern (bit stuffing)</td><td>SDLC, HDLC</td><td>Flag <code>01111110</code>; stuff a <code>0</code> after every five consecutive <code>1</code>s in the data</td></tr>
+      <tr><td>Known/fixed field lengths</td><td>Ethernet (IEEE 802.3)</td><td>Length field explicitly states payload size; no framing characters needed</td></tr>
+      <tr><td>Non-bit patterns</td><td>IEEE 802.5 Token Ring</td><td>Non-data symbols J and K (code violations in Manchester encoding) used as delimiters</td></tr>
+    </tbody></table></div>
+    <blockquote><p><strong>MCQ fact:</strong> <strong>HDLC accomplishes transparency by using bit stuffing</strong> (for SDLC/HDLC). Known field lengths are also used (for byte-oriented protocols like Ethernet).<br><em>(Past paper Q43: Answer A — "Bit stuffing")</em></p></blockquote>
+    <blockquote><p><strong>MCQ fact:</strong> <strong>Data delineation</strong> refers to <strong>marking the boundaries of a frame</strong> in a continuous stream.<br><em>(Past paper Q48: Answer B.)</em></p></blockquote>
+  </div>
+</section>
+
+<section class="study-section practical" id="3-1-bit-stuffing">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practical">Practical</span></div>
+    <h2>3.1 Bit Stuffing (SDLC/HDLC)</h2>
+    <p>The SDLC flag is <code>01111110</code>. To ensure this pattern cannot appear in data, the sender <strong>stuffs</strong> an extra <code>0</code> bit after every run of five consecutive <code>1</code>s in the data.</p>
+    <p><em>Example 1:</em> Transmit data <code>01111110</code>.</p>
+    <p>The sender inspects the raw data and sees five consecutive <code>1</code>s followed by a <code>1</code> (would produce a flag). A <code>0</code> is inserted after the fifth <code>1</code>:</p>
+    <pre><code>Original data:  0 1 1 1 1 1 1 0
+After stuffing: 0 1 1 1 1 1 0 1 0</code></pre>
+    <p>The transmitted frame on the wire (including framing flags) is: <code>01111110</code> + stuffed data + <code>01111110</code></p>
+    <blockquote><p><strong>MCQ fact (bit stuffing worked example):</strong> If SDLC transmits data <code>01111110</code>, the bits observed on the wire (data portion only) are <strong><code>011111010</code></strong> — a <code>0</code> is inserted after the five <code>1</code>s.<br><em>(Past paper Q50: Answer B — <code>011111010</code>)</em></p></blockquote>
+    <p><em>Example 2:</em> Receiver algorithm for SDLC:</p>
+    <pre><code>ones = 0
+receive 01111110       // start flag
+while true:
+    b = nextBit()
+    if b == 1:
+        ones++
+        append b to received data
+    if b == 0:
+        if ones &lt; 5:  append 0 to received data
+        if ones == 5: discard (stuffed bit)
+        if ones == 6: terminate (end flag found)
+        if ones &gt; 6:  abort
+        ones = 0</code></pre>
+  </div>
+</section>
+
+<section class="study-section theory" id="3-2-token-ring-delim">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>3.2 IEEE 802.5 Token Ring: Non-bit Pattern Delineation</h2>
+    <p>Manchester coding ensures every bit contains a <strong>mid-bit voltage transition</strong>. A high-high or low-low (which cannot represent a valid bit) is a <strong>code violation</strong>. IEEE 802.5 calls these <strong>non-data J</strong> and <strong>non-data K</strong> symbols.</p>
+    <ul>
+      <li><strong>Starting delimiter:</strong> <code>JK0JK000</code></li>
+      <li><strong>Ending delimiter:</strong> <code>JK1JK1xx</code></li>
+    </ul>
+    <p>Since J and K cannot appear in data (data only contains <code>0</code>s and <code>1</code>s), these delimiters are unambiguous — no stuffing is needed.</p>
+  </div>
+</section>
+
+<section class="study-section theory" id="4-error-control">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4. Layer 2: Error Control</h2>
+    <p><strong>Error control</strong> at Layer 2 determines whether bits arrived exactly as transmitted, and optionally corrects errors.</p>
+    <blockquote><p><strong>Lecture note:</strong> <strong>Do not study Hamming code or CRC calculations</strong> — these are explicitly out of scope per the professor.</p></blockquote>
+  </div>
+</section>
+
+<section class="study-section theory" id="4-1-detect-vs-correct">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.1 Error Detection vs Error Correction</h2>
+    <div class="table-wrap"><table><thead><tr><th>Category</th><th>Technique</th><th>Mechanism</th></tr></thead><tbody>
+      <tr><td>Detection only</td><td>Parity</td><td>One extra bit forces total 1-count to odd or even</td></tr>
+      <tr><td>Detection only</td><td>Checksum</td><td>Modular sum of all transmitted values</td></tr>
+      <tr><td>Detection only</td><td>CRC</td><td>Polynomial division remainder <em>(theory only; calculations out of scope)</em></td></tr>
+      <tr><td>Correction</td><td><em>n</em>-modular redundancy</td><td>Transmit data <em>n</em> times; majority vote selects correct value</td></tr>
+      <tr><td>Correction</td><td>Hamming code</td><td><em>(out of scope)</em></td></tr>
+    </tbody></table></div>
+    <blockquote><p><strong>MCQ fact:</strong> <strong>Parity</strong> only detects errors that change an <strong>odd</strong> number of bits. It detects approximately <strong>50%</strong> of burst errors (which randomly affect an even or odd number of bits).</p></blockquote>
+    <blockquote><p><strong>MCQ fact:</strong> <strong>Checksums</strong> are weak: if all data is forced to <code>0</code> by a broken wire, the checksum is also <code>0</code> — the error is undetected.</p></blockquote>
+    <blockquote><p><strong>MCQ fact:</strong> The key distinction for the exam is: use <strong>error correction</strong> on noisy/wireless media (to avoid retransmission overhead); use <strong>error detection</strong> (with retransmission via ARQ) on reliable wired media.</p></blockquote>
+  </div>
+</section>
+
+<section class="study-section practical" id="4-2-n-modular">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practical">Practical</span></div>
+    <h2>4.2 Error Correction: <em>n</em>-Modular Redundancy</h2>
+    <p>The same data is transmitted <em>n</em> times. The receiver takes the majority value across all copies as the correct data.</p>
+    <p><em>Example 1 (triple modular redundancy, n=3):</em> To send bit <code>1</code>, transmit <code>111</code>. If one bit flips to <code>0</code> due to noise, the receiver receives <code>101</code> or <code>110</code> — the majority is still <code>1</code>, so the error is corrected.</p>
+    <p><em>Example 2 (realistic scenario):</em> A stockbroker receives three copies of a trade instruction. Two say "Buy ZAR 1,000,000 shares" and one says "Buy ZAR 1,900,000 shares." The majority message is used.</p>
+    <blockquote><p><strong>MCQ fact:</strong> <em>n</em>-modular redundancy overhead for a message of size <em>s</em> is <strong>(n−1) × s</strong>.</p></blockquote>
+  </div>
+</section>
+
+<section class="study-section theory" id="5-other-functions">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5. Layer 2: Other Functions</h2>
+  </div>
+</section>
+
+<section class="study-section theory" id="5-1-mac-llc">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5.1 The MAC and LLC Sublayers</h2>
+    <p>Layer 2 is often subdivided into two sublayers (used in IEEE standards):</p>
+    <div class="table-wrap"><table><thead><tr><th>Sublayer</th><th>Name</th><th>Role</th></tr></thead><tbody>
+      <tr><td>Upper</td><td><strong>LLC (Logical Link Control)</strong> — IEEE 802.2</td><td>Medium-independent aspects: identifies Layer 3 protocol via <strong>DSAP/SSAP</strong> fields</td></tr>
+      <tr><td>Lower</td><td><strong>MAC (Media Access Control)</strong></td><td>Medium-dependent aspects: physical medium access and frame delineation</td></tr>
+    </tbody></table></div>
+    <blockquote><p><strong>MCQ fact:</strong> The LLC packet format contains: <code>DSAP | SSAP | Control | Info</code>. DSAP and SSAP identify the Layer 3 protocols at destination and source respectively — analogous to port numbers for TCP.</p></blockquote>
+  </div>
+</section>
+
+<section class="study-section theory" id="5-2-flow-control">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5.2 Flow Control at Layer 2</h2>
+    <ul>
+      <li><strong>SDLC/HDLC:</strong> Uses the <strong>RNR (Receiver Not Ready)</strong> S-frame to tell the sender to pause. Must be repeated to keep the sender paused.</li>
+      <li><strong>Bisync:</strong> Uses a <strong>WACK (Wait-before-transmit Acknowledgement)</strong> — acknowledges received data but tells the sender to wait.</li>
+      <li>Most modern Layer 2 protocols rely on <strong>Layer 4</strong> for flow control.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="study-section theory" id="5-3-sdlc-hdlc">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5.3 Connection-Oriented Services (SDLC/HDLC)</h2>
+    <p>While most Layer 2 protocols are connectionless, SDLC and HDLC provide connection-oriented services with numbered frames and acknowledgements.</p>
+    <blockquote><p><strong>MCQ fact:</strong> SDLC is a <strong>go-back-N ARQ</strong> protocol. HDLC adds <strong>SREJ (Selective REJect)</strong> making it a <strong>selective repeat ARQ</strong> protocol.</p></blockquote>
+    <p><strong>SDLC/HDLC frame types:</strong></p>
+    <div class="table-wrap"><table><thead><tr><th>Frame type</th><th>Purpose</th><th>Distinguishing bits (low 2 bits of control)</th></tr></thead><tbody>
+      <tr><td><strong>I-frame</strong> (Information)</td><td>Carries data; contains N(S) and N(R)</td><td>Bit 0 = <code>0</code></td></tr>
+      <tr><td><strong>S-frame</strong> (Supervisory)</td><td>Flow/error control; contains N(R) only</td><td>Bits 1:0 = <code>01</code></td></tr>
+      <tr><td><strong>U-frame</strong> (Unnumbered)</td><td>Commands (connect, disconnect, mode change)</td><td>Bits 1:0 = <code>11</code></td></tr>
+    </tbody></table></div>
+    <p><strong>S-frame types:</strong></p>
+    <div class="table-wrap"><table><thead><tr><th>S-frame</th><th>Meaning</th></tr></thead><tbody>
+      <tr><td><strong>RR</strong> (Receiver Ready)</td><td>Acknowledge frames up to N(R)−1; ready for more</td></tr>
+      <tr><td><strong>RNR</strong> (Receiver Not Ready)</td><td>Acknowledge up to N(R)−1; pause sending</td></tr>
+      <tr><td><strong>REJ</strong> (Reject)</td><td>Go-back-N reject; resend from N(R) onwards</td></tr>
+      <tr><td><strong>SREJ</strong> (Selective Reject)</td><td>Reject only frame N(R); HDLC only</td></tr>
+    </tbody></table></div>
+    <blockquote><p><strong>MCQ fact:</strong> With a 3-bit N(S)/N(R) field, SDLC allows at most <strong>7</strong> unacknowledged frames (frame numbers 0–7; maximum 7 outstanding). HDLC with a 16-bit control field expands this to <strong>127</strong> unacknowledged frames.</p></blockquote>
+    <p><em>Example 1 (SDLC acknowledgement):</em> Node A sends frames 0–5. B replies with N(R)=6, meaning B has received all frames and expects frame 6 next. A then sends frames 6, 7, 0. B sends N(R)=1, acknowledging all three.</p>
+    <p><em>Example 2 (why max 7 unacknowledged):</em> If C sends 8 frames (0–7) and D sends N(R)=0, it is impossible to tell whether D expects frame 8 (now renumbered 0) or never received the original frame 0. Hence the rule: no more than 7 unacknowledged frames at any time.</p>
+  </div>
+</section>
+
+<section class="study-section theory" id="6-protocol-table">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6. Layer 2: Protocol Reference Table</h2>
+    <div class="table-wrap"><table><thead><tr><th>Protocol</th><th>Standard</th><th>Orientation</th><th>MAC technique</th><th>Delineation</th><th>Key facts</th></tr></thead><tbody>
+      <tr><td><strong>Ethernet</strong></td><td>IEEE 802.3</td><td>Byte</td><td>CSMA/CD</td><td>Fixed field lengths (preamble + length field)</td><td>MTU 1500 bytes; most widely used; DIX Ethernet uses Ethertype</td></tr>
+      <tr><td><strong>Token Ring</strong></td><td>IEEE 802.5</td><td>Byte</td><td>Token passing</td><td>Non-bit patterns (J/K delimiters)</td><td>Active monitor; bully election; Address Recognised / Frame Copied bits</td></tr>
+      <tr><td><strong>SDLC</strong></td><td>IBM</td><td>Bit</td><td>Master/slave or balanced</td><td>Bit stuffing (flag <code>01111110</code>)</td><td>Go-back-N ARQ; 3-bit N(S)/N(R); used in WANs</td></tr>
+      <tr><td><strong>HDLC</strong></td><td>ISO</td><td>Bit</td><td>Master/slave or balanced</td><td>Bit stuffing (flag <code>01111110</code>)</td><td>Adds SREJ (selective repeat); 16-bit control field option</td></tr>
+      <tr><td><strong>Bisync</strong></td><td>IBM</td><td>Character (ASCII)</td><td>Master/slave</td><td>Byte stuffing (DLE)</td><td>Historical; stop-and-wait; ACK0/ACK1</td></tr>
+      <tr><td><strong>IEEE 802.11</strong></td><td>IEEE</td><td>Byte</td><td>CSMA/CA</td><td>Fixed field lengths</td><td>WiFi; addresses hidden node problem; includes 802.11a/b/g/n/ac/ax</td></tr>
+    </tbody></table></div>
+    <blockquote><p><strong>MCQ fact:</strong> <strong>IEEE 802.3</strong> standardises <strong>Ethernet</strong> (not LLC, not HDLC, not Token Ring).<br><em>(Past paper Q42: Answer A — "Ethernet")</em></p></blockquote>
+    <blockquote><p><strong>MCQ fact:</strong> <strong>IEEE 802.11</strong> standardises <strong>Wireless LANs</strong> (WiFi).<br><em>(Past paper Q47: Answer E — "Wireless LANs")</em></p></blockquote>
+  </div>
+</section>
+
+<section class="study-section theory" id="6-1-ethernet-frame">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.1 Ethernet (IEEE 802.3) Frame Structure</h2>
+    <pre><code>+----------+---------+------+------+--------+-----------+--------+----------+
+| Preamble | SFD     | Dst  | Src  | Length | Data      | Pad    | CRC      |
+| 7 octets | 1 octet | 6 B  | 6 B  | 2 B    | 46–1500 B | varies | 4 octets |
++----------+---------+------+------+--------+-----------+--------+----------+</code></pre>
+    <ul>
+      <li><strong>Preamble:</strong> <code>10101010...10</code> (7 octets) — allows receivers to synchronise clock.</li>
+      <li><strong>SFD (Start Frame Delimiter):</strong> <code>10101011</code> — marks frame start.</li>
+      <li><strong>Length:</strong> number of bytes in the data field (46–1500). Values ≥ 1536 indicate Ethernet II (Ethertype field).</li>
+      <li><strong>Data:</strong> minimum 46 octets (ensures sender is still transmitting if collision occurs at far end of network).</li>
+      <li><strong>CRC:</strong> 4-octet CRC for error detection.</li>
+      <li><strong>Interframe gap:</strong> 12 octets (96 bits) must be idle between frames.</li>
+    </ul>
+    <blockquote><p><strong>MCQ fact:</strong> Ethernet's <strong>MTU is 1500 octets</strong>. The minimum data field is <strong>46 octets</strong>.</p></blockquote>
+    <blockquote><p><strong>MCQ fact (Ethernet II vs IEEE 802.3 harmonisation):</strong> Values 46–1500 in the Length/Type field → <strong>IEEE 802.3</strong> (length). Values ≥ 1536 → <strong>Ethernet II</strong> (Ethertype — identifies the Layer 3 protocol).</p></blockquote>
+    <blockquote><p><strong>MCQ fact:</strong> <strong>Jumbo frames</strong> (MTU ≈ 9000 octets) are supported by gigabit and 10-gigabit Ethernet variants.</p></blockquote>
+  </div>
+</section>
+
+<section class="study-section theory" id="7-layer-1-overview">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>7. Layer 1: The Physical Layer — Overview</h2>
+    <blockquote><p><strong>Lecture note:</strong> Layer 1 is worth <strong>at most 5 marks</strong>. Only study what was covered in class: NRZ encoding, Manchester encoding, and multi-mode vs single-mode fibre.</p></blockquote>
+    <p><strong>The Physical Layer (Layer 1)</strong> deals with the actual physical transmission of bits between two directly connected nodes. It covers: transmission media, bit representation (line coding and modulation), physical topology, plugs, multiplexing, signal attenuation, and interference.</p>
+    <blockquote><p><strong>MCQ fact:</strong> Layer 1 concerns itself with media (copper, fibre, radio), bit representation, plug types, topology, and signal attenuation — <strong>not</strong> with error checking or addressing (those belong to Layer 2).</p></blockquote>
+  </div>
+</section>
+
+<section class="study-section theory" id="8-line-coding">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>8. Layer 1: Line Coding (Data Representation on Digital Media)</h2>
+    <p><strong>Line coding</strong> is the process of mapping logical bit values (<code>0</code> and <code>1</code>) onto voltage states on a digital medium.</p>
+  </div>
+</section>
+
+<section class="study-section theory" id="8-1-nrz">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>8.1 NRZ (Non-Return-to-Zero)</h2>
+    <p><strong>NRZ (Non-Return-to-Zero)</strong> encodes a <code>1</code> as a high voltage and a <code>0</code> as a low voltage for the entire bit interval. The signal does not return to zero between bits.</p>
+    <pre><code>Bit:    : 1 : 0 : 1 : 1 :
+        :   ___   :   :___:___:
+Signal: :  |   |  :   |       |
+        :__|   |__|   |       |</code></pre>
+    <ul>
+      <li>Simple and efficient.</li>
+      <li>Problem: a long run of identical bits makes it difficult for the receiver to synchronise its clock (no transitions to lock on to).</li>
+    </ul>
+    <blockquote><p><strong>MCQ fact:</strong> <strong>NRZ</strong> does not guarantee a mid-bit transition. Long runs of <code>0</code>s or <code>1</code>s can cause clock synchronisation problems at the receiver.</p></blockquote>
+  </div>
+</section>
+
+<section class="study-section theory" id="8-2-manchester">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>8.2 Manchester Encoding</h2>
+    <p><strong>Manchester encoding</strong> guarantees a <strong>mid-bit voltage transition</strong> in every bit interval. Per IEEE 802.3 convention:</p>
+    <ul>
+      <li><strong><code>1</code></strong> = low-to-high transition in the middle of the bit interval.</li>
+      <li><strong><code>0</code></strong> = high-to-low transition in the middle of the bit interval.</li>
+    </ul>
+    <p><em>(Textbook convention per IEEE 802.3: <code>1</code> = rising transition at midpoint)</em></p>
+    <ul>
+      <li>Advantage: guaranteed clock synchronisation (receiver always has a transition to lock on to).</li>
+      <li>Disadvantage: requires <strong>double the bandwidth</strong> of NRZ (signal transitions at twice the bit rate).</li>
+      <li>Used by: <strong>Ethernet (IEEE 802.3)</strong> and the <strong>non-bit patterns</strong> used by Token Ring (IEEE 802.5) for delineation.</li>
+    </ul>
+    <blockquote><p><strong>MCQ fact:</strong> Manchester encoding <strong>always</strong> produces a transition in the <strong>middle</strong> of each bit interval. This is what makes <strong>non-data J and K code violations</strong> possible — a high-high or low-low has <em>no</em> mid-bit transition and therefore cannot be a valid data bit.</p></blockquote>
+    <p><em>Example 1 (NRZ vs Manchester):</em> Transmit <code>1 0 1 1</code>. In NRZ the signal is high-low-high-high with no guaranteed midpoint transitions. In Manchester (802.3 convention), each bit has a definite rising or falling transition at its midpoint, making clock recovery trivial.</p>
+    <p><em>Example 2 (why Manchester enables J/K):</em> In Manchester encoding, every valid bit contains exactly one mid-bit transition. A signal segment with <strong>two transitions in the same direction</strong> (e.g., high-high) is physically representable but is a <strong>code violation</strong> (non-data J or K). IEEE 802.5 uses these as unambiguous frame delimiters.</p>
+  </div>
+</section>
+
+<section class="study-section theory" id="8-3-differential-manchester">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>8.3 Differential Manchester Encoding</h2>
+    <p><strong>Differential Manchester encoding</strong> also guarantees a mid-bit transition, but encodes information via whether a transition occurs at the <em>start</em> of the bit interval:</p>
+    <ul>
+      <li><strong><code>1</code></strong> = no transition at start of interval (but transition at midpoint still occurs).</li>
+      <li><strong><code>0</code></strong> = transition at start of interval (plus transition at midpoint).</li>
+    </ul>
+    <p>Used by: <strong>Token Ring (IEEE 802.5)</strong>.</p>
+    <blockquote><p><strong>MCQ fact:</strong> Manchester encoding, compared to NRZ, requires <strong>double the bandwidth</strong> (each Manchester bit contains two half-intervals with opposite states, requiring double the signal transitions).</p></blockquote>
+  </div>
+</section>
+
+<section class="study-section theory" id="9-transmission-media">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>9. Layer 1: Transmission Media</h2>
+  </div>
+</section>
+
+<section class="study-section theory" id="9-1-guided-media">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>9.1 Guided (Conducted) Media</h2>
+    <div class="table-wrap"><table><thead><tr><th>Medium</th><th>Notes</th></tr></thead><tbody>
+      <tr><td>Copper wire pairs</td><td>Standard Ethernet cabling; RJ-45 connector</td></tr>
+      <tr><td>Coaxial cable</td><td>Older Ethernet (10Base5); BNC or vampire tap connectors</td></tr>
+      <tr><td>Optical fibre</td><td>High bandwidth; immune to electromagnetic interference</td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+
+<section class="study-section theory" id="9-2-optical-fibre">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>9.2 Optical Fibre: Multi-mode vs Single-mode</h2>
+    <blockquote><p><strong>Lecture note:</strong> Know the distinction between multi-mode and single-mode fibre — this is explicitly in scope.</p></blockquote>
+    <div class="table-wrap"><table><thead><tr><th>Property</th><th>Multi-mode fibre</th><th>Single-mode fibre</th></tr></thead><tbody>
+      <tr><td>Core diameter</td><td>Larger (≈50–62.5 µm)</td><td>Smaller (≈8–10 µm)</td></tr>
+      <tr><td>Light paths</td><td>Multiple light rays travel different paths (modes)</td><td>Only one light mode travels through</td></tr>
+      <tr><td>Dispersion</td><td>Higher (modes arrive at slightly different times → pulse spreading)</td><td>Very low</td></tr>
+      <tr><td>Transmission distance</td><td>Shorter (suitable for LAN / building)</td><td>Longer (suitable for WAN / metropolitan)</td></tr>
+      <tr><td>Cost</td><td>Cheaper (LED light source, lower-precision connectors)</td><td>More expensive (laser light source)</td></tr>
+      <tr><td>Typical use</td><td>Data centres, short campus links</td><td>Long-distance carrier links, undersea cables</td></tr>
+    </tbody></table></div>
+    <blockquote><p><strong>MCQ fact:</strong> <strong>Single-mode fibre</strong> supports longer distances than multi-mode fibre because only one light mode travels through it, eliminating modal dispersion.</p></blockquote>
+    <blockquote><p><strong>MCQ fact:</strong> <strong>Multi-mode fibre</strong> uses a larger core and is cheaper, but suffers from <strong>modal dispersion</strong> — different rays take different paths and arrive at slightly different times, limiting distance.</p></blockquote>
+  </div>
+</section>
+
+<section class="study-section theory" id="10-topology">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>10. Layer 1: Topology</h2>
+    <div class="table-wrap"><table><thead><tr><th>Topology</th><th>Description</th><th>Example</th></tr></thead><tbody>
+      <tr><td><strong>Bus</strong></td><td>All nodes share a single cable; broadcast medium</td><td>Original Ethernet (coax)</td></tr>
+      <tr><td><strong>Ring</strong></td><td>Nodes connected in a closed loop; data travels one direction</td><td>Token Ring (IEEE 802.5)</td></tr>
+      <tr><td><strong>Point-to-point</strong></td><td>Direct link between exactly two nodes</td><td>SDLC/HDLC WAN links</td></tr>
+      <tr><td><strong>Multipoint</strong></td><td>One link shared by multiple nodes</td><td>Master/slave SDLC</td></tr>
+      <tr><td><strong>Mesh</strong></td><td>Every node connected to every other node</td><td>Internet backbone</td></tr>
+    </tbody></table></div>
+  </div>
+</section>
+
+<section class="study-section practice" id="practice-questions">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practice">Practice</span></div>
+    <h2>Examinable Practice Questions</h2>
+  </div>
+</section>
+
+<section class="study-section practice" id="mcq">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practice">Practice</span></div>
+    <h2>Multiple Choice</h2>
+    <p><strong>Q1.</strong> Which of the following is <em>not</em> a function of the data link control layer?<br>A. Data delineation &nbsp;&nbsp; B. Error control &nbsp;&nbsp; C. Encoding &nbsp;&nbsp; D. Media access control &nbsp;&nbsp; E. None of the above</p>
+    <p><strong>Q2.</strong> Which ISO OSI layer is responsible for regulating which node is allowed to transmit next in cases where two computers are directly connected?<br>A. 5 &nbsp;&nbsp; B. 4 &nbsp;&nbsp; C. 3 &nbsp;&nbsp; D. 2 &nbsp;&nbsp; E. It may be 2 or 5 depending on factors not mentioned in the question.</p>
+    <p><strong>Q3.</strong> What does <em>data delineation</em> refer to on Layer 2?<br>A. Limiting the size of Layer 2 frames. &nbsp;&nbsp; B. Marking the boundaries of a frame. &nbsp;&nbsp; C. Picking a data code for data representation. &nbsp;&nbsp; D. Controlling access to a shared medium. &nbsp;&nbsp; E. Encoding data in a form that can be transmitted via Layer 1.</p>
+    <p><strong>Q4.</strong> HDLC accomplishes transparency by using:<br>A. Bit stuffing &nbsp;&nbsp; B. Byte stuffing &nbsp;&nbsp; C. Known field lengths &nbsp;&nbsp; D. More than one of the above &nbsp;&nbsp; E. None of the above</p>
+    <p><strong>Q5.</strong> Suppose a node using SDLC has to transmit the data <code>01111110</code>. The data will be observed on the line as:<br>A. <code>011111010</code> &nbsp;&nbsp; B. <code>011111110</code> &nbsp;&nbsp; C. <code>011111100</code> &nbsp;&nbsp; D. <code>011111110</code> &nbsp;&nbsp; E. <code>011111X10</code></p>
+    <p><strong>Q6.</strong> When no monitor presence is detected on an 802.5 network:<br>A. The hub appoints a new monitor. &nbsp;&nbsp; B. The previous monitor resumes its duties. &nbsp;&nbsp; C. The station with the highest priority starts acting as monitor. &nbsp;&nbsp; D. A new monitor is elected by the remaining nodes. &nbsp;&nbsp; E. The network simply continues operating because it does not really need a monitor.</p>
+    <p><strong>Q7.</strong> IEEE 802.3 defines:<br>A. Ethernet &nbsp;&nbsp; B. LLC &nbsp;&nbsp; C. HDLC &nbsp;&nbsp; D. Token ring &nbsp;&nbsp; E. More than one of the above</p>
+    <p><strong>Q8.</strong> IEEE 802.11 standardises:<br>A. Ethernet &nbsp;&nbsp; B. Token bus &nbsp;&nbsp; C. Token ring &nbsp;&nbsp; D. Security &nbsp;&nbsp; E. Wireless LANs</p>
+    <p><strong>Q9.</strong> A master-slave protocol may solve the following problem on Layer 2:<br>A. Media access control &nbsp;&nbsp; B. Error control &nbsp;&nbsp; C. Routing &nbsp;&nbsp; D. Polling &nbsp;&nbsp; E. None of the above</p>
+    <p><strong>Q10.</strong> Manchester encoding, compared to NRZ, requires:<br>A. Half the bandwidth &nbsp;&nbsp; B. The same bandwidth &nbsp;&nbsp; C. Double the bandwidth &nbsp;&nbsp; D. Triple the bandwidth &nbsp;&nbsp; E. This cannot be determined without knowing the bit rate.</p>
+    <p><strong>Q11.</strong> Which type of optical fibre supports the longest transmission distances?<br>A. Multi-mode step-index &nbsp;&nbsp; B. Multi-mode graded-index &nbsp;&nbsp; C. Single-mode &nbsp;&nbsp; D. Both A and B &nbsp;&nbsp; E. Both B and C</p>
+    <p><strong>Q12.</strong> In SDLC, the maximum number of unacknowledged frames at any time (with 3-bit sequence numbers) is:<br>A. 4 &nbsp;&nbsp; B. 6 &nbsp;&nbsp; C. 7 &nbsp;&nbsp; D. 8 &nbsp;&nbsp; E. 15</p>
+    <p><strong>Q13.</strong> Why is error <em>correction</em> preferred over error <em>detection</em> on wireless networks?<br>A. Wireless hardware cannot implement retransmission. &nbsp;&nbsp; B. Retransmission overhead is too high on noisy wireless links. &nbsp;&nbsp; C. Wireless frames are too short for ARQ. &nbsp;&nbsp; D. Error detection codes do not work on wireless media. &nbsp;&nbsp; E. Wireless networks always use Layer 5 for error control.</p>
+    <p><strong>Q14.</strong> The starting delimiter of an IEEE 802.5 frame is <code>JK0JK000</code>. What are J and K?<br>A. Special flag characters borrowed from ASCII. &nbsp;&nbsp; B. Code violations (non-bit patterns) that cannot occur in valid data. &nbsp;&nbsp; C. Bit-stuffed sequences inserted by the sender. &nbsp;&nbsp; D. Hexadecimal values representing frame boundaries. &nbsp;&nbsp; E. None of the above.</p>
+  </div>
+</section>
+
+<section class="study-section practice" id="long-form">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practice">Practice</span></div>
+    <h2>Long-Form &amp; Calculation</h2>
+    <p><strong>Q15. Layer 2 functions.</strong> Describe the three primary functions of a data link layer protocol. For each function, explain <em>why</em> it is necessary and give one concrete example of a technique used to implement it. [6]</p>
+    <p><strong>Q16. Error detection vs correction.</strong> Explain the difference between error <em>detection</em> and error <em>correction</em> at Layer 2. Why would a network engineer choose error correction over error detection on a wireless network? [4]</p>
+    <p><strong>Q17. Token ring election.</strong> Describe the bully algorithm used to elect a new active monitor in an IEEE 802.5 token ring network. What triggers an election, and how is the winner determined? [5]</p>
+    <p><strong>Q18. Bit stuffing.</strong> Explain the transparency problem in data link layer protocols. How does SDLC solve this problem using bit stuffing? Show the bits transmitted on the wire when the data payload <code>0111111110</code> is to be sent (exclude framing flags). [5]</p>
+    <p><strong>Q19. Manchester vs NRZ.</strong> Explain the difference between NRZ and Manchester encoding. Draw the signal for the bit sequence <code>1 0 1 0</code> using both schemes (using the IEEE 802.3 Manchester convention). State one advantage and one disadvantage of Manchester encoding relative to NRZ. [5]</p>
+  </div>
+</section>
+
+<section class="study-section memo" id="memo">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge memo">Memo</span></div>
+    <h2>Memo / Answer Key</h2>
+  </div>
+</section>
+
+<section class="study-section memo" id="mcq-answers">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge memo">Memo</span></div>
+    <h2>MCQ Answers</h2>
+    <p><strong>A1.</strong> C (Encoding is a Layer 1 function, not Layer 2.)</p>
+    <p><strong>A2.</strong> E (It may be Layer 2 for media access control OR Layer 5 for dialogue control, depending on context. Neither option alone is always correct.)</p>
+    <p><strong>A3.</strong> B (Delineation = marking frame boundaries in the bit stream.)</p>
+    <p><strong>A4.</strong> A (HDLC/SDLC are bit-oriented and use bit stuffing. Ethernet uses known field lengths, but HDLC specifically uses bit stuffing. For HDLC alone: A.)</p>
+    <p><strong>A5.</strong> A (<code>011111010</code> — a <code>0</code> is inserted after the five consecutive <code>1</code>s.)</p>
+    <p><strong>A6.</strong> D (The bully algorithm elects a new monitor from the remaining nodes.)</p>
+    <p><strong>A7.</strong> A (IEEE 802.3 = Ethernet.)</p>
+    <p><strong>A8.</strong> E (IEEE 802.11 = Wireless LANs / WiFi.)</p>
+    <p><strong>A9.</strong> A (Master/slave solves the media access control problem by having the master decide who transmits.)</p>
+    <p><strong>A10.</strong> C (Each Manchester bit contains two half-intervals with opposite states, requiring double the signal transitions — hence double the bandwidth of NRZ.)</p>
+    <p><strong>A11.</strong> C (Single-mode fibre eliminates modal dispersion, enabling much longer distances.)</p>
+    <p><strong>A12.</strong> C (With 3-bit sequence numbers, frames are numbered 0–7; the maximum unacknowledged is 2³ − 1 = <strong>7</strong>.)</p>
+    <p><strong>A13.</strong> B (Retransmission on a noisy link wastes bandwidth and adds latency; correction avoids retransmission entirely.)</p>
+    <p><strong>A14.</strong> B (J and K are code violations — signals that cannot represent a valid Manchester-encoded bit — so they are unambiguous as delimiters.)</p>
+  </div>
+</section>
+
+<section class="study-section memo" id="long-form-answers">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge memo">Memo</span></div>
+    <h2>Long-Form Answers</h2>
+    <p><strong>A15. Layer 2 functions</strong></p>
+    <ul>
+      <li>a) <strong>Media Access Control:</strong> Solves the problem of multiple nodes attempting to transmit simultaneously on a shared medium, causing collisions. <em>Technique:</em> CSMA/CD (used by Ethernet) — nodes sense the medium before transmitting and detect collisions during transmission.</li>
+      <li>b) <strong>Data Delineation:</strong> Solves the problem of identifying where a frame starts and ends in a continuous bit stream. <em>Technique:</em> Bit stuffing in SDLC — the flag <code>01111110</code> marks frame boundaries; a <code>0</code> is inserted after every five consecutive <code>1</code>s in the data to prevent the flag pattern appearing in the payload.</li>
+      <li>c) <strong>Error Control:</strong> Detects (and optionally corrects) transmission errors caused by noise on the medium. <em>Technique:</em> CRC — a polynomial remainder is calculated over the data and appended; the receiver recalculates and verifies the remainder.</li>
+    </ul>
+    <p><strong>A16. Error detection vs correction</strong></p>
+    <ul>
+      <li><strong>Error detection</strong> adds a check value (e.g. parity, checksum, CRC) that allows the receiver to determine whether data was corrupted. If corruption is detected, the frame is discarded and the sender is asked to retransmit (via ARQ).</li>
+      <li><strong>Error correction</strong> adds enough redundancy (e.g. forward error correction codes) that the receiver can reconstruct the original data <em>without</em> retransmission.</li>
+      <li>On a wireless network, the physical medium is inherently noisy. Error rates are much higher than on wired links. Every retransmission consumes scarce wireless bandwidth and adds latency. Using error correction avoids the retransmission cost entirely, making communication more efficient and reliable.</li>
+    </ul>
+    <p><strong>A17. Token ring bully election</strong></p>
+    <ul>
+      <li>An election is triggered when any node does not see an <em>"active monitor present"</em> message from the current monitor for a predetermined period.</li>
+      <li><strong>Phase 1:</strong> The node that notices the absence forwards an election call to its neighbour. If a node receives a call it has not already forwarded, it passes it on; otherwise it ignores it. This ensures all nodes know an election is in progress.</li>
+      <li><strong>Phase 2:</strong> An election frame (carrying the highest MAC address seen so far) circulates the ring. Each node compares the address in the frame to its own MAC address. If its address is larger, it replaces the frame with its own address; otherwise it forwards the frame unchanged. When a node's own address returns to it, that node has the largest MAC address on the ring — it is the winner.</li>
+      <li><strong>Phase 3:</strong> The winner broadcasts a victory message around the ring and takes over as active monitor. All other nodes acknowledge and resume normal operation.</li>
+      <li>Winner criterion: the node with the <strong>largest MAC address</strong>.</li>
+    </ul>
+    <p><strong>A18. Bit stuffing</strong></p>
+    <ul>
+      <li><strong>Transparency problem:</strong> Any framing pattern used to mark the start/end of a frame may naturally appear in the data, causing the receiver to misinterpret it as a frame boundary. The protocol must ensure this cannot happen.</li>
+      <li><strong>SDLC solution:</strong> The flag <code>01111110</code> delimits frames. Whenever the sender detects five consecutive <code>1</code>s in the data, it inserts a <code>0</code> after the fifth <code>1</code>. The receiver reverses this: five <code>1</code>s followed by <code>0</code> → discard the stuffed <code>0</code>; five <code>1</code>s followed by <code>1</code> → this is a flag (or abort if more than six <code>1</code>s follow).</li>
+      <li><strong>Worked example</strong> for data <code>0111111110</code>:
+        <ul>
+          <li>Scan left-to-right: after five <code>1</code>s, insert <code>0</code>: → <code>011111<strong>0</strong>1110</code></li>
+          <li>Continue with remaining bits: no more five consecutive <code>1</code>s remain.</li>
+          <li>Transmitted payload (on the wire): <strong><code>01111101 10</code></strong></li>
+        </ul>
+      </li>
+    </ul>
+    <p><strong>A19. Manchester vs NRZ</strong></p>
+    <p>NRZ for <code>1 0 1 0</code> (high = <code>1</code>, low = <code>0</code>):</p>
+    <pre><code>: 1 : 0 : 1 : 0 :
+:___:   :___:   :
+:   |___|   |___:</code></pre>
+    <p>Manchester (IEEE 802.3) for <code>1 0 1 0</code> (1 = low→high at midpoint; 0 = high→low at midpoint — each bit has a mid-bit transition):</p>
+    <pre><code>: 1  : 0  : 1  : 0  :
+:_↑  :  ↓_:_↑  :  ↓_:
+(rising transition at midpoint for '1'; falling for '0')</code></pre>
+    <ul>
+      <li><strong>Advantage of Manchester:</strong> Guaranteed mid-bit transition in every bit interval allows the receiver to continuously synchronise its clock to the sender, eliminating clock drift.</li>
+      <li><strong>Disadvantage of Manchester:</strong> Requires double the signal bandwidth of NRZ (two signal states per bit interval instead of one), making it less bandwidth-efficient.</li>
+    </ul>
+  </div>
+</section>
+
+</article></div></main>
+<footer class="footer">
+  <div class="footer-inner">Open this file directly in a browser: layer-1-2.html &nbsp;|&nbsp; <a href="index.html">Back to Study Index</a></div>
+</footer>
+</body>
+</html>

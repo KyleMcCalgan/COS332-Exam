@@ -19,10 +19,14 @@
   <li><a href="#web">2.5 The Web (HTTP, HTTPS, CGI)</a></li>
   <li><a href="#other">2.6 Other Application Layer Protocols</a></li>
   <li><a href="#sniff">2.7 Sniffing Traffic</a></li>
+  <li><a href="#ports">2.8 Well-Known Port Numbers</a></li>
   <li><a href="#traps">⚠ Exam Traps</a></li>
   <li><a href="#demo-smtp">Demo: SMTP Dialogue</a></li>
   <li><a href="#demo-http">Demo: HTTP Request/Response Builder</a></li>
   <li><a href="#demo-ftp">Demo: FTP Active vs Passive</a></li>
+  <li><a href="#practice">Practice Questions (MCQ)</a></li>
+  <li><a href="#longform">Practice Questions (Long-Form)</a></li>
+  <li><a href="#memo">Memo / Answer Key</a></li>
 </ul>
 
 <h2 id="arch">2.2 Network Architectures</h2>
@@ -283,12 +287,110 @@ C: QUIT          → S: +OK (deletions now executed)</code></pre>
 </ul>
 <div class="warn"><strong>Legal concern:</strong> Be careful about the legality of capturing traffic even on your own network interface.</div>
 
+<h2 id="ports">2.8 Well-Known Port Numbers</h2>
+<p>Memorise these — they appear on every test.</p>
+<table>
+<thead><tr><th>Port</th><th>Protocol</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>20</td><td>FTP (data)</td><td></td></tr>
+<tr><td>21</td><td>FTP (control)</td><td></td></tr>
+<tr><td>22</td><td>SSH</td><td></td></tr>
+<tr><td>23</td><td>Telnet</td><td></td></tr>
+<tr><td>25</td><td>SMTP</td><td>MTA-to-MTA</td></tr>
+<tr><td>43</td><td>WHOIS</td><td></td></tr>
+<tr><td>53</td><td>DNS</td><td></td></tr>
+<tr><td>80</td><td>HTTP</td><td></td></tr>
+<tr><td>110</td><td>POP3</td><td></td></tr>
+<tr><td>143</td><td>IMAP4</td><td></td></tr>
+<tr><td>587</td><td>SMTP (submit)</td><td>User to first MTA</td></tr>
+</tbody>
+</table>
+
 <h2 id="traps">⚠ Exam Traps</h2>
 <div class="warn"><strong>SMTP 250 code:</strong> After a successful EHLO/HELO, the server returns condition code 250. Server-to-server SMTP uses port 25. Submission (user to first MTA) uses port 587.</div>
 <div class="warn"><strong>IMAP vs POP3:</strong> IMAP4 manipulates mailboxes <em>on the server</em>. POP3 downloads to the local machine. IMAP supports complex folders and flags; POP3 does not.</div>
 <div class="warn"><strong>TFTP uses UDP</strong> — not TCP. It is used for diskless boot (OS image transfer), not general file transfer (that's FTP).</div>
 <div class="warn"><strong>CGI mechanics:</strong> CGI writes to <em>stdout</em> to send to browser; reads an <em>environment variable</em> set by the server to receive input. These specific mechanics are frequently tested.</div>
 <div class="warn"><strong>Telnet escape character:</strong> Ctrl+] opens the Telnet client console. This is called the escape character.</div>
+
+<h2 id="practice">Practice Questions — Multiple Choice</h2>
+<p><strong>Q1.</strong> The software providing services on the Internet (acting as a server waiting for client requests) is often known as a:<br>
+A. Router &nbsp;&nbsp; B. Dæmon &nbsp;&nbsp; C. Daemon Process &nbsp;&nbsp; D. Agent &nbsp;&nbsp; E. Proxy</p>
+<p><strong>Q2.</strong> Which of the following protocols is primarily intended to manipulate a mailbox on a server?<br>
+A. IMAP4 &nbsp;&nbsp; B. POP3 &nbsp;&nbsp; C. SMTP &nbsp;&nbsp; D. More than one of the above &nbsp;&nbsp; E. All of the above</p>
+<p><strong>Q3.</strong> Which condition code will be returned by an SMTP server after successfully handling a <code>HELO</code> or <code>EHLO</code> message?<br>
+A. 0 &nbsp;&nbsp; B. 150 &nbsp;&nbsp; C. 250 &nbsp;&nbsp; D. 350 &nbsp;&nbsp; E. 450</p>
+<p><strong>Q4.</strong> The specific service offered by the Telnet protocol is a:<br>
+A. Secure encrypted connection &nbsp;&nbsp; B. File transfer &nbsp;&nbsp; C. Virtual terminal &nbsp;&nbsp; D. Mail relay &nbsp;&nbsp; E. Domain name resolution</p>
+<p><strong>Q5.</strong> Suppose you want to use a Telnet client to interact with <code>www.example.com</code> using HTTP commands. The full command to enter at the CLI is:<br>
+A. <code>telnet www.example.com</code> &nbsp;&nbsp; B. <code>telnet www.example.com 23</code> &nbsp;&nbsp; C. <code>telnet www.example.com 80</code> &nbsp;&nbsp; D. <code>telnet http://www.example.com</code> &nbsp;&nbsp; E. <code>telnet www.example.com 443</code></p>
+<p><strong>Q6.</strong> To avoid the need for the ... channel to connect to the FTP client, FTP ... mode should be used.<br>
+A. data, passive &nbsp;&nbsp; B. data, indirect &nbsp;&nbsp; C. data, reversed &nbsp;&nbsp; D. control, passive &nbsp;&nbsp; E. control, indirect</p>
+<p><strong>Q7.</strong> (i) How does a CGI program send output to a browser? (ii) How does a CGI program receive input from a browser?<br>
+A. (i) Writes to standard output; (ii) Reads from standard input<br>
+B. (i) Writes to the appropriate socket; (ii) Reads from standard input<br>
+C. (i) Writes to standard output; (ii) Reads from the appropriate socket<br>
+D. (i) Writes to the appropriate socket; (ii) Reads from the appropriate socket<br>
+E. (i) Writes to standard output; (ii) Reads an environment variable set by the server</p>
+<p><strong>Q8.</strong> FTP is based on the ... architecture.<br>
+A. Client-server &nbsp;&nbsp; B. Peer-to-peer &nbsp;&nbsp; C. Client-server-client-server &nbsp;&nbsp; D. Host-to-host &nbsp;&nbsp; E. Multitier</p>
+<p><strong>Q9.</strong> The popular application used to inspect traffic that flows on a network is:<br>
+A. SniffAndSnort &nbsp;&nbsp; B. Telnet &nbsp;&nbsp; C. nslookup &nbsp;&nbsp; D. tracert / traceroute &nbsp;&nbsp; E. Wireshark</p>
+<p><strong>Q10.</strong> Which South African Act specifically regulates "wiretapping"?<br>
+A. POPIA &nbsp;&nbsp; B. RICA &nbsp;&nbsp; C. PAIA &nbsp;&nbsp; D. The Constitution &nbsp;&nbsp; E. The Bill of Rights</p>
+<p><strong>Q11.</strong> After an SMTP client has sent a <code>data</code> command, it signals that the entire data block has been transmitted by sending the following line:<br>
+A. <code>/data</code> &nbsp;&nbsp; B. <code>quit</code> &nbsp;&nbsp; C. <code>.</code> (full stop on a line of its own) &nbsp;&nbsp; D. A blank line &nbsp;&nbsp; E. <code>fin</code></p>
+<p><strong>Q12.</strong> The <code>Host:</code> line in an HTTP GET request is necessary primarily because:<br>
+A. Security (access control) &nbsp;&nbsp; B. Security (integrity) &nbsp;&nbsp; C. Virtual hosting — the server may host more than one site &nbsp;&nbsp; D. There is no such <code>Host:</code> header &nbsp;&nbsp; E. There is no GET request in HTTP</p>
+
+<h2 id="longform">Practice Questions — Long-Form</h2>
+<p><strong>Q13. Telnet session. [5]</strong><br>
+Suppose you open a Telnet connection to a host. Answer the following:
+<ul>
+  <li>a) What is the specific service offered by the Telnet protocol?</li>
+  <li>b) What port does Telnet use?</li>
+  <li>c) You can see the output of your commands, but you cannot see what you are typing. Which property should you adjust to fix this?</li>
+  <li>d) Write the full CLI command to open a Telnet connection to <code>www.example.com</code> in order to issue HTTP commands manually.</li>
+  <li>e) What is the term for the character combination displayed by the Telnet client that you can enter to open the Telnet console?</li>
+</ul></p>
+<p><strong>Q14. SMTP exchange. [4]</strong>
+<ul>
+  <li>a) What command does an SMTP client send to tell the server the recipient's address?</li>
+  <li>b) What separates the header from the body of an email transmitted by SMTP?</li>
+  <li>c) How does the SMTP client signal the end of the message body?</li>
+  <li>d) Explain the transparency problem with SMTP and briefly explain how modern clients work around it.</li>
+</ul></p>
+
+<h2 id="memo">Memo / Answer Key</h2>
+<h3>MCQ Answers</h3>
+<p><strong>A1.</strong> B (Dæmon).<br>
+<strong>A2.</strong> A (IMAP4 — it is specifically designed to manipulate a mailbox on a server).<br>
+<strong>A3.</strong> C (250 — standard SMTP success code for HELO/EHLO).<br>
+<strong>A4.</strong> C (Virtual terminal).<br>
+<strong>A5.</strong> C (<code>telnet www.example.com 80</code> — HTTP runs on port 80).<br>
+<strong>A6.</strong> A (data, passive — the data channel is the problem; passive mode inverts who connects).<br>
+<strong>A7.</strong> E (Writes to standard output; reads an environment variable set by the server).<br>
+<strong>A8.</strong> A (Client-server).<br>
+<strong>A9.</strong> E (Wireshark).<br>
+<strong>A10.</strong> B (RICA).<br>
+<strong>A11.</strong> C (Full stop on a line of its own).<br>
+<strong>A12.</strong> C (Virtual hosting — the server may host more than one site on the same IP).</p>
+<h3>Long-Form Answers</h3>
+<p><strong>A13. Telnet session.</strong></p>
+<ul>
+  <li>a) <strong>Virtual terminal</strong></li>
+  <li>b) <strong>23</strong></li>
+  <li>c) <strong><code>localecho</code></strong></li>
+  <li>d) <strong><code>telnet www.example.com 80</code></strong></li>
+  <li>e) <strong>Escape character</strong> (often <code>^]</code>)</li>
+</ul>
+<p><strong>A14. SMTP exchange.</strong></p>
+<ul>
+  <li>a) <strong><code>rcpt to: u@xx.co.za</code></strong> (or whatever address)</li>
+  <li>b) <strong>A blank line</strong> separates the header from the body.</li>
+  <li>c) <strong>A full stop on a line of its own</strong> (<code>.</code>)</li>
+  <li>d) The problem: if the email body itself contains a line with only a full stop, SMTP treats it as end-of-message, truncating the body prematurely. Modern clients use <strong>dot-stuffing</strong> — inserting an extra dot before any line that starts with a dot — so a body line of <code>.</code> becomes <code>..</code> on the wire, and the extra dot is stripped at the destination.</li>
+</ul>
 
 <script>
 function showTab(group, id) {

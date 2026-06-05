@@ -13,7 +13,7 @@
   <p class="subtitle">Structured study notes with theory separated from worked examples, practice questions, and memo answers.</p>
 </div></header>
 <main><div class="layout"><aside class="sidebar panel nav-panel"><p class="nav-title">On This Page</p><ol class="nav-list">
-<li><a href="#scope-and-study-focus">Scope And Study Focus</a></li><li><a href="#1-introduction-the-pipe-between-processes">1. Introduction — The &quot;Pipe&quot; Between Processes</a></li><li><a href="#two-layers-of-hiding">Two layers of hiding</a></li><li><a href="#two-core-design-decisions-for-any-layer-4-protocol">Two core design decisions for any Layer 4 protocol</a></li><li><a href="#monitoring-transport-layer-connections">Monitoring transport-layer connections</a></li><li><a href="#2-identifying-processes-ports-and-sockets">2. Identifying Processes — Ports and Sockets</a></li><li><a href="#port-classifications">Port classifications</a></li><li><a href="#sockets">Sockets</a></li><li><a href="#server-socket-vs-client-socket">Server-socket vs client-socket</a></li><li><a href="#3-reliability-mechanisms">3. Reliability Mechanisms</a></li><li><a href="#connection-oriented-vs-connectionless">Connection-oriented vs connectionless</a></li><li><a href="#what-can-go-wrong-on-a-pipe">What can go wrong on a &quot;pipe&quot;</a></li><li><a href="#flow-control-mechanisms">Flow control mechanisms</a></li><li><a href="#congestion-control">Congestion control</a></li><li><a href="#4-tcp-transmission-control-protocol">4. TCP (Transmission Control Protocol)</a></li><li><a href="#4-1-tcp-reliability-mechanisms-memorise">4.1 TCP reliability mechanisms (memorise!)</a></li><li><a href="#4-2-connection-establishment-3-way-handshake">4.2 Connection establishment (3-way handshake)</a></li><li><a href="#4-3-connection-termination">4.3 Connection termination</a></li><li><a href="#4-4-tcp-states">4.4 TCP states</a></li><li><a href="#4-5-tcp-header-fields">4.5 TCP header fields</a></li><li><a href="#4-6-the-ack-flag-and-the-acknowledgement-field">4.6 The ACK flag and the acknowledgement field</a></li><li><a href="#4-7-damaged-packet-handling-tcp-has-no-nak">4.7 Damaged-packet handling — TCP has no NAK</a></li><li><a href="#4-8-tcp-timers-memorise-the-five-timers">4.8 TCP timers — **memorise the five timers**</a></li><li><a href="#4-9-tcp-flow-control-sliding-window-in-bytes">4.9 TCP flow control — sliding window in bytes</a></li><li><a href="#4-10-tcp-congestion-control-slow-start-exponential-back-off">4.10 TCP congestion control — slow start + exponential back-off</a></li><li><a href="#4-11-minimum-number-of-timer-types-for-any-sliding-window-arq">4.11 Minimum number of timer types for any sliding-window ARQ</a></li><li><a href="#4-12-the-tcp-quiet-timer-and-time-wait-2024-st2">4.12 The TCP **Quiet** timer and TIME-WAIT (2024 ST2)</a></li><li><a href="#5-udp-user-datagram-protocol">5. UDP (User Datagram Protocol)</a></li><li><a href="#5-1-what-udp-lacks">5.1 What UDP lacks</a></li><li><a href="#5-2-udp-header-very-simple">5.2 UDP header (very simple)</a></li><li><a href="#5-3-when-udp-is-preferable">5.3 When UDP is preferable</a></li><li><a href="#5-4-dns-uses-both-tcp-and-udp">5.4 DNS uses *both* TCP and UDP</a></li><li><a href="#6-quic-quick-udp-internet-connections">6. QUIC (Quick UDP Internet Connections)</a></li><li><a href="#6-1-key-facts">6.1 Key facts</a></li><li><a href="#6-2-security-by-default">6.2 Security by default</a></li><li><a href="#6-3-connection-ids-and-connection-migration">6.3 Connection IDs and connection migration</a></li><li><a href="#6-4-long-header-fields-always-present">6.4 Long-header fields always present</a></li><li><a href="#6-5-speed-1-rtt-and-0-rtt">6.5 Speed — 1-RTT and 0-RTT</a></li><li><a href="#6-6-multiplexed-streams-head-of-line-blocking">6.6 Multiplexed streams — head-of-line blocking</a></li><li><a href="#6-7-packets-vs-frames">6.7 Packets vs frames</a></li><li><a href="#6-8-protocol-ossification-and-quic-s-defences">6.8 Protocol ossification — and QUIC&#x27;s defences</a></li><li><a href="#6-9-quic-port-usage">6.9 QUIC port usage</a></li><li><a href="#examinable-practice-questions-on-layer-4">Examinable Practice Questions on Layer 4</a></li><li><a href="#multiple-choice">Multiple Choice</a></li><li><a href="#long-form-calculation">Long-Form &amp; Calculation</a></li><li><a href="#memo-answer-key">Memo / Answer Key</a></li><li><a href="#mcq-answers">MCQ Answers</a></li><li><a href="#long-form-answers">Long-Form Answers</a></li>
+<li><a href="#scope-and-study-focus">Scope And Study Focus</a></li><li><a href="#1-introduction-the-pipe-between-processes">1. Introduction — The &quot;Pipe&quot; Between Processes</a></li><li><a href="#two-layers-of-hiding">Two layers of hiding</a></li><li><a href="#two-core-design-decisions-for-any-layer-4-protocol">Two core design decisions for any Layer 4 protocol</a></li><li><a href="#monitoring-transport-layer-connections">Monitoring transport-layer connections</a></li><li><a href="#2-identifying-processes-ports-and-sockets">2. Identifying Processes — Ports and Sockets</a></li><li><a href="#port-classifications">Port classifications</a></li><li><a href="#sockets">Sockets</a></li><li><a href="#server-socket-vs-client-socket">Server-socket vs client-socket</a></li><li><a href="#3-reliability-mechanisms">3. Reliability Mechanisms</a></li><li><a href="#connection-oriented-vs-connectionless">Connection-oriented vs connectionless</a></li><li><a href="#what-can-go-wrong-on-a-pipe">What can go wrong on a &quot;pipe&quot;</a></li><li><a href="#flow-control-mechanisms">Flow control mechanisms</a></li><li><a href="#congestion-control">Congestion control</a></li><li><a href="#4-tcp-transmission-control-protocol">4. TCP (Transmission Control Protocol)</a></li><li><a href="#4-1-tcp-reliability-mechanisms-memorise">4.1 TCP reliability mechanisms (memorise!)</a></li><li><a href="#4-2-connection-establishment-3-way-handshake">4.2 Connection establishment (3-way handshake)</a></li><li><a href="#4-3-connection-termination">4.3 Connection termination</a></li><li><a href="#4-4-tcp-states">4.4 TCP states</a></li><li><a href="#4-5-tcp-header-fields">4.5 TCP header fields</a></li><li><a href="#4-6-the-ack-flag-and-the-acknowledgement-field">4.6 The ACK flag and the acknowledgement field</a></li><li><a href="#4-7-damaged-packet-handling-tcp-has-no-nak">4.7 Damaged-packet handling — TCP has no NAK</a></li><li><a href="#4-8-tcp-timers-memorise-the-five-timers">4.8 TCP timers — **memorise the five timers**</a></li><li><a href="#4-9-tcp-flow-control-sliding-window-in-bytes">4.9 TCP flow control — sliding window in bytes</a></li><li><a href="#4-10-tcp-congestion-control-slow-start-exponential-back-off">4.10 TCP congestion control — slow start + exponential back-off</a></li><li><a href="#4-11-minimum-number-of-timer-types-for-any-sliding-window-arq">4.11 Minimum number of timer types for any sliding-window ARQ</a></li><li><a href="#4-12-the-tcp-quiet-timer-and-time-wait-2024-st2">4.12 The TCP **Quiet** timer and TIME-WAIT (2024 ST2)</a></li><li><a href="#5-udp-user-datagram-protocol">5. UDP (User Datagram Protocol)</a></li><li><a href="#5-1-what-udp-lacks">5.1 What UDP lacks</a></li><li><a href="#5-2-udp-header-very-simple">5.2 UDP header (very simple)</a></li><li><a href="#5-3-when-udp-is-preferable">5.3 When UDP is preferable</a></li><li><a href="#5-4-dns-uses-both-tcp-and-udp">5.4 DNS uses *both* TCP and UDP</a></li><li><a href="#6-quic-quick-udp-internet-connections">6. QUIC (Quick UDP Internet Connections)</a></li><li><a href="#6-1-key-facts">6.1 Key facts</a></li><li><a href="#6-2-security-by-default">6.2 Security by default</a></li><li><a href="#6-3-connection-ids-and-connection-migration">6.3 Connection IDs and connection migration</a></li><li><a href="#6-4-long-header-fields-always-present">6.4 Long-header fields always present</a></li><li><a href="#6-4b-short-header-1-rtt-packets">6.4b Short Header (1-RTT)</a></li><li><a href="#6-5-speed-1-rtt-and-0-rtt">6.5 Speed — 1-RTT and 0-RTT</a></li><li><a href="#6-6-multiplexed-streams-head-of-line-blocking">6.6 Multiplexed streams — head-of-line blocking</a></li><li><a href="#6-7-packets-vs-frames">6.7 Packets vs frames</a></li><li><a href="#6-8-protocol-ossification-and-quic-s-defences">6.8 Protocol ossification — and QUIC&#x27;s defences</a></li><li><a href="#6-8b-quic-packet-type-codes">6.8b Packet Type Codes (v1 vs v2)</a></li><li><a href="#6-8c-wireshark-quic-capture">6.8c Wireshark Capture</a></li><li><a href="#6-9-quic-port-usage">6.9 QUIC port usage</a></li><li><a href="#examinable-practice-questions-on-layer-4">Examinable Practice Questions on Layer 4</a></li><li><a href="#multiple-choice">Multiple Choice</a></li><li><a href="#long-form-calculation">Long-Form &amp; Calculation</a></li><li><a href="#memo-answer-key">Memo / Answer Key</a></li><li><a href="#mcq-answers">MCQ Answers</a></li><li><a href="#long-form-answers">Long-Form Answers</a></li>
 </ol></aside><article class="content"><section class="study-section scope" id="scope-and-study-focus">
   <div class="section-inner">
     <div class="section-kicker"><span class="badge scope">Scope</span></div>
@@ -50,6 +50,7 @@
 <p>A typical <code>netstat</code> line on Linux looks like:</p>
 <pre><code>tcp 127.0.0.1:27117 127.0.0.1:48956 ESTABLISHED keepalive</code></pre>
 <p>This shows two endpoints (local and remote IP:port), the TCP state (<code>ESTABLISHED</code>), and which timer is currently active (<code>keepalive</code>).</p>
+<blockquote><p><strong>Lecture fact — <code>netstat -n</code>:</strong> Adding the <code>-n</code> flag to <code>netstat</code> causes it to display <strong>numeric IP addresses</strong> (dotted-decimal) and port numbers instead of trying to resolve them to hostnames and service names. Without <code>-n</code>, <code>netstat</code> may perform slow reverse-DNS lookups on each address. The lecturer demonstrated this live on Windows (<code>netstat -n</code> in a Command Prompt), which displays columns: <strong>Proto | Local Address | Foreign Address | State</strong>. The output shows states such as <code>ESTABLISHED</code> and <code>TIME_WAIT</code>.<br><em>Note: if both Local and Foreign addresses are the same IP (e.g., 127.0.0.1) with different ports, the two endpoints of the connection are on the same machine — this is normal for inter-process communication on localhost.</em></p></blockquote>
 <hr>
   </div>
 </section><section class="study-section theory" id="2-identifying-processes-ports-and-sockets">
@@ -204,7 +205,9 @@ A → B :  ACK          (Yes!)</code></pre>
 <li>Destination port</li>
 <li><strong>Sequence number</strong></li>
 <li><strong>Acknowledgement number</strong></li>
-<li><strong>Flags</strong> (SYN, ACK, FIN, RST, PSH, URG)</li>
+<li><strong>Flags</strong> (SYN, ACK, FIN, RST, PSH, URG)</li></ul>
+<blockquote><p><strong>Lecture fact — three most important flags:</strong> The lecturer explicitly called out ACK, SYN, and FIN as <em>"the three most important TCP flags."</em> All are central to TCP's reliability: <strong>SYN</strong> establishes a connection, <strong>ACK</strong> acknowledges received data, <strong>FIN</strong> terminates a connection. The others (URG, RST, PSH) were listed but not emphasised. Know which flags appear in each handshake step: <code>SYN</code> → <code>SYN+ACK</code> → <code>ACK</code>; and <code>FIN</code> → <code>FIN+ACK</code> → <code>ACK</code>.</p></blockquote>
+<ul>
 <li><strong>Window advertisement</strong> (window size)</li>
 <li>Checksum</li>
 <li>Urgent pointer</li>
@@ -240,6 +243,7 @@ A → B :  ACK          (Yes!)</code></pre>
 <tr><td><strong>Keepalive timer</strong></td><td>When a TCP connection has been idle for a long time (default ~2 hours)</td><td>Either a <strong>probe</strong> is sent to check whether the other party is still alive (which restarts the timer if a response arrives), or — if no response — <strong>connection resources are released</strong>.</td></tr>
 <tr><td><strong>Quiet timer</strong></td><td>When the final FIN is sent in the 3-way termination handshake (i.e. the connection enters <code>TIME-WAIT</code>)</td><td>The <strong>port</strong> that the connection occupied is freed and made available for reuse. Lasts twice the maximum segment lifetime.</td></tr>
 </tbody></table></div>
+<blockquote><p><strong>Lecture fact — connection-establishment timer (SYN timer):</strong> This is a <em>sixth</em> timer not in the standard five-timer list but explicitly called out in lectures. When a SYN is sent, a separate <strong>connection-establishment timer</strong> is started. If no reply is received within approximately <strong>60–70 seconds</strong>, the connection attempt times out and is abandoned. The exact quote from the lecturer: "Send out SYN – hear nothing, time out, got nothing." This timer is separate from the retransmission timer and applies only during the SYN phase.</p></blockquote>
 <h3 id="notes-on-the-persistence-timer">Notes on the persistence timer</h3>
 <blockquote><p><strong>MCQ fact:</strong> &quot;When the persistence timer at A expires, it implies that:&quot; — <strong>A is waiting for space to free up in B&#x27;s window before further data can be sent.</strong></p></blockquote>
 <h3 id="round-trip-time-rtt-for-the-retransmission-timer">Round-Trip Time (RTT) for the retransmission timer</h3>
@@ -289,6 +293,7 @@ A → B :  ACK          (Yes!)</code></pre>
 <li>C: The quiet timer solves the problem of a packet from a previous connection being deemed part of a new connection. ✓</li>
 </ul>
 <p>Answer: <strong>D — More than one of the above</strong> (A and C are both true).</p>
+<blockquote><p><strong>Lecture framing — TIME-WAIT duration:</strong> The lecturer described TIME-WAIT as waiting "more or less <strong>twice as long as for anything out of use to arrive</strong>" — framing it as approximately <strong>2× the round-trip time</strong>. The technical term is twice the <em>maximum segment lifetime</em> (MSL), but the RTT framing is how the lecturer explained it. The node sends FIN and is waiting for FIN+ACK; it must not reuse the port until any in-flight packets from the previous connection could have arrived and been discarded.</p></blockquote>
 <hr>
   </div>
 </section><section class="study-section theory" id="5-udp-user-datagram-protocol">
@@ -377,6 +382,25 @@ A → B :  ACK          (Yes!)</code></pre>
     <h2>6.4 Long-header fields always present</h2>
     <blockquote><p><strong>MCQ fact:</strong> Which headers are always present in a long QUIC header? (Include cases where the length of the field will be 0, meaning the field itself may be omitted.)</p><p>- <strong>Version</strong></p><p>- <strong>Source connection ID</strong></p><p>- <strong>Destination connection ID</strong></p><p>Answer: <strong>All of the above (E).</strong></p></blockquote>
   </div>
+</section><section class="study-section theory" id="6-4b-short-header-1-rtt-packets">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.4b QUIC Short Header (1-RTT application data packets)</h2>
+    <p>Long headers are used for Initial, Handshake, 0-RTT, and Retry packets. Once the connection is established, <strong>short headers</strong> are used for all 1-RTT application data packets. The short header is much simpler:</p>
+    <pre><code>| Header Form (=0) | Fixed Bit (=1) | Key Phase (1 bit) | ... |
+|        Destination Connection ID (0..160 bits)            |
+|        Packet Number (8..32 bits)                         |
+|        Payload                                            |</code></pre>
+    <ul>
+      <li><strong>Header Form bit = 0</strong> (long headers have Header Form = 1 — this is how you tell them apart).</li>
+      <li><strong>Fixed Bit</strong> is always 1.</li>
+      <li><strong>Key Phase bit</strong> — indicates which of two encryption keys is currently in use. This allows keys to be rotated during the connection without interrupting traffic.</li>
+      <li><strong>No Source Connection ID</strong> — once the connection is established, only the destination ID is needed; the source ID is omitted to save space.</li>
+      <li><strong>No Version field</strong> — only long headers carry the QUIC version.</li>
+    </ul>
+    <blockquote><p><strong>MCQ fact:</strong> Short headers are used for <strong>1-RTT (application data)</strong> packets. Long headers are used for all others (Initial, Handshake, 0-RTT, Retry). The <strong>Header Form bit = 0</strong> identifies a short header; <strong>Header Form bit = 1</strong> identifies a long header.</p></blockquote>
+    <blockquote><p><strong>MCQ fact — Key Phase bit:</strong> The Key Phase bit in a short QUIC header indicates <strong>which encryption key is currently in use</strong>, enabling key rotation during an active connection without breaking the data stream.</p></blockquote>
+  </div>
 </section><section class="study-section theory" id="6-5-speed-1-rtt-and-0-rtt">
   <div class="section-inner">
     <div class="section-kicker"><span class="badge theory">Theory</span></div>
@@ -389,6 +413,13 @@ A → B :  ACK          (Yes!)</code></pre>
 <li><strong>Soonest 1-RTT application data may be sent:</strong> <code>t₂</code>. The client must wait one full round trip to receive the server&#x27;s reply before sending 1-RTT data.</li>
 <li><strong>Soonest the connection may be deemed fully established:</strong> <code>t₃</code> (the client sends a finish-handshake packet at <code>t₂</code>, the server receives and acks at <code>t₃</code>). However, some textbook-aligned versions of this question answer <strong>E (None of the above)</strong> — the exact answer depends on what the lecturer considers &quot;fully established&quot;.</li>
 </ul>
+<blockquote><p><strong>Lecture addition — server can send 1-RTT data at t₁ (½ RTT from client's perspective):</strong> The lecturer's notes state: "Node on right-hand side wants to communicate at ½ RTT." While the client must wait until <code>t₂</code> to send 1-RTT application data, the <strong>server</strong> already has the client's cryptographic material from the client's initial packet at <code>t₀</code>. Therefore the server can begin sending encrypted 1-RTT data at <code>t₁</code> — which is only half a round trip from <code>t₀</code>. The table below captures all parties:</p>
+<div class="table-wrap"><table><thead><tr><th>Party</th><th>Soonest can send encrypted application data</th><th>Why</th></tr></thead><tbody>
+<tr><td><strong>Client (0-RTT)</strong></td><td><code>t₀</code></td><td>Cached keys from previous session</td></tr>
+<tr><td><strong>Server (1-RTT)</strong></td><td><code>t₁</code> (½ RTT from client's perspective)</td><td>Server has client's crypto material from initial packet</td></tr>
+<tr><td><strong>Client (1-RTT)</strong></td><td><code>t₂</code></td><td>Must receive server's reply first</td></tr>
+</tbody></table></div>
+<p>The lecturer noted: "Why only use that key for half RTT? Use as little as possible." — meaning the old/cached key is used only briefly; after the handshake, a fresh session key takes over.</p></blockquote>
   </div>
 </section><section class="study-section theory" id="6-6-multiplexed-streams-head-of-line-blocking">
   <div class="section-inner">
@@ -417,6 +448,49 @@ A → B :  ACK          (Yes!)</code></pre>
 <li><strong>Heavy encryption of headers and metadata</strong>, so middleboxes can&#x27;t easily &quot;dig into&quot; packets.</li>
 <li><strong>Randomised version numbering</strong> — QUICv2 uses the version-field value <code>6b3343cf</code> (hex), a deliberately arbitrary number, to prevent middleboxes from assuming any pattern. Furthermore, QUICv1 and QUICv2 use <em>different</em> bit patterns to identify the same packet type, so a firewall coded to recognise QUICv1&#x27;s handshake packets won&#x27;t recognise QUICv2&#x27;s.</li>
 </ol>
+  </div>
+</section><section class="study-section theory" id="6-8b-quic-packet-type-codes">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.8b QUIC Packet Type Codes (QUICv1 vs QUICv2)</h2>
+    <p>The lecturer specifically circled this table on the projected slide and wrote: <strong>"understand this."</strong> QUICv1 and QUICv2 use deliberately <em>different</em> 2-bit codes for the same packet types:</p>
+    <div class="table-wrap"><table><thead><tr><th>Packet Type</th><th>QUICv1 (2-bit code)</th><th>QUICv2 (2-bit code)</th></tr></thead><tbody>
+      <tr><td><strong>Initial</strong></td><td><code>00</code></td><td><code>01</code></td></tr>
+      <tr><td><strong>0-RTT</strong></td><td><code>01</code></td><td><code>10</code></td></tr>
+      <tr><td><strong>Handshake</strong></td><td><code>10</code></td><td><code>11</code></td></tr>
+      <tr><td><strong>Retry</strong></td><td><code>11</code></td><td><code>00</code></td></tr>
+    </tbody></table></div>
+    <blockquote><p><strong>Why this prevents ossification:</strong> A firewall that looks for <code>00</code> to detect QUIC Initial packets (QUICv1) will completely miss QUICv2 Initial packets (coded as <code>01</code>). This deliberate code-shuffling between versions makes it impossible for intermediaries to reliably detect and hardcode responses to QUIC packet types — preventing protocol ossification. The lecturer noted that <strong>QUIC version 3 will use entirely different version patterns</strong>, continuing this trend.</p></blockquote>
+    <blockquote><p><strong>MCQ fact:</strong> QUICv1 encodes an Initial packet with the 2-bit code <code>00</code>; QUICv2 encodes the same packet type as <code>01</code>. The codes are <em>deliberately</em> different to prevent middleboxes from hardcoding pattern-matching rules.</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="6-8c-wireshark-quic-capture">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.8c QUIC Wireshark Capture (From Lecture Slide)</h2>
+    <p>The lecturer showed a live Wireshark capture of a QUIC Initial packet. The visible fields were:</p>
+    <pre><code>User Datagram Protocol, Src Port: 9296, Dst Port: 443
+QUIC IETF
+    = Header Form: Long Header (1)
+    = Fixed Bit: True
+    ...00 = Packet Type: Initial (0)
+    ...2.. = Packet Number Length: 1 byte (01)
+    Version: 0x00000001
+    Destination Connection ID Length: 8
+    Destination Connection ID: a85d1904c3f73c7b
+    Source Connection ID Length: 0
+    Token Length: 0
+    Length: 10
+    Packet Number: 1851
+
+Payload:
+  CRYPTO
+  PADDING
+  PING
+  PADDING
+  CRYPTO
+  PING</code></pre>
+    <blockquote><p><strong>What this shows:</strong> Initial packets are sent to a <strong>well-known UDP port (443 for HTTPS)</strong>. The Source Connection ID Length is 0 at first — the server has not yet chosen an ID. The payload contains CRYPTO frames (TLS handshake data) and PADDING frames. The server's first response packet adds a Source Connection ID and its payload contains STREAM, ACK, PADDING, CRYPTO, and PING frames.</p></blockquote>
+    <blockquote><p><strong>QUIC speed mechanisms — exact lecturer list:</strong> The lecturer listed exactly three things QUIC does to improve speed: (1) <strong>Compressing/combining ("piggybacking") handshakes</strong> — multiple steps go together in fewer round trips; (2) <strong>Interleaving streams</strong> of HTML and other resources — eliminates head-of-line blocking; (3) <strong>Supporting migration of a client to a new network</strong> — connection persists through IP changes, avoiding reconnection overhead.</p></blockquote>
   </div>
 </section><section class="study-section theory" id="6-9-quic-port-usage">
   <div class="section-inner">

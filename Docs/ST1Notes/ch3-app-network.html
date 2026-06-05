@@ -60,6 +60,9 @@
   <li><a href="#traps">⚠ Exam Traps</a></li>
   <li><a href="#demo-dns">Demo: DNS Resolution Simulator</a></li>
   <li><a href="#demo-routing">Demo: Dijkstra &amp; Bellman-Ford Interactive</a></li>
+  <li><a href="#practice">Practice Questions (MCQ)</a></li>
+  <li><a href="#longform">Practice Questions (Long-Form)</a></li>
+  <li><a href="#memo">Memo / Answer Key</a></li>
 </ul>
 
 <h2 id="dns">3.2 DNS — Domain Name System</h2>
@@ -315,6 +318,87 @@ ftp  IN CNAME www</code></pre>
 <div class="warn"><strong>BGP is the EGP example</strong>. RIP and OSPF are IGPs. BGP operates between autonomous systems and makes decisions based on policies, not cost.</div>
 <div class="warn"><strong>DNS port 53 uses both TCP and UDP</strong> — UDP for standard lookups, TCP for zone transfers. Don't say just one.</div>
 <div class="warn"><strong>tech.za does not exist.</strong> nom.za is for individuals. .co.za registration requires no SA citizenship.</div>
+
+<h2 id="practice">Practice Questions — Multiple Choice</h2>
+<p><strong>Q1.</strong> Which of the following best describes what DNS does?<br>
+A. Encrypts domain names &nbsp;&nbsp; B. Resolves domain names to IP addresses &nbsp;&nbsp; C. Maps IP addresses to port numbers &nbsp;&nbsp; D. Registers new domain names &nbsp;&nbsp; E. Validates SSL certificates</p>
+<p><strong>Q2.</strong> DNS normally operates on port:<br>
+A. 43 &nbsp;&nbsp; B. 53 &nbsp;&nbsp; C. 80 &nbsp;&nbsp; D. 110 &nbsp;&nbsp; E. 443</p>
+<p><strong>Q3.</strong> Which transport protocols does DNS use?<br>
+A. TCP only &nbsp;&nbsp; B. UDP only &nbsp;&nbsp; C. IP only &nbsp;&nbsp; D. More than one of the above &nbsp;&nbsp; E. All of the above</p>
+<p><strong>Q4.</strong> If the FQDNs of DNS root name servers are ordered lexicographically, the last entry is:<br>
+A. <code>l.dns.net</code> &nbsp;&nbsp; B. <code>m.dns.net</code> &nbsp;&nbsp; C. <code>n.dns.net</code> &nbsp;&nbsp; D. <code>l.root-servers.net</code> &nbsp;&nbsp; E. <code>m.root-servers.net</code></p>
+<p><strong>Q5.</strong> An agent that monitors and controls network activity in an SNMP-managed network node is a(n):<br>
+A. Client &nbsp;&nbsp; B. Server &nbsp;&nbsp; C. P2P-node &nbsp;&nbsp; D. More than one of the above &nbsp;&nbsp; E. All of the above</p>
+<p><strong>Q6.</strong> Which condition code will be returned by an SMTP server after successfully handling a <code>HELO</code> or <code>EHLO</code> message?<br>
+A. 0 &nbsp;&nbsp; B. 150 &nbsp;&nbsp; C. 250 &nbsp;&nbsp; D. 350 &nbsp;&nbsp; E. 450</p>
+<p><strong>Q7.</strong> The <code>nom.za</code> second-level domain is intended to allow ... to register subdomains within it.<br>
+A. Nomads &nbsp;&nbsp; B. Individuals &nbsp;&nbsp; C. Parties who handle nominations for potential office bearers &nbsp;&nbsp; D. Those who provide authoritative definitions of nomenclature &nbsp;&nbsp; E. None, because no such second-level domain exists</p>
+<p><strong>Q8.</strong> The <code>.io</code> TLD is a(n):<br>
+A. sTLD &nbsp;&nbsp; B. ccTLD &nbsp;&nbsp; C. gTLD &nbsp;&nbsp; D. Reserved TLD &nbsp;&nbsp; E. None of the above</p>
+<p><strong>Q9.</strong> The bulk, if not all, of the resource records in DNS root name servers are of the following type:<br>
+A. A &nbsp;&nbsp; B. MX &nbsp;&nbsp; C. NS &nbsp;&nbsp; D. More than one of the above &nbsp;&nbsp; E. All of the above</p>
+<p><strong>Q10.</strong> Which of the following is a popular application used to inspect traffic that flows on a network?<br>
+A. SniffAndSnort &nbsp;&nbsp; B. Telnet &nbsp;&nbsp; C. nslookup &nbsp;&nbsp; D. tracert / traceroute &nbsp;&nbsp; E. Wireshark</p>
+<p><strong>Q11.</strong> OSPF uses which routing algorithm?<br>
+A. Bellman-Ford &nbsp;&nbsp; B. Dijkstra &nbsp;&nbsp; C. A* &nbsp;&nbsp; D. Floyd-Warshall &nbsp;&nbsp; E. Prim's algorithm</p>
+<p><strong>Q12.</strong> The counting-to-infinity problem is associated with:<br>
+A. Dijkstra and OSPF &nbsp;&nbsp; B. Bellman-Ford and RIP &nbsp;&nbsp; C. BGP only &nbsp;&nbsp; D. All routing protocols &nbsp;&nbsp; E. None of the above</p>
+<p><strong>Q13.</strong> BGP is an example of a(n):<br>
+A. IGP &nbsp;&nbsp; B. EGP &nbsp;&nbsp; C. Distance-vector protocol &nbsp;&nbsp; D. Link-state protocol &nbsp;&nbsp; E. Hybrid protocol</p>
+
+<h2 id="longform">Practice Questions — Long-Form</h2>
+<p><strong>Q14. Zone file compilation. [5]</strong><br>
+Compile a zone file for the domain <code>xx.co.za</code>. Do not include the SOA record. Include only the resource records indicated:
+<ul>
+  <li><code>xx.co.za</code> has a single computer at IP <code>41.203.18.59</code>.</li>
+  <li>The web server can be accessed at <code>https://xx.co.za</code> and <code>https://www.xx.co.za</code>. The owner does not want multiple RRs to update if the IP changes.</li>
+  <li>The primary mail server is <code>ASPMX.L.GOOGLE.COM</code> and the secondary is <code>ALT1.ASPMX.L.GOOGLE.COM</code> (primary should be preferred).</li>
+  <li>The primary name server is <code>ns1.host-h.net</code> and the secondary is <code>ns2.host-h.net</code>.</li>
+  <li>There is a subdomain <code>abc.xx.co.za</code> using the same name servers.</li>
+  <li>The IPv6 address of the single computer is <code>2001::1234</code>.</li>
+  <li>The single computer is a Raspberry Pi.</li>
+</ul></p>
+<p><strong>Q15. nslookup trace. [4]</strong><br>
+Describe the sequence of nslookup queries you would perform to iteratively resolve <code>www.example.com</code>, starting from a root name server at <code>192.5.5.241</code>. Show each server queried and what you ask for.</p>
+
+<h2 id="memo">Memo / Answer Key</h2>
+<h3>MCQ Answers</h3>
+<p><strong>A1.</strong> B (Resolves domain names to IP addresses).<br>
+<strong>A2.</strong> B (Port 53).<br>
+<strong>A3.</strong> D (Both TCP and UDP — UDP for queries, TCP for zone transfers).<br>
+<strong>A4.</strong> E (<code>m.root-servers.net</code> — lexicographically last of a–m).<br>
+<strong>A5.</strong> D (More than one — the SNMP agent is both client and server).<br>
+<strong>A6.</strong> C (250).<br>
+<strong>A7.</strong> B (Individuals — <code>.nom.za</code> is for personal names).<br>
+<strong>A8.</strong> B (ccTLD — British Indian Ocean Territory).<br>
+<strong>A9.</strong> C (NS records — root servers only know where TLD name servers are).<br>
+<strong>A10.</strong> E (Wireshark).<br>
+<strong>A11.</strong> B (Dijkstra).<br>
+<strong>A12.</strong> B (Bellman-Ford and RIP).<br>
+<strong>A13.</strong> B (EGP — Exterior Gateway Protocol).</p>
+<h3>Long-Form Answers</h3>
+<p><strong>A14. Zone file:</strong></p>
+<pre><code>@ A 41.203.18.59
+www CNAME xx.co.za.
+@ MX 5 ASPMX.L.GOOGLE.COM.
+@ MX 10 ALT1.ASPMX.L.GOOGLE.COM.
+@ NS ns1.host-h.net.
+@ NS ns2.host-h.net.
+abc NS ns1.host-h.net.
+abc NS ns2.host-h.net.
+@ AAAA 2001::1234
+@ HOST Raspberry Pi</code></pre>
+<p>Note: <code>www CNAME xx.co.za.</code> (with trailing dot) creates the alias without a separate A record, so only <code>@ A</code> needs updating if the IP changes.</p>
+<p><strong>A15. Iterative nslookup trace:</strong></p>
+<pre><code>&gt; server 192.5.5.241      ← point to f.root-servers.net
+&gt; set type=ns
+&gt; com.                    ← get NS records for .com → A–M.GTLD-SERVERS.NET
+&gt; server [one of the above, e.g. A.GTLD-SERVERS.NET]
+&gt; example.com.            ← get NS records for example.com → e.g. ns1.example.com
+&gt; server [ns1.example.com address]
+&gt; set type=a
+&gt; www.example.com.        ← get A record → 192.0.32.10</code></pre>
 
 <script>
 function dnsSimulate(type) {

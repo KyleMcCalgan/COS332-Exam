@@ -13,7 +13,7 @@
   <p class="subtitle">Structured study notes with theory separated from worked examples, practice questions, and memo answers.</p>
 </div></header>
 <main><div class="layout"><aside class="sidebar panel nav-panel"><p class="nav-title">On This Page</p><ol class="nav-list">
-<li><a href="#scope-and-study-focus">Scope And Study Focus</a></li><li><a href="#1-what-asn-1-is">1. What ASN.1 Is</a></li><li><a href="#key-examination-facts-about-asn-1">Key examination facts about ASN.1</a></li><li><a href="#2-asn-1-data-types-and-constructors">2. ASN.1 Data Types and Constructors</a></li><li><a href="#built-in-primitive-types-include">Built-in (primitive) types include:</a></li><li><a href="#constructors-structuring-keywords">Constructors (structuring keywords):</a></li><li><a href="#what-is-not-a-valid-asn-1-type-constructor">What is **NOT** a valid ASN.1 type / constructor</a></li><li><a href="#example-an-academic-record-in-asn-1">Example: an academic record in ASN.1</a></li><li><a href="#capitalisation-and-whitespace">Capitalisation and whitespace</a></li><li><a href="#3-asn-1-encoding-rules">3. ASN.1 Encoding Rules</a></li><li><a href="#ber-in-detail-the-most-exam-relevant">BER in detail (the most exam-relevant)</a></li><li><a href="#how-der-and-cer-relate-to-ber">How DER and CER relate to BER</a></li><li><a href="#4-asn-1-vs-xml-why-use-asn-1">4. ASN.1 vs XML (Why Use ASN.1?)</a></li><li><a href="#5-real-world-uses-of-asn-1">5. Real-World Uses of ASN.1</a></li><li><a href="#example-pkcs-8-from-textbook-figure-4-2">Example PKCS #8 (from textbook Figure 4.2)</a></li><li><a href="#6-why-asn-1-sits-on-layer-6">6. Why ASN.1 sits on Layer 6</a></li><li><a href="#examinable-practice-questions-on-asn-1">Examinable Practice Questions on ASN.1</a></li><li><a href="#multiple-choice">Multiple Choice</a></li><li><a href="#long-form">Long-Form</a></li><li><a href="#memo-answer-key">Memo / Answer Key</a></li>
+<li><a href="#scope-and-study-focus">Scope And Study Focus</a></li><li><a href="#1-what-asn-1-is">1. What ASN.1 Is</a></li><li><a href="#1-1-bnf-ebnf-abnf">1.1 BNF / EBNF / ABNF</a></li><li><a href="#key-examination-facts-about-asn-1">Key examination facts about ASN.1</a></li><li><a href="#2-asn-1-data-types-and-constructors">2. ASN.1 Data Types and Constructors</a></li><li><a href="#built-in-primitive-types-include">Built-in (primitive) types include:</a></li><li><a href="#constructors-structuring-keywords">Constructors (structuring keywords):</a></li><li><a href="#what-is-not-a-valid-asn-1-type-constructor">What is **NOT** a valid ASN.1 type / constructor</a></li><li><a href="#example-an-academic-record-in-asn-1">Example: an academic record in ASN.1</a></li><li><a href="#capitalisation-and-whitespace">Capitalisation and whitespace</a></li><li><a href="#3-asn-1-encoding-rules">3. ASN.1 Encoding Rules</a></li><li><a href="#ber-in-detail-the-most-exam-relevant">BER in detail (the most exam-relevant)</a></li><li><a href="#how-der-and-cer-relate-to-ber">How DER and CER relate to BER</a></li><li><a href="#4-asn-1-vs-xml-why-use-asn-1">4. ASN.1 vs XML (Why Use ASN.1?)</a></li><li><a href="#5-real-world-uses-of-asn-1">5. Real-World Uses of ASN.1</a></li><li><a href="#example-pkcs-8-from-textbook-figure-4-2">Example PKCS #8 (from textbook Figure 4.2)</a></li><li><a href="#6-why-asn-1-sits-on-layer-6">6. Why ASN.1 sits on Layer 6</a></li><li><a href="#examinable-practice-questions-on-asn-1">Examinable Practice Questions on ASN.1</a></li><li><a href="#multiple-choice">Multiple Choice</a></li><li><a href="#long-form">Long-Form</a></li><li><a href="#memo-answer-key">Memo / Answer Key</a></li>
 </ol></aside><article class="content"><section class="study-section scope" id="scope-and-study-focus">
   <div class="section-inner">
     <div class="section-kicker"><span class="badge scope">Scope</span></div>
@@ -27,6 +27,30 @@
     <h2>1. What ASN.1 Is</h2>
     <p><strong>Abstract Syntax Notation One (ASN.1)</strong> is a notation used by some protocols to specify the <strong>syntax of messages</strong> at the presentation layer. In many ways it works like a record or structure declaration in a programming language: a message consists of a number of named fields, and some of those fields may themselves be records (i.e. structured).</p>
 <p>ASN.1 was originally introduced as the &quot;complexity extreme&quot; of message specification, in contrast to lightweight, text-based, informally specified protocols like POP3 (which uses simple keywords such as <code>RETR msg</code> followed by an English description of the argument&#x27;s meaning). ASN.1 instead uses a <strong>strict formal grammar</strong> to define message structure.</p>
+  </div>
+</section><section class="study-section theory" id="1-1-bnf-ebnf-abnf">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>1.1 Formal Grammar Notation: BNF, EBNF, ABNF</h2>
+    <p>The lecturer explicitly covered the formal grammar family that underpins protocol specification. This explains what it means to say that ASN.1 uses a <em>grammar</em> to define message structure.</p>
+    <h3>BNF — Backus-Naur Form</h3>
+    <ul>
+      <li>Created by <strong>John Backus</strong> to describe the programming language <strong>Algol</strong>.</li>
+      <li><strong>Peter Naur</strong> also contributed — hence <em>Backus-Naur Form</em>.</li>
+      <li>BNF became the standard mechanism for specifying formal languages (programming languages, data formats, network protocols).</li>
+    </ul>
+    <h3>EBNF — Extended BNF</h3>
+    <ul>
+      <li>An extension of BNF; individual organisations and standards bodies each extended it in slightly different ways.</li>
+      <li>Widely understood in Computer Science despite not being a single unified standard.</li>
+    </ul>
+    <h3>ABNF — Augmented BNF</h3>
+    <ul>
+      <li>Another extension, more common in <strong>IETF RFCs</strong>.</li>
+      <li><strong>HTTP</strong>, for example, is specified using ABNF (RFC 7230 / RFC 9110).</li>
+    </ul>
+    <blockquote><p><strong>Lecture key point:</strong> Protocols are specified using some formal syntax — BNF, EBNF, or ABNF. ASN.1 sits at the far end of the complexity scale: it has a grammar to describe message structure <em>and</em> separate encoding rules to describe how that structure is physically serialised on the wire. This two-step separation (abstract syntax + encoding) is what distinguishes ASN.1 from simpler informal protocol descriptions.</p></blockquote>
+    <blockquote><p><strong>MCQ fact:</strong> BNF was created by <strong>John Backus</strong> (with contribution from <strong>Peter Naur</strong>) to describe the language Algol. ABNF is the variant used in IETF RFCs. EBNF is the umbrella term for various other extensions.</p></blockquote>
   </div>
 </section><section class="study-section theory" id="key-examination-facts-about-asn-1">
   <div class="section-inner">
@@ -132,6 +156,16 @@
 <li>The <strong>Value</strong> is the actual data in its native format — an <code>INTEGER</code> is sent as binary, characters in the agreed character code, and so on.</li>
 </ul>
 <p>In a sense the data is therefore &quot;marked up&quot; after all — but the markup is binary and not human-readable.</p>
+<h3>Lecturer's Exact Notation: (T, L, Payload, 0)</h3>
+<p>The lecturer described the BER structure using this specific notation:</p>
+<pre><code>(T, L, Payload, 0)</code></pre>
+<ul>
+<li><strong>T</strong> — Type (describes what kind of data follows)</li>
+<li><strong>L</strong> — Length (how long the payload is)</li>
+<li><strong>Payload</strong> — the actual encoded value</li>
+<li><strong>0</strong> — an indicator/terminator signalling the end of the payload</li>
+</ul>
+<blockquote><p><strong>Lecture note:</strong> The lecturer described this as representing "at least 4 sets" — meaning every BER-encoded field has these four components. Know this notation exactly as written above.</p></blockquote>
   </div>
 </section><section class="study-section theory" id="how-der-and-cer-relate-to-ber">
   <div class="section-inner">
@@ -141,6 +175,7 @@
 <li><strong>CER</strong> = BER minus the alternative-option flexibility — one canonical form per value.</li>
 <li><strong>DER</strong> = CER plus fixed lengths where possible (so the length field may be implicit). This is <em>less</em> flexible but progressively <em>more</em> efficient.</li>
 </ul>
+<blockquote><p><strong>Lecture exact words:</strong> "Basic, canonical and distinguished" — the three most commonly used ASN.1 encoding rules. Know these three by name and in this order: <strong>BER → CER → DER</strong>.</p></blockquote>
 <hr>
   </div>
 </section><section class="study-section theory" id="4-asn-1-vs-xml-why-use-asn-1">

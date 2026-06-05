@@ -32,6 +32,9 @@
   <li><a href="#demo-base64">Demo: Base64 Calculator</a></li>
   <li><a href="#demo-rle">Demo: RLE Compression</a></li>
   <li><a href="#demo-huffman">Demo: Huffman Builder</a></li>
+  <li><a href="#practice">Practice Questions (MCQ)</a></li>
+  <li><a href="#longform">Practice Questions (Long-Form)</a></li>
+  <li><a href="#memo">Memo / Answer Key</a></li>
 </ul>
 
 <h2 id="text">4.1 Representing Text &amp; Character Sets</h2>
@@ -313,6 +316,87 @@ mimencode -q file.txt > file.qp      # encode to quoted-printable</code></pre>
 <div class="warn"><strong>Base64 encoding for PNG/images:</strong> Always use base64 when transferring binary data (images, files) via SMTP. Quoted-printable is for text content that needs to stay human-readable.</div>
 <div class="warn"><strong>Extended ASCII trap:</strong> Standard ASCII chars (digits, 26 Latin letters, standard punctuation, HTML markup) remain correct between different extended ASCII sets. Only the <em>actual extended characters</em> (the upper 128) are misinterpreted.</div>
 <div class="warn"><strong>UTF-8 length from first byte:</strong> 0=1 byte, 110=2 bytes, 1110=3 bytes, 11110=4 bytes. Trailing bytes always start with 10. Four-byte UTF-8 can represent 2²¹ characters (3+6+6+6 = 21 x bits).</div>
+
+<h2 id="practice">Practice Questions — Multiple Choice</h2>
+<p><strong>Q1.</strong> If MIME is deemed to be a data communications protocol, it fits best on layer ... of the ISO OSI model:<br>
+A. 7 &nbsp;&nbsp; B. 6 &nbsp;&nbsp; C. 5 &nbsp;&nbsp; D. 4 &nbsp;&nbsp; E. 3</p>
+<p><strong>Q2.</strong> Which character set is assumed to be understood by all parties involved in an HTTP exchange?<br>
+A. ASCII &nbsp;&nbsp; B. EBCDIC &nbsp;&nbsp; C. Unicode &nbsp;&nbsp; D. UTF-8 &nbsp;&nbsp; E. ISO-8859-1</p>
+<p><strong>Q3.</strong> Consider the HTTP header <code>Accept-Charset: iso-8859-1, utf-8, utf-16, *;q=0.1</code>. Suppose the server supports <code>iso-8859-1</code>, <code>utf-8</code>, and <code>Shift_JIS</code>. The response may then be encoded using:<br>
+A. iso-8859-1 &nbsp;&nbsp; B. utf-8 &nbsp;&nbsp; C. Shift_JIS &nbsp;&nbsp; D. Any of the encodings listed &nbsp;&nbsp; E. One or two of the encodings listed</p>
+<p><strong>Q4.</strong> Which of the following is NOT a valid MIME type?<br>
+A. binary &nbsp;&nbsp; B. example &nbsp;&nbsp; C. image &nbsp;&nbsp; D. message &nbsp;&nbsp; E. model</p>
+<p><strong>Q5.</strong> Suppose a message consists of JPG images embedded in HTML text. Which MIME type and subtype will be used to describe the message?<br>
+A. text/plain &nbsp;&nbsp; B. text/html &nbsp;&nbsp; C. image/jpeg &nbsp;&nbsp; D. multipart/mixed &nbsp;&nbsp; E. multipart/alternative</p>
+<p><strong>Q6.</strong> Suppose an email consists of an HTML message and a JPG image (both components). Which MIME type describes the entire email message?<br>
+A. application/email &nbsp;&nbsp; B. application/rfc822 &nbsp;&nbsp; C. multipart/alternative &nbsp;&nbsp; D. multipart/mixed &nbsp;&nbsp; E. text/html</p>
+<p><strong>Q7.</strong> How many Unicode characters can, in principle, be represented in UTF-8 using exactly four bytes? If expressed as 2ⁿ, what is n?<br>
+A. 14 &nbsp;&nbsp; B. 20 &nbsp;&nbsp; C. 21 &nbsp;&nbsp; D. 22 &nbsp;&nbsp; E. 27</p>
+<p><strong>Q8.</strong> Consider the byte sequence <code>D7 E5</code>. The Unicode character represented by this UTF-8 encoding is:<br>
+A. An accented character &nbsp;&nbsp; B. A Greek character &nbsp;&nbsp; C. An emoji &nbsp;&nbsp; D. A punctuation mark &nbsp;&nbsp; E. <code>D7 E5</code> is not a valid UTF-8 encoding</p>
+<p><strong>Q9.</strong> Which <code>Content-Transfer-Encoding</code> would be most appropriate to transfer a PNG image via SMTP?<br>
+A. 8bit &nbsp;&nbsp; B. binary &nbsp;&nbsp; C. quoted-printable &nbsp;&nbsp; D. base64 &nbsp;&nbsp; E. 7bit</p>
+<p><strong>Q10.</strong> On which ISO OSI layer should encryption be placed?<br>
+A. 7 &nbsp;&nbsp; B. 6 &nbsp;&nbsp; C. 4 &nbsp;&nbsp; D. 3 &nbsp;&nbsp; E. It depends on factors not mentioned in the question; all layers from 3 to 7 are options</p>
+<p><strong>Q11.</strong> Suppose computers A and B both use "extended ASCII" with no character conversion between them. Which of the following challenges will they experience?<br>
+A. Standard digits will be misinterpreted. &nbsp;&nbsp; B. Markup text like <code>&amp;euml;</code> will be received incorrectly. &nbsp;&nbsp; C. Standard punctuation may not be communicated correctly. &nbsp;&nbsp; D. No challenges, since they use the same character encoding. &nbsp;&nbsp; E. None of the problems above will occur (but other severe challenges exist).</p>
+<p><strong>Q12.</strong> The HTTP protocol specification uses which grammar formalism?<br>
+A. BNF &nbsp;&nbsp; B. EBNF &nbsp;&nbsp; C. ABNF &nbsp;&nbsp; D. XML Schema &nbsp;&nbsp; E. ASN.1</p>
+
+<h2 id="longform">Practice Questions — Long-Form</h2>
+<p><strong>Q13. UTF-8 encoding. [6]</strong>
+<ul>
+  <li>a) Encode the following Unicode code points in UTF-8 hex. Show your working.<ul>
+    <li>(i) <code>U+00C6</code> (Æ)</li>
+    <li>(ii) <code>U+1040B</code> (a 4-byte character)</li>
+  </ul></li>
+  <li>b) How many Unicode characters can be represented in UTF-8 using exactly three bytes? Express as 2ⁿ and state n.</li>
+</ul></p>
+<p><strong>Q14. UTF-8 decoding. [4]</strong><br>
+Convert the following UTF-8 hex byte sequences to Unicode code points:
+<ul>
+  <li>a) <code>C3 86</code></li>
+  <li>b) <code>F0 90 AB 90</code></li>
+  <li>c) <code>E2 B2 A0</code></li>
+</ul></p>
+<p><strong>Q15. Extended ASCII trap. [3]</strong><br>
+Computers A and B both use extended ASCII (e.g., ISO-8859-1) but there is no character conversion mechanism. Assume every byte transmitted arrives correctly. Describe the challenges (if any) that will arise when: (i) A sends the character <code>Z</code> to B. (ii) A sends the character <code>ë</code> to B. (iii) A sends the markup text <code>&amp;euml;</code> to B.</p>
+
+<h2 id="memo">Memo / Answer Key</h2>
+<h3>MCQ Answers</h3>
+<p><strong>A1.</strong> B (Layer 6 — presentation layer).<br>
+<strong>A2.</strong> A (ASCII — the one character set that HTTP assumes all parties understand).<br>
+<strong>A3.</strong> D (Any of the encodings — the <code>*;q=0.1</code> wildcard covers Shift_JIS).<br>
+<strong>A4.</strong> A (<code>binary</code> is not a valid MIME top-level type).<br>
+<strong>A5.</strong> D (<code>multipart/mixed</code> — HTML + images = multiple different types).<br>
+<strong>A6.</strong> D (<code>multipart/mixed</code> — HTML message body + JPG attachment).<br>
+<strong>A7.</strong> C (n = 21; 4-byte pattern has 3+6+6+6 = 21 available bits).<br>
+<strong>A8.</strong> E (<code>D7 E5</code> is not valid — <code>D7</code> starts with <code>110</code> indicating a 2-byte char, but <code>E5</code> starts with <code>1110</code>, which is a 3-byte leading byte, not a valid trailing byte).<br>
+<strong>A9.</strong> D (<code>base64</code> — converts binary to 7-bit ASCII safe for SMTP).<br>
+<strong>A10.</strong> E (It depends — all layers 3 to 7 are options).<br>
+<strong>A11.</strong> E (None of the listed problems will occur — standard text arrives fine — but other severe challenges do exist: extended characters above position 127 will be misinterpreted).<br>
+<strong>A12.</strong> C (ABNF — Augmented Backus-Naur Form).</p>
+<h3>Long-Form Answers</h3>
+<p><strong>A13. UTF-8 encoding:</strong></p>
+<p><strong>(i) U+00C6 (Æ):</strong><br>
+<code>U+00C6</code> = binary <code>0000 0000 1100 0110</code>. Fits in 2-byte UTF-8 range (U+0080–U+07FF). Pattern: <code>110xxxxx 10xxxxxx</code>.<br>
+Insert 11 bits <code>000 1100 0110</code>: <code>110 00011</code> <code>10 000110</code> → <strong><code>C3 86</code></strong>.</p>
+<p><strong>(ii) U+1040B:</strong><br>
+Requires 4 bytes (&gt; U+FFFF). Binary: <code>0001 0000 0100 0000 1011</code> = 21 bits.<br>
+Pattern: <code>11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</code>.<br>
+Bits: <code>000 010000 010000 001011</code> → <code>11110 000</code> <code>10 010000</code> <code>10 010000</code> <code>10 001011</code> → <strong><code>F0 90 90 8B</code></strong>.</p>
+<p><strong>(b) 3-byte capacity:</strong><br>
+Pattern <code>1110xxxx 10xxxxxx 10xxxxxx</code>: 4+6+6 = <strong>16 bits</strong> → n = <strong>16</strong> → 2¹⁶ = 65,536 characters.</p>
+<p><strong>A14. UTF-8 decoding:</strong></p>
+<p><strong>(a) C3 86:</strong> <code>C3</code> = leading 2-byte, data bits <code>00011</code>. <code>86</code> = trailing, data bits <code>000110</code>. Combined: <code>00011 000110</code> = <code>0x00C6</code> → <strong>U+00C6</strong> (Æ).</p>
+<p><strong>(b) F0 90 AB 90:</strong> 4-byte sequence. Data bits: <code>000</code> <code>010000</code> <code>101011</code> <code>010000</code> → combined = <code>0x10AB0</code> → <strong>U+10AB0</strong>.</p>
+<p><strong>(c) E2 B2 A0:</strong> 3-byte sequence. Data bits: <code>0010</code> <code>110010</code> <code>100000</code> → combined = <code>0x2CA0</code> → <strong>U+2CA0</strong>.</p>
+<p><strong>A15. Extended ASCII challenges:</strong></p>
+<ul>
+  <li>(i) <code>Z</code> — no challenge. <code>Z</code> (ASCII 90) is in the lower 128 characters, identical in all ASCII variants.</li>
+  <li>(ii) <code>ë</code> — <strong>severe challenge</strong>. <code>ë</code> is in the upper 128. Computer B may map that byte to a completely different character if it uses a different extended ASCII variant.</li>
+  <li>(iii) <code>&amp;euml;</code> — no challenge. The markup uses only standard ASCII characters (<code>&amp;</code>, <code>e</code>, <code>u</code>, <code>m</code>, <code>l</code>, <code>;</code>), all in the lower 128.</li>
+</ul>
 
 <script>
 // UTF-8 encoder
