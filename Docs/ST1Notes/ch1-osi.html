@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ch 1 — OSI Reference Model · COS332</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="breadcrumb"><a href="index.html">COS332</a><span>›</span> Chapter 1</nav>
+<h1>Chapter 1: The ISO OSI Reference Model</h1>
+<p class="subtitle">The universal framework for describing and reasoning about networking.</p>
+
+<ul class="toc">
+  <li><a href="#history">1.0 History &amp; Context</a></li>
+  <li><a href="#intro">1.1 Introduction</a></li>
+  <li><a href="#layers">1.2 The Seven Layers</a></li>
+  <li><a href="#data-units">1.3 Data Units &amp; Encapsulation</a></li>
+  <li><a href="#standards">1.4 Standards Bodies</a></li>
+  <li><a href="#traps">⚠ Exam Traps</a></li>
+  <li><a href="#demo-layers">Interactive: Layer Explorer</a></li>
+  <li><a href="#demo-encap">Interactive: Encapsulation Visualiser</a></li>
+</ul>
+
+<h2 id="history">1.0 History &amp; Context</h2>
+<p><strong>Proprietary protocols:</strong> Early networks used proprietary protocols owned by specific vendors. A company had to buy all equipment from one vendor, preventing interoperability between different networks.</p>
+<p><strong>The Cold War</strong> was a major driving force for ARPAnet's design — the goal was to build a decentralised, survivable network that could function even if portions were destroyed.</p>
+<p><strong>OSI vs. TCP/IP:</strong> The ISO OSI model was intended to be the universal standard to replace proprietary networks. It <em>failed in practice</em> because TCP/IP matured first and became so widely deployed that implementing the complex OSI model was no longer practical. Today, OSI serves strictly as an educational and reference model.</p>
+
+<h2 id="intro">1.1 Introduction</h2>
+<div class="note">
+  <strong>ISO</strong> is NOT an acronym — it is derived from the Greek word <em>îsos</em>, meaning "the same" (as in isomorphic). The idea: a standard makes products "the same" and compatible worldwide. <strong>OSI</strong> = Open Systems Interconnection.
+</div>
+<ul>
+  <li><strong>Protocol:</strong> A set of conventions — a detailed, agreed-upon description of rules to follow when communicating.</li>
+  <li><strong>Protocol stack:</strong> Protocols are literally <em>stacked</em> in layers to separate and manage functionality.</li>
+  <li>As a message moves <strong>down</strong> the protocol stack towards the physical layer, headers are <strong>added (appended)</strong> at each layer.</li>
+</ul>
+<div class="note"><strong>Dæmon:</strong> The software providing services on the Internet (acting as a server waiting for client requests) is often known as a <em>dæmon</em>. To serve in client-server architecture, it must open a socket specifying an address and port number, and wait for connections.</div>
+
+<h2 id="layers">1.2 The Seven Layers</h2>
+<p>Each layer provides services to the layer <strong>above</strong> it and uses services from the layer <strong>below</strong>. Each layer communicates <em>logically</em> with its peer layer at the destination, but <em>physically</em> only with adjacent layers.</p>
+<div class="note">If Node X communicates with Node Z, a header added at layer <em>n</em> at Node X will be removed by layer <em>n</em> at Node Z.</div>
+<div class="note"><strong>Layers 1–4</strong> = Network-oriented layers. <strong>Layers 5–7</strong> = Application-oriented layers.</div>
+
+<div id="demo-layers" class="demo">
+  <div class="demo-header">Interactive — Layer Explorer</div>
+  <div class="demo-body">
+    <p style="font-size:0.88rem;color:#6b7280;margin-bottom:0.75rem">Click any layer to see full details.</p>
+    <div id="layer-stack"></div>
+    <div id="layer-detail" style="margin-top:1rem;padding:0.75rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;min-height:4rem;font-size:0.9rem;display:none;"></div>
+  </div>
+</div>
+
+<h3>Layer 7 — Application Layer</h3>
+<p>Contains the network protocols that directly support end-user applications. The WWW fits on Layer 7.</p>
+<ul>
+  <li>Application <em>software</em> is NOT the application layer — only the network-interacting part is.</li>
+  <li>A single application can use multiple protocols (e.g. an email client uses SMTP and POP3).</li>
+  <li>Examples: HTTP, SMTP, POP3, FTP, DNS.</li>
+  <li>Should NOT deal with routing, media, or physical details — those are delegated downward.</li>
+  <li><strong>Example header field added at L7:</strong> the HTTP <code>GET</code> method type.</li>
+  <li>Note: SMTP, POP3, and FTP are L7 protocols but inherently include L6 and L5 functionality.</li>
+</ul>
+
+<h3>Layer 6 — Presentation Layer</h3>
+<p>Positioned <strong>exactly between the Session and Application layers</strong>. Deals with data representation, character code translation, compression, and encryption.</p>
+<ul>
+  <li>Think of it as a <strong>codec</strong>: translates local character encodings (ASCII, EBCDIC, Fieldata) into a universal network format and back again.</li>
+  <li>Also handles semantic representations like translating date formats between cultures.</li>
+  <li>In modern networks, often absorbed directly into L7 application protocols.</li>
+  <li><strong>Example header field added at L6:</strong> UTF-8 (or any character encoding).</li>
+</ul>
+<div class="warn"><strong>Encryption trap:</strong> On which layer should encryption be placed? Answer: <em>it depends</em> — all layers from 3 to 7 are options depending on whether you want link, transport, or application-level encryption. The easy answer is Layer 6, but this is context-dependent.</div>
+
+<h3>Layer 5 — Session Layer</h3>
+<p>Positioned <strong>exactly between the Transport and Presentation layers</strong>. Establishes, maintains, and terminates sessions. Enforces <strong>dialogue control</strong>.</p>
+<ul>
+  <li>Inserts <strong>synchronisation points (checkpoints)</strong> into long transactions — only messages since the last checkpoint must be retransmitted after a dropped connection.</li>
+  <li>Attempts to emulate database transactions: messages can be "rolled back" if the final message in a sequence isn't successfully sent.</li>
+  <li>In practice, usually merged into the application layer.</li>
+</ul>
+<div class="warn"><strong>"Who transmits next" trap:</strong> Which layer regulates which node may transmit next when two computers are directly connected? Answer: <em>Layer 2 OR Layer 5</em>, depending on factors not mentioned — L2 handles physical media access; L5 handles it logically via dialogue control.</div>
+
+<h3>Layer 4 — Transport Layer</h3>
+<p>Enables <strong>process-to-process</strong> (end-to-end) communication via a logical "pipe" between processes across the network.</p>
+<ul>
+  <li><strong>Reliable (connection-oriented):</strong> handles retransmissions, error correction, congestion control. Example: TCP.</li>
+  <li><strong>Unreliable (connectionless):</strong> best-effort, faster — used where speed &gt; perfection (live voice/video). Example: UDP.</li>
+  <li><strong>Example header field added at L4:</strong> Port Address.</li>
+</ul>
+
+<h3>Layer 3 — Network Layer</h3>
+<p>Responsible for routing packets across multiple network hops.</p>
+<ul>
+  <li>Routers are technically called <strong>multihomed hosts</strong> — computers with multiple interfaces connecting different networks.</li>
+  <li>Routing tables: routers use these to determine the next hop for each destination address.</li>
+  <li>Source routing: the packet includes the full route — rarely used, mainly for diagnostics.</li>
+  <li><strong>Example header field added at L3:</strong> IP Address.</li>
+</ul>
+<div class="warn"><strong>Peer trap:</strong> If Node X sends to Node Y, which node's L3 is the <em>peer</em> of X's L3? Answer: <em>All nodes on the path from X to Y</em> — every router processes the L3 header to route the packet.</div>
+
+<h3>Layer 2 — Data Link Layer</h3>
+<p>Gets a message from one hop to the next across a direct physical connection. Three primary functions:</p>
+<ol>
+  <li><strong>Media Access Control (Contention Control):</strong> Prevents multiple nodes transmitting simultaneously on a shared medium.</li>
+  <li><strong>Data Delineation:</strong> Marks the start and end of a message in a continuous bit stream.</li>
+  <li><strong>Error Control:</strong> Uses checksums/CRC to detect (and sometimes correct) transmission errors.</li>
+</ol>
+<p>Examples: Ethernet, HDLC, Token Ring. <strong>Example header field added at L2:</strong> MAC Address.</p>
+<div class="note"><strong>L1 impact on L2:</strong> A <em>noisy</em> L1 medium requires <strong>error correction</strong> on L2; a <em>good</em> L1 medium only needs <strong>error checking</strong> on L2.</div>
+
+<h3>Layer 1 — Physical Layer</h3>
+<p>Deals with the physical medium (copper, fibre, radio), bit representation, plugs, multiplexing, and signal attenuation.</p>
+
+<h2 id="data-units">1.3 Data Units at Each Layer</h2>
+<table>
+  <tr><th>Layer</th><th>PDU (Protocol Data Unit)</th><th>Address/Identifier</th></tr>
+  <tr><td>Application (7)</td><td>Requests / Responses</td><td>—</td></tr>
+  <tr><td>Transport (4)</td><td>Segments</td><td>Port numbers</td></tr>
+  <tr><td>Network (3)</td><td>Datagrams / Packets</td><td>IP addresses</td></tr>
+  <tr><td>Data Link (2)</td><td>Frames</td><td>MAC addresses + CRC checksum</td></tr>
+  <tr><td>Physical (1)</td><td>Bits</td><td>—</td></tr>
+</table>
+<div class="note">"Packet" is widely used as a generic term when the specific layer is immaterial.</div>
+
+<div id="demo-encap" class="demo">
+  <div class="demo-header">Interactive — Encapsulation Visualiser</div>
+  <div class="demo-body">
+    <p style="font-size:0.88rem;color:#6b7280;margin-bottom:0.75rem">Step data DOWN the stack (adding headers while sending) or UP the stack (stripping headers while receiving).</p>
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap">
+      <button onclick="encapStep('down')">▼ Add Layer (Sending)</button>
+      <button onclick="encapStep('up')">▲ Remove Layer (Receiving)</button>
+      <button class="secondary" onclick="encapReset()">Reset</button>
+    </div>
+    <div id="encap-vis" style="font-size:0.85rem;"></div>
+    <div id="encap-msg" style="margin-top:0.5rem;font-size:0.88rem;color:#374151;"></div>
+  </div>
+</div>
+
+<h2 id="standards">1.4 Standards Bodies</h2>
+<table>
+  <tr><th>Body</th><th>Full Name &amp; Notes</th></tr>
+  <tr><td><strong>ISO</strong></td><td>International Standards Organisation. NOT an acronym — from Greek <em>îsos</em>. National bodies: SABS (South Africa), NSI (Namibia), BOBS (Botswana).</td></tr>
+  <tr><td><strong>IEEE</strong></td><td>Institute of Electrical and Electronics Engineers. Key for Layer 2 (LAN) standards.</td></tr>
+  <tr><td><strong>IETF</strong></td><td>Internet Engineering Task Force. Produces most Internet standards (Layers 3, 4, 7) via RFCs.</td></tr>
+  <tr><td><strong>IANA</strong></td><td>Internet Assigned Numbers Authority. Manages IP addresses, port numbers, DNS TLDs. Delegates regional authority to RIRs (e.g. AfriNIC for Africa).</td></tr>
+  <tr><td><strong>ICANN</strong></td><td>Internet Corporation for Assigned Names and Numbers. Governs the Internet; IANA and IETF are sub-units. ZADNA = South Africa's .za authority.</td></tr>
+  <tr><td><strong>W3C</strong></td><td>World Wide Web Consortium. Standards for the WWW.</td></tr>
+  <tr><td><strong>ITU-T</strong> (CCITT)</td><td>Telecommunications standards. CCITT is a French acronym (Comité Consultatif International Téléphonique et Télégraphique), ancestors dating to Paris, 1865. Introduced the X.500 directory series.</td></tr>
+</table>
+
+<h2 id="traps">⚠ Exam Traps</h2>
+<div class="warn"><strong>Standards are NOT binding.</strong> If ISO or IEEE adopts a standard, no country or organisation is required to comply. Standards may only be mandated by external processes (e.g. government laws or market dominance).</div>
+<div class="warn"><strong>Error checking happens on ALL 7 layers.</strong> Every layer has its own form of error checking — L2 for frame transmission errors, L3 for routing loops, L4 for missing segments, L6 for malformed data, L7 for 404/application errors. The answer is NOT just "Layer 2".</div>
+<div class="note">
+  <strong>Header field examples per layer:</strong><br>
+  L7: GET method type &nbsp;|&nbsp; L6: UTF-8 encoding &nbsp;|&nbsp; L4: Port address &nbsp;|&nbsp; L3: IP address &nbsp;|&nbsp; L2: MAC address
+</div>
+
+<script>
+const layers = [
+  { num: 7, cls: 'l7', name: 'Application', unit: 'Requests/Responses', examples: 'HTTP, SMTP, POP3, FTP, DNS',
+    desc: 'Directly supports end-user goals. The WWW fits here. Application <em>software</em> is NOT this layer — only its network-interacting part. Header example: GET method type. Note: SMTP, POP3, FTP are L7 but also include L6/L5 functionality.' },
+  { num: 6, cls: 'l6', name: 'Presentation', unit: '(no standard unit)', examples: 'UTF-8, ASCII↔EBCDIC↔Fieldata, MIME, compression',
+    desc: 'Think "codec". Translates character encodings (ASCII, EBCDIC, Fieldata) to/from a universal network format. Positioned exactly between Session and Application. Header example: UTF-8.' },
+  { num: 5, cls: 'l5', name: 'Session', unit: '(no standard unit)', examples: 'Session establishment, synchronisation checkpoints',
+    desc: 'Establishes, maintains, terminates sessions. Enforces dialogue control. Inserts synchronisation checkpoints — only messages since last checkpoint must be retransmitted. Positioned exactly between Transport and Presentation.' },
+  { num: 4, cls: 'l4', name: 'Transport', unit: 'Segments', examples: 'TCP (reliable, connection-oriented), UDP (unreliable)',
+    desc: 'Process-to-process (end-to-end) communication. TCP: reliable, handles retransmissions. UDP: unreliable/best-effort, faster. Header example: Port address.' },
+  { num: 3, cls: 'l3', name: 'Network', unit: 'Datagrams / Packets', examples: 'IP, ICMP; routing tables',
+    desc: 'Routing across multiple hops. Routers = multihomed hosts. ALL routers on a path are peers of Layer 3. Header example: IP address.' },
+  { num: 2, cls: 'l2', name: 'Data Link', unit: 'Frames', examples: 'Ethernet, HDLC, Token Ring',
+    desc: 'Hop-to-hop delivery. Three functions: (1) Media access control (contention), (2) Data delineation (start/end of frames), (3) Error control via CRC. Noisy L1 → needs error correction; good L1 → only error checking. Header example: MAC address.' },
+  { num: 1, cls: 'l1', name: 'Physical', unit: 'Bits', examples: 'Copper, fibre, radio, voltage levels, connectors, plugs',
+    desc: 'Physical transmission of raw bits. Defines medium, bit encoding, signalling, topology, physical connectors, multiplexing.' },
+];
+
+const stack = document.getElementById('layer-stack');
+const detail = document.getElementById('layer-detail');
+layers.forEach(l => {
+  const el = document.createElement('div');
+  el.className = `layer ${l.cls}`;
+  el.style.cursor = 'pointer';
+  el.innerHTML = `<div class="layer-num">${l.num}</div><div class="layer-content"><span class="layer-name">${l.name}</span> <span class="layer-desc">— ${l.unit}</span></div>`;
+  el.onclick = () => {
+    detail.style.display = 'block';
+    detail.innerHTML = `<strong>Layer ${l.num} — ${l.name}</strong><br><em>PDU: ${l.unit} &nbsp;|&nbsp; Examples: ${l.examples}</em><br><br>${l.desc}`;
+  };
+  stack.appendChild(el);
+});
+
+const encapLayers = [
+  { label: 'L4: TCP header (ports, seq nums)', color: '#059669', light: '#f0fdf4' },
+  { label: 'L3: IP header (src/dst IP)', color: '#d97706', light: '#fffbeb' },
+  { label: 'L2: Ethernet header (MAC addresses)', color: '#dc2626', light: '#fef2f2' },
+];
+const encapMsgs = [
+  'Start: raw application data (e.g. an HTTP GET request).',
+  'Transport layer (L4) adds a TCP/UDP header — includes source and destination port numbers, sequence numbers.',
+  'Network layer (L3) adds an IP header — includes source and destination IP addresses.',
+  'Data Link layer (L2) wraps in a frame — adds MAC addresses (header) and a CRC checksum (trailer). Ready to transmit as bits.',
+  'Data Link layer strips the frame — verifies CRC; discards if error detected.',
+  'Network layer strips the IP header — checks destination IP to determine next hop or delivery.',
+  'Transport layer strips the TCP header — reassembles segments, handles missing/duplicate data.',
+  'Application layer receives the original data intact.',
+];
+let encapPos = 0;
+function encapRender() {
+  const vis = document.getElementById('encap-vis');
+  if (encapPos === 0) {
+    vis.innerHTML = '<div style="padding:0.4rem 0.7rem;background:#f5f3ff;border:2px solid #7c3aed;border-radius:4px;display:inline-block;font-weight:600;color:#7c3aed">App Data</div>';
+  } else {
+    let html = '';
+    const shown = Math.min(encapPos, encapLayers.length);
+    for (let i = shown - 1; i >= 0; i--) {
+      const l = encapLayers[i];
+      html += `<div style="padding:0.15rem 0.4rem;background:${l.light};border:1px solid ${l.color};border-radius:3px;font-size:0.78rem;color:${l.color};font-weight:600;margin-bottom:1px">${l.label}</div>`;
+    }
+    html += `<div style="padding:0.4rem 0.7rem;background:#f5f3ff;border:2px solid #7c3aed;border-radius:4px;font-weight:600;color:#7c3aed;margin:1px 0">App Data</div>`;
+    if (encapPos >= encapLayers.length) {
+      const l = encapLayers[encapLayers.length - 1];
+      html += `<div style="padding:0.15rem 0.4rem;background:${l.light};border:1px solid ${l.color};border-radius:3px;font-size:0.78rem;color:${l.color};font-weight:600;margin-top:1px">L2: Ethernet trailer (CRC checksum)</div>`;
+    }
+    vis.innerHTML = html;
+  }
+  document.getElementById('encap-msg').textContent = encapMsgs[encapPos] || '';
+}
+function encapStep(dir) {
+  const max = encapLayers.length + 1;
+  if (dir === 'down' && encapPos < max - 1) encapPos++;
+  else if (dir === 'up' && encapPos > 0) encapPos--;
+  encapRender();
+}
+function encapReset() { encapPos = 0; encapRender(); }
+encapRender();
+</script>
+</body>
+</html>

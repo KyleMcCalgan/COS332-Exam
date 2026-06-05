@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Layer 3: The Network Layer | COS332 Study Notes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header"><div class="header-inner">
+  <nav class="breadcrumb"><a href="index.html">Study Index</a><span>/</span><span>Layer 3: The Network Layer</span></nav>
+  <h1>Layer 3: The Network Layer</h1>
+  <p class="subtitle">Structured study notes with theory separated from worked examples, practice questions, and memo answers.</p>
+</div></header>
+<main><div class="layout"><aside class="sidebar panel nav-panel"><p class="nav-title">On This Page</p><ol class="nav-list">
+<li><a href="#scope-and-study-focus">Scope And Study Focus</a></li><li><a href="#1-core-function-characteristics">1. Core Function &amp; Characteristics</a></li><li><a href="#2-the-ip-routing-algorithm">2. The IP Routing Algorithm</a></li><li><a href="#routing-table-entries">Routing-table entries</a></li><li><a href="#worked-example-final-exam-style">Worked example (final-exam style)</a></li><li><a href="#3-routing-protocols">3. Routing Protocols</a></li><li><a href="#3-1-interior-gateway-protocols-igps-within-an-autonomous-system">3.1 Interior Gateway Protocols (IGPs) — *within* an autonomous system</a></li><li><a href="#3-2-external-gateway-protocols-egps-between-autonomous-systems">3.2 External Gateway Protocols (EGPs) — *between* autonomous systems</a></li><li><a href="#3-3-counting-to-infinity">3.3 Counting to Infinity</a></li><li><a href="#3-4-dijkstra-s-algorithm-worked-example">3.4 Dijkstra&#x27;s algorithm (worked example)</a></li><li><a href="#3-5-bellman-ford-rip-worked-example">3.5 Bellman-Ford / RIP (worked example)</a></li><li><a href="#4-the-ipv4-header">4. The IPv4 Header</a></li><li><a href="#4-1-ttl-time-to-live-key-facts">4.1 TTL — Time to Live (key facts)</a></li><li><a href="#4-2-ipv4-fragmentation">4.2 IPv4 fragmentation</a></li><li><a href="#4-3-checksum">4.3 Checksum</a></li><li><a href="#5-ipv4-addressing">5. IPv4 Addressing</a></li><li><a href="#5-1-classful-addressing-historical">5.1 Classful addressing (historical)</a></li><li><a href="#5-2-subnetting-and-cidr">5.2 Subnetting and CIDR</a></li><li><a href="#5-3-reserved-special-ipv4-addresses-memorise">5.3 Reserved / special IPv4 addresses (MEMORISE)</a></li><li><a href="#5-4-routing-table-entries-for-special-addresses">5.4 Routing-table entries for special addresses</a></li><li><a href="#5-5-class-based-example">5.5 Class-based example</a></li><li><a href="#6-subnetting-supernetting-worked-problems">6. Subnetting &amp; Supernetting — Worked Problems</a></li><li><a href="#6-1-scenario-170-170-170-170-16-at-least-1000-subnets-each-60-hosts">6.1 Scenario: 170.170.170.170/16 — at least 1000 subnets, each ≥ 60 hosts</a></li><li><a href="#6-2-alternative-scenario-204-204-204-204-16-2000-subnets-each-30-hosts">6.2 Alternative scenario: 204.204.204.204/16 — ≥ 2000 subnets, each ≥ 30 hosts</a></li><li><a href="#7-network-address-translation-nat">7. Network Address Translation (NAT)</a></li><li><a href="#how-it-works">How it works</a></li><li><a href="#port-tracking">Port tracking</a></li><li><a href="#why-private-addresses-are-necessary">Why private addresses are necessary</a></li><li><a href="#8-icmp-arp-layer-3-support-protocols">8. ICMP &amp; ARP — Layer-3 Support Protocols</a></li><li><a href="#8-1-icmp-internet-control-message-protocol">8.1 ICMP — Internet Control Message Protocol</a></li><li><a href="#8-2-arp-address-resolution-protocol">8.2 ARP — Address Resolution Protocol</a></li><li><a href="#9-ipv6-the-successor-to-ipv4">9. IPv6 — The Successor to IPv4</a></li><li><a href="#9-1-notation-rules">9.1 Notation rules</a></li><li><a href="#9-2-ipv6-header-simpler-than-ipv4">9.2 IPv6 header — simpler than IPv4</a></li><li><a href="#9-3-ipv6-address-structure">9.3 IPv6 address structure</a></li><li><a href="#9-4-special-prefixes-memorise">9.4 Special prefixes (MEMORISE)</a></li><li><a href="#9-5-slaac-stateless-address-autoconfiguration">9.5 SLAAC — Stateless Address Autoconfiguration</a></li><li><a href="#9-6-address-scopes">9.6 Address scopes</a></li><li><a href="#9-7-unicast-multicast-anycast-no-broadcast">9.7 Unicast, multicast, anycast (no broadcast!)</a></li><li><a href="#9-8-transitioning-ipv4-ipv6">9.8 Transitioning IPv4 → IPv6</a></li><li><a href="#9-9-deprecated-transitional-prefixes-recognise-but-don-t-memorise">9.9 Deprecated / transitional prefixes (recognise but don&#x27;t memorise)</a></li><li><a href="#10-routing-for-ipv6">10. Routing for IPv6</a></li><li><a href="#examinable-practice-questions-on-layer-3">Examinable Practice Questions on Layer 3</a></li><li><a href="#multiple-choice">Multiple Choice</a></li><li><a href="#long-form-calculation">Long-Form &amp; Calculation</a></li><li><a href="#memo-answer-key">Memo / Answer Key</a></li><li><a href="#mcq-answers">MCQ Answers</a></li><li><a href="#long-form-answers">Long-Form Answers</a></li>
+</ol></aside><article class="content"><section class="study-section scope" id="scope-and-study-focus">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge scope">Scope</span></div>
+    <h2>Scope And Study Focus</h2>
+    <blockquote><p><strong>Scope note:</strong> The lecturer&#x27;s announcement states: <em>&quot;Layer 3: Hopefully everything, but, at least up to the end of IPv4.&quot;</em> and <em>&quot;IPv6 will also be included.&quot;</em> ATM and the non-TCP/IP protocols are explicitly <strong>out of scope</strong>. The protocols in scope are <strong>IP (v4 and v6), ICMP, and ARP</strong>. Routing algorithms (Dijkstra, Bellman-Ford, RIP, OSPF, BGP) and addressing (subnetting, CIDR, supernetting, NAT) are core.</p></blockquote>
+<hr>
+  </div>
+</section><section class="study-section theory" id="1-core-function-characteristics">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>1. Core Function &amp; Characteristics</h2>
+    <p>The Layer 3 (Network Layer) routes <strong>packets</strong> (called <strong>datagrams</strong>) from a source node to a destination node.</p>
+<ul>
+<li><strong>Dominant protocol:</strong> the <strong>Internet Protocol (IP)</strong> — primarily <strong>IPv4</strong>, increasingly <strong>IPv6</strong>.</li>
+<li><strong>Service type:</strong> IP provides an <strong>unreliable, connectionless, &quot;best-effort&quot;</strong> service. It does <strong>not</strong> guarantee delivery. Reliability — if needed — is added by Layer 4 (TCP, QUIC). UDP at Layer 4 adds only port-based process targeting, no reliability.</li>
+</ul>
+<hr>
+  </div>
+</section><section class="study-section theory" id="2-the-ip-routing-algorithm">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>2. The IP Routing Algorithm</h2>
+    <p>When a router receives a datagram, it follows this algorithm to decide what to do:</p>
+<pre><code>On receipt of datagram d destined for node B:
+1. Is B on the same network as us (direct neighbour)?
+       YES → use Layer 2 to deliver d directly. STOP.
+       NO  → continue.
+2. Is there a routing-table entry whose destination network matches B?
+       YES → forward d to the &quot;next hop&quot; given by that entry. STOP.
+       NO  → continue.
+3. Is a default gateway configured?
+       YES → forward d to the default gateway. STOP.
+       NO  → continue.
+4. Discard d (and optionally send an ICMP Destination Unreachable to the source).</code></pre>
+<blockquote><p><strong>MCQ fact:</strong> &quot;It has reached the point where it either consulted the routing table and found no match, or noted that no routing table exists. What is the next step?&quot;</p><p><strong>A: Check whether a default gateway is defined and, if one is defined, forward the packet to such a default gateway.</strong> ✓</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="routing-table-entries">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>Routing-table entries</h2>
+    <p>Routing tables store triples of the form <code>(destination network, next hop, interface)</code>:</p>
+<ul>
+<li><strong>Destination</strong> — the network (in CIDR notation) of where the route leads.</li>
+<li><strong>Next hop</strong> — the IP address of the next router (or the destination, if directly reachable).</li>
+<li><strong>Interface</strong> — the local NIC through which the packet should be sent.</li>
+</ul>
+  </div>
+</section><section class="study-section practical" id="worked-example-final-exam-style">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practical">Practical</span></div>
+    <h2>Worked example (final-exam style)</h2>
+    <p>An IP datagram addressed to <strong>10.10.1.2</strong> arrives at node R. R is not directly connected to the destination. Routing table at R:</p>
+<pre><code>10.10.10.0/24    192.168.1.1   eth1
+10.10.0.0/16     192.168.2.2   eth2
+10.0.0.0/8       192.168.3.3   eth3
+0.0.0.0/0        192.168.4.4   eth4</code></pre>
+<p><strong>To which next hop is the datagram forwarded?</strong></p>
+<p>10.10.1.2 matches:</p>
+<ul>
+<li>10.10.10.0/24? — No (.10.1 ≠ .10.10)</li>
+<li>10.10.0.0/16? — Yes (first 16 bits match)</li>
+<li>10.0.0.0/8? — Yes (less specific)</li>
+<li>0.0.0.0/0? — Yes (default)</li>
+</ul>
+<p>The router picks the <strong>longest-prefix match</strong> = /16 → <strong>192.168.2.2 (eth2)</strong>. ✓</p>
+<hr>
+  </div>
+</section><section class="study-section theory" id="3-routing-protocols">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>3. Routing Protocols</h2>
+    <p>Routers don&#x27;t just guess routes — they exchange them via <strong>routing protocols</strong>, classified by where they run.</p>
+  </div>
+</section><section class="study-section theory" id="3-1-interior-gateway-protocols-igps-within-an-autonomous-system">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>3.1 Interior Gateway Protocols (IGPs) — <em>within</em> an autonomous system</h2>
+    <div class="table-wrap"><table><thead><tr><th>IGP</th><th>Algorithm</th><th>Metric</th><th>What is exchanged</th></tr></thead><tbody>
+<tr><td><strong>OSPF</strong> (Open Shortest Path First)</td><td><strong>Dijkstra</strong></td><td>Cost</td><td>Routers broadcast their <strong>version of the network topology</strong></td></tr>
+<tr><td><strong>RIP</strong> (Routing Information Protocol)</td><td><strong>Bellman-Ford</strong></td><td><strong>Hop count</strong></td><td>Routers exchange their <strong>routing tables</strong></td></tr>
+</tbody></table></div>
+<blockquote><p><strong>MCQ fact:</strong> &quot;Routers using OSPF broadcast their ... and use the received information to apply the ... algorithm.&quot; → <strong>Version of the network topology; Dijkstra.</strong> ✓</p><p>&quot;The primary metric used by interior gateway protocols is&quot; → <strong>Hop count</strong> (specifically the metric RIP uses).</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="3-2-external-gateway-protocols-egps-between-autonomous-systems">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>3.2 External Gateway Protocols (EGPs) — <em>between</em> autonomous systems</h2>
+    <ul>
+<li><strong>BGP (Border Gateway Protocol)</strong> is the dominant EGP and currently the only widely used one.</li>
+<li>OSPF and RIP are <strong>not</strong> EGPs.</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="3-3-counting-to-infinity">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>3.3 Counting to Infinity</h2>
+    <blockquote><p><strong>MCQ fact:</strong> &quot;In which of the following algorithms is counting to infinity a cause for concern?&quot;</p><p>The answer is both <strong>Bellman-Ford</strong> and <strong>RIP</strong> (because RIP <em>uses</em> Bellman-Ford). So the correct MCQ option is <strong>D — More than one of the above</strong>.</p></blockquote>
+<p><strong>Why it happens:</strong> In Bellman-Ford, if your current next-hop router for some destination advertises a <em>new</em> (possibly worse) cost to that destination, you <strong>must adopt it immediately</strong>, even if the new cost is higher. If a link goes down, the cost to reach the now-unreachable destination keeps incrementing as routers re-advertise back and forth — counting upward toward &quot;infinity&quot; (where infinity is some implementation-defined maximum, e.g. 16 in RIP).</p>
+  </div>
+</section><section class="study-section practical" id="3-4-dijkstra-s-algorithm-worked-example">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practical">Practical</span></div>
+    <h2>3.4 Dijkstra&#x27;s algorithm (worked example)</h2>
+    <p><strong>Setup:</strong> costs between nodes (undirected): <code>A–B: 1 | C–D: 1 | A–F: 10 | D–E: 3 | B–C: 6 | E–F: 2 | B–E: 1</code></p>
+<p>Run Dijkstra from <strong>A</strong>:</p>
+<div class="table-wrap"><table><thead><tr><th>#</th><th>Finalised set</th><th>Candidates (cost via path)</th><th>Picked</th><th>Updated cost / &quot;previous&quot;</th></tr></thead><tbody>
+<tr><td>init</td><td>{A}</td><td>B(1), F(10)</td><td>—</td><td>A=0</td></tr>
+<tr><td>1</td><td>{A,B}</td><td>B(1 — picked), F(10)</td><td><strong>B</strong></td><td>B=1 via A</td></tr>
+<tr><td>2</td><td>{A,B,E}</td><td>from B: C(1+6=7), E(1+1=2); plus F(10)</td><td><strong>E</strong></td><td>E=2 via B</td></tr>
+<tr><td>3</td><td>{A,B,E,F}</td><td>from E: D(2+3=5), F(2+2=4) — update F from 10 to 4; plus C(7)</td><td><strong>F</strong></td><td>F=4 via E</td></tr>
+<tr><td>4</td><td>{A,B,E,F,D}</td><td>from F: nothing new; D(5), C(7)</td><td><strong>D</strong></td><td>D=5 via E</td></tr>
+<tr><td>5</td><td>{A,B,E,F,D,C}</td><td>from D: C(5+1=6) — update C from 7 to 6</td><td><strong>C</strong></td><td>C=6 via D</td></tr>
+</tbody></table></div>
+<p><strong>Answers:</strong></p>
+<ul>
+<li>a) Picked at end of iteration 3 → <strong>F</strong> (cost 4)</li>
+<li>b) Cost to C <em>before iter 4</em> → <strong>7</strong> (only path known so far: A→B→C)</li>
+<li>c) Node delivering en route to C <em>before iter 4</em> → <strong>B</strong> (the only known path is A→B→C, so B is the next hop after A and the final deliverer to C)</li>
+<li>d) Picked at end of iteration 4 → <strong>D</strong> (cost 5)</li>
+<li>e) Cost to C <em>before iter 5</em> → <strong>7</strong> (D was just picked; its neighbours haven&#x27;t been evaluated yet — that happens at the <em>start</em> of iter 5)</li>
+</ul>
+  </div>
+</section><section class="study-section practical" id="3-5-bellman-ford-rip-worked-example">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practical">Practical</span></div>
+    <h2>3.5 Bellman-Ford / RIP (worked example)</h2>
+    <p><strong>Setup:</strong> at time <em>t₀</em> the routing tables at routers C, D, E are:</p>
+<p><strong>Node C:</strong> <code>A 7 B | B 1 B | D 3 D | F 2 B</code> <strong>Node D:</strong> <code>A 20 E | C 3 C | E 4 E | F 7 E</code> <strong>Node E:</strong> <code>A 6 F | B 1 F | D 2 D | F 4 F</code></p>
+<p>At <em>t₁ &gt; t₀</em>, C sends its routing table to D. At <em>t₂ &gt; t₁</em>, E sends its routing table to D.</p>
+<p><strong>a) D&#x27;s entry for A after receiving C&#x27;s table (but prior to t₂)?</strong></p>
+<ul>
+<li>C reaches A at cost 7. D reaches C at cost 3. Total via C = 10.</li>
+<li>D&#x27;s old route to A was cost 20.</li>
+<li><strong>D updates: A, cost 10, next hop C.</strong></li>
+</ul>
+<p><strong>b) D&#x27;s entry for B after receiving C&#x27;s table?</strong></p>
+<ul>
+<li>C reaches B at cost 1. D reaches C at cost 3. Total = 4.</li>
+<li>D had no route to B before.</li>
+<li><strong>D updates: B, cost 4, next hop C.</strong></li>
+</ul>
+<p><strong>c) D&#x27;s entry for A after receiving E&#x27;s table?</strong></p>
+<ul>
+<li>E reaches A at cost 6. D reaches E at cost 4. Total via E = 10.</li>
+<li>D&#x27;s current route (just installed) is cost 10 via C.</li>
+<li>Same cost — table may keep the existing route or switch. Typical behaviour: <strong>A, cost 10, next hop C</strong> (or E — equivalent).</li>
+</ul>
+<p><strong>d) D&#x27;s entry for B after receiving E&#x27;s table?</strong></p>
+<ul>
+<li>E reaches B at cost 1. D reaches E at cost 4. Total via E = 5.</li>
+<li>D&#x27;s current route is cost 4 via C (cheaper).</li>
+<li><strong>D keeps: B, cost 4, next hop C.</strong></li>
+</ul>
+<p><strong>e) D&#x27;s entry for F after receiving E&#x27;s table?</strong></p>
+<ul>
+<li>E reaches F at cost 4. D reaches E at cost 4. Total via E = 8.</li>
+<li>D&#x27;s original route to F was cost 7 via E.</li>
+<li><strong>Critical rule:</strong> Because D&#x27;s <em>current next-hop router</em> for F (E) is now advertising a new cost (4 → F, plus D&#x27;s 4 to reach E = total 8), D <strong>must adopt</strong> this new cost, even though 8 &gt; 7.</li>
+<li><strong>D updates: F, cost 8, next hop E.</strong> (This is the mechanism that causes counting-to-infinity.)</li>
+</ul>
+<hr>
+  </div>
+</section><section class="study-section theory" id="4-the-ipv4-header">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4. The IPv4 Header</h2>
+    <p>The IPv4 header carries routing and housekeeping data. Key fields:</p>
+<div class="table-wrap"><table><thead><tr><th>Field</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><strong>Version (4 bits)</strong></td><td><code>4</code> for IPv4 (will be <code>6</code> for IPv6 — same field, retained for compatibility).</td></tr>
+<tr><td><strong>Header length, Total length</strong></td><td>Sizes.</td></tr>
+<tr><td><strong>Identification, Flags, Fragment offset</strong></td><td>Used for <strong>fragmentation</strong> (see below).</td></tr>
+<tr><td><strong>Time-to-Live (TTL)</strong></td><td>8 bits. Maximum number of router hops before the packet is discarded.</td></tr>
+<tr><td><strong>Protocol</strong></td><td>Identifies the Layer 4 protocol (TCP = 6, UDP = 17, ICMP = 1, etc.).</td></tr>
+<tr><td><strong>Header checksum</strong></td><td>Validates the integrity of the <strong>header only</strong> (not the payload).</td></tr>
+<tr><td><strong>Source address, Destination address</strong></td><td>32 bits each.</td></tr>
+<tr><td><strong>Options, Padding</strong></td><td>Optional.</td></tr>
+</tbody></table></div>
+  </div>
+</section><section class="study-section theory" id="4-1-ttl-time-to-live-key-facts">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.1 TTL — Time to Live (key facts)</h2>
+    <ul>
+<li>Every router that forwards a packet <strong>subtracts 1 from the TTL</strong>.</li>
+<li>If TTL becomes <strong>0</strong>, the packet is <strong>discarded</strong>.</li>
+<li>The router <strong>may</strong> send an <strong>ICMP &quot;Time Exceeded&quot; message</strong> (Type 11) back to the source.</li>
+</ul>
+<blockquote><p><strong>MCQ fact:</strong> &quot;A router receives an IP datagram <em>d</em> and its TTL becomes 0. What may the router do next?&quot;</p><p>- Discard <em>d</em> ✓</p><p>- Send a Time-Exceeded ICMP message to the source ✓</p><p>- Answer: <strong>D — More than one of the above.</strong></p></blockquote>
+<p><strong>Why TTL exists:</strong> prevents packets bouncing forever in routing loops.</p>
+  </div>
+</section><section class="study-section theory" id="4-2-ipv4-fragmentation">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.2 IPv4 fragmentation</h2>
+    <p>The Layer 2 protocol carrying IP datagrams often has a <strong>maximum PDU size</strong> (Ethernet&#x27;s is 1500 octets). If an IP datagram exceeds the underlying Layer 2&#x27;s PDU size, the IP datagram must be <strong>fragmented</strong> into smaller pieces.</p>
+<blockquote><p><strong>MCQ fact:</strong> &quot;An IP datagram may be fragmented to:&quot; → <strong>B: Fit IP datagrams in size-constrained layer 2 frames.</strong> ✓</p></blockquote>
+<h3 id="fragmentation-fields">Fragmentation fields</h3>
+<ul>
+<li><strong>Identification:</strong> all fragments of one original datagram share the same Identification value.</li>
+<li><strong>Fragment Offset:</strong> indicates where this fragment fits into the original datagram (so the destination can reassemble in order).</li>
+<li><strong>Flags:</strong> include a <strong>&quot;Don&#x27;t Fragment&quot; (DF)</strong> flag that prevents fragmentation.</li>
+</ul>
+<h3 id="reassembly">Reassembly</h3>
+<p>Reassembly is performed at the <strong>final destination</strong>, not at intermediate routers.</p>
+  </div>
+</section><section class="study-section theory" id="4-3-checksum">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.3 Checksum</h2>
+    <p>Only the <strong>header</strong> is checksummed at Layer 3 — not the payload. Higher-layer protocols (TCP, UDP) provide their own checksums covering the payload.</p>
+<hr>
+  </div>
+</section><section class="study-section theory" id="5-ipv4-addressing">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5. IPv4 Addressing</h2>
+    <p>IPv4 uses <strong>32-bit addresses</strong>, written in dotted-decimal notation: <code>1.2.3.4</code> = <code>00000001.00000010.00000011.00000100</code>.</p>
+  </div>
+</section><section class="study-section theory" id="5-1-classful-addressing-historical">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5.1 Classful addressing (historical)</h2>
+    <p>Originally, leading bits dictated network size:</p>
+<div class="table-wrap"><table><thead><tr><th>Class</th><th>Leading bits</th><th>First octet range</th><th>Network bits</th><th>Host bits</th><th>Example</th></tr></thead><tbody>
+<tr><td><strong>A</strong></td><td><code>0xxxxxxx</code></td><td>0–127</td><td>8</td><td>24</td><td><code>10.0.0.0</code></td></tr>
+<tr><td><strong>B</strong></td><td><code>10xxxxxx</code></td><td>128–191</td><td>16</td><td>16</td><td><code>172.16.0.0</code></td></tr>
+<tr><td><strong>C</strong></td><td><code>110xxxxx</code></td><td>192–223</td><td>24</td><td>8</td><td><code>192.168.1.0</code></td></tr>
+<tr><td><strong>D</strong></td><td><code>1110xxxx</code></td><td>224–239</td><td>—</td><td>—</td><td><strong>Multicast</strong></td></tr>
+<tr><td><strong>E</strong></td><td><code>1111xxxx</code></td><td>240–255</td><td>—</td><td>—</td><td><strong>Reserved / experimental</strong></td></tr>
+</tbody></table></div>
+<blockquote><p><strong>MCQ fact:</strong> Multicast address ranges from 224.0.0.0–239.255.255.255. &quot;If one sends a message to an IP multicast address, the message will be delivered to&quot; → <strong>C: All nodes that are members of some group.</strong> ✓ (Not all nodes on the local network — that&#x27;s broadcast; not the network gateway; not the network itself.)</p></blockquote>
+  </div>
+</section><section class="study-section practical" id="5-2-subnetting-and-cidr">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practical">Practical</span></div>
+    <h2>5.2 Subnetting and CIDR</h2>
+    <p>Classful addressing is rigid, so CIDR (Classless Inter-Domain Routing) and subnet masks are used. The notation <code>a.b.c.d/n</code> means <em>n</em> bits belong to the network (prefix).</p>
+<h3 id="worked-cidr-translation">Worked CIDR translation</h3>
+<blockquote><p><strong>MCQ fact:</strong> &quot;What is the address (in CIDR notation) of the netblock <code>41.32.0.0</code> to <code>41.39.255.255</code>?&quot;</p><p>Range: <code>41.32.0.0</code> to <code>41.39.255.255</code>. Only the second octet varies: 32 (<code>00100000</code>) to 39 (<code>00100111</code>). The first <strong>5 bits</strong> of the second octet (<code>00100</code>) are identical. Prefix length = 8 (first octet) + 5 = <strong>13 bits</strong>.</p><p>Answer: <strong>D — <code>41.32.0.0/13</code>.</strong> ✓</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="5-3-reserved-special-ipv4-addresses-memorise">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5.3 Reserved / special IPv4 addresses (MEMORISE)</h2>
+    <div class="table-wrap"><table><thead><tr><th>Address / block</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><strong><code>0.0.0.0/0</code></strong></td><td><strong>Default gateway</strong> entry in routing tables. (0 bits match → matches any destination.)</td></tr>
+<tr><td><strong><code>0.0.0.0/32</code></strong></td><td>Placeholder for the local host (used e.g. in DHCP requests before an address is assigned).</td></tr>
+<tr><td><strong><code>127.0.0.1</code> (block <code>127.0.0.0/8</code>)</strong></td><td><strong>Loopback / localhost</strong> — traffic stays inside the machine.</td></tr>
+<tr><td><strong><code>255.255.255.255/32</code></strong></td><td><strong>Local broadcast</strong> — sent to all hosts on the local physical wire.</td></tr>
+<tr><td><strong><code>169.254.0.0/16</code></strong></td><td><strong>Link-local</strong> — auto-assigned when no DHCP server is available. (Equivalent to IPv6&#x27;s <code>fe80::/10</code>.)</td></tr>
+<tr><td><strong><code>100.64.0.0/10</code></strong></td><td><strong>Carrier-Grade NAT (CGN)</strong> — used by ISPs between their NAT equipment and customer routers.</td></tr>
+<tr><td><strong><code>10.0.0.0/8</code></strong></td><td>Private (Class A) range.</td></tr>
+<tr><td><strong><code>172.16.0.0/12</code></strong></td><td>Private (Class B) range — spanning <strong><code>172.16.0.0</code> to <code>172.31.255.255</code></strong>.</td></tr>
+<tr><td><strong><code>192.168.0.0/16</code></strong></td><td>Private (Class C) range — spanning <strong><code>192.168.0.0</code> to <code>192.168.255.255</code></strong>.</td></tr>
+</tbody></table></div>
+<blockquote><p><strong>MCQ fact:</strong> &quot;The private class B IPv4 addresses are:&quot; → <strong>E: <code>172.16.0.0</code>–<code>172.31.255.255</code>.</strong> ✓</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="5-4-routing-table-entries-for-special-addresses">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5.4 Routing-table entries for special addresses</h2>
+    <ul>
+<li><strong>Default gateway entry:</strong> <code>0.0.0.0/0</code>.</li>
+<li><strong>Block of 256 &#x27;class C&#x27; network addresses for private use:</strong> <code>192.168.0.0/24</code> is the <em>first</em> (<code>/24</code> is one class-C network). The block spans 256 such /24 networks (192.168.0.0/24 → 192.168.255.0/24).</li>
+<li><strong>Block of 16 &#x27;class B&#x27; network addresses for private use:</strong> spans <code>172.16.0.0/16</code> → <code>172.31.0.0/16</code> (16 such /16 networks). The <strong>last</strong> in the block is <code>172.31.0.0/16</code>.</li>
+</ul>
+  </div>
+</section><section class="study-section practical" id="5-5-class-based-example">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practical">Practical</span></div>
+    <h2>5.5 Class-based example</h2>
+    <ul>
+<li><code>137.215.98.140</code> is on the UP network. The UP block is treated as a Class B (137 is in 128–191). Class-B prefix = 16 bits → <strong>UP network = <code>137.215.0.0/16</code>.</strong></li>
+<li><code>8.8.8.8</code> is Google DNS. As Class A (8 is in 0–127), the Class-A network is <code>8.0.0.0/8</code>, and the broadcast address (all host bits set) is <strong><code>8.255.255.255/8</code>.</strong></li>
+</ul>
+<hr>
+  </div>
+</section><section class="study-section practical" id="6-subnetting-supernetting-worked-problems">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practical">Practical</span></div>
+    <h2>6. Subnetting &amp; Supernetting — Worked Problems</h2>
+    
+  </div>
+</section><section class="study-section practical" id="6-1-scenario-170-170-170-170-16-at-least-1000-subnets-each-60-hosts">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practical">Practical</span></div>
+    <h2>6.1 Scenario: 170.170.170.170/16 — at least 1000 subnets, each ≥ 60 hosts</h2>
+    <p>Starting block: <code>170.170.0.0/16</code> (16 bits network).</p>
+<p><strong>Step 1 — How many host bits?</strong> Need ≥ 60 hosts. 2⁶ − 2 = 62 ≥ 60 ✓ → <strong>6 host bits.</strong></p>
+<p><strong>Step 2 — Mask:</strong> 32 − 6 = <strong>/26</strong> netmask. Subnet bits: 32 − 16 − 6 = <strong>10 subnet bits</strong>, giving 2¹⁰ = 1024 ≥ 1000 ✓.</p>
+<p><strong>a) Netmask for subnets?</strong> /26 → <code>11111111.11111111.11111111.11000000</code> = <strong><code>255.255.255.192</code>.</strong></p>
+<p><strong>b) Subnet number 170 — network address in CIDR?</strong></p>
+<ul>
+<li>170 in 10-bit binary = <code>00 1010 1010</code>.</li>
+<li>Insert into the next 10 bits after <code>/16</code>: 3rd octet&#x27;s 8 bits + 4th octet&#x27;s top 2 bits.</li>
+<li>3rd octet = <code>00101010</code> = <strong>42</strong>.</li>
+<li>4th octet = <code>10 000000</code> = <strong>128</strong>.</li>
+<li><strong>Network address = <code>170.170.42.128/26</code>.</strong></li>
+</ul>
+<p><strong>c) Broadcast address of subnet 170?</strong> Broadcast = network + (host bits all 1). Host range = .128 to .191. So broadcast = <strong><code>170.170.42.191</code>.</strong></p>
+<p><strong>d) Last assignable host address?</strong> Broadcast − 1 = <strong><code>170.170.42.190</code>.</strong></p>
+<p><strong>e) Which subnet is <code>170.170.170.170</code> in? (provide just the number)</strong></p>
+<ul>
+<li>Extract the 10 subnet bits from the address <code>170.170.170.170</code>:</li>
+<li>3rd octet: 170 = <code>10101010</code></li>
+<li>4th octet: 170 = <code>10101010</code>, top 2 bits = <code>10</code>.</li>
+<li>Combined subnet bits: <code>1010101010</code> = <strong>682.</strong></li>
+</ul>
+<p><strong>Supernet that holds 170.170.170.170 and ≥ 1000 hosts, sacrificing as few subnets as possible:</strong></p>
+<p><strong>f) Netmask?</strong> Need ≥ 1000 hosts → 2¹⁰ − 2 = 1022 ≥ 1000 ✓ → 10 host bits → <strong>/22</strong> mask = <code>255.255.252.0</code>.</p>
+<p><strong>g) Network address of this supernet in CIDR?</strong> Apply /22 mask to <code>170.170.170.170</code>. The 3rd octet (170 = <code>10101010</code>) ANDed with <code>11111100</code> = <code>10101000</code> = <strong>168</strong>. 4th octet ANDed with <code>00000000</code> = 0. <strong>Supernet = <code>170.170.168.0/22</code>.</strong></p>
+<p><strong>h) Number of the first subnet lost when this supernet is created?</strong> The supernet starts at 3rd octet = 168 (<code>10101000</code>) and 4th octet = <code>00......</code>. The first 10-bit subnet ID inside this range: <code>1010100000</code> = <strong>672.</strong> (The supernet absorbs subnets 672–687, i.e. 16 subnets = 2¹⁶⁻²⁶⁺²² = 2⁻⁴ flipped: 26 − 22 = 4 fewer subnet bits, so 2⁴ = 16 subnets are merged.)</p>
+  </div>
+</section><section class="study-section practical" id="6-2-alternative-scenario-204-204-204-204-16-2000-subnets-each-30-hosts">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practical">Practical</span></div>
+    <h2>6.2 Alternative scenario: 204.204.204.204/16 — ≥ 2000 subnets, each ≥ 30 hosts</h2>
+    <ul>
+<li>30 hosts → 5 host bits (2⁵ − 2 = 30) → <strong>/27</strong> mask.</li>
+<li>2000 subnets → 11 subnet bits (2¹¹ = 2048).</li>
+<li>For the <strong>supernet</strong> holding ≥ 2000 hosts → 11 host bits (2¹¹ − 2 = 2046) → <strong>/21</strong> mask.</li>
+</ul>
+<p><strong>Question h variant: &quot;How many MORE hosts can the supernet address than the sacrificed subnets?&quot;</strong></p>
+<ul>
+<li>Moving from /27 to /21 combines 2⁶ = <strong>64 subnets</strong>.</li>
+<li>Hosts before = 64 × 30 = <strong>1920</strong>.</li>
+<li>Hosts after = 2046.</li>
+<li>Difference = <strong>126 more hosts.</strong></li>
+</ul>
+<hr>
+  </div>
+</section><section class="study-section theory" id="7-network-address-translation-nat">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>7. Network Address Translation (NAT)</h2>
+    <p>Because public IPv4 addresses are exhausted, organisations use <strong>NAT</strong>.</p>
+  </div>
+</section><section class="study-section theory" id="how-it-works">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>How it works</h2>
+    <ul>
+<li>A <strong>NAT router (&quot;NAT box&quot;)</strong> sits at the network edge and is assigned <strong>one public IPv4 address</strong>.</li>
+<li>Internal hosts are assigned <strong>private addresses</strong> (e.g. <code>10.x.x.x</code> or <code>192.168.x.x</code>).</li>
+<li>When an internal host requests a web page, the NAT box intercepts, <strong>replaces the private source IP with its own public IP</strong>, and forwards the packet to the Internet.</li>
+<li>When the response arrives, the NAT box looks up which internal host originated the request and reverse-translates the destination IP.</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="port-tracking">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>Port tracking</h2>
+    <p>To distinguish multiple simultaneous connections from internal hosts, the NAT box assigns each outgoing connection a <strong>unique source port</strong> on its public IP. The response targets that port, and the NAT box maps the port back to the correct internal host:port.</p>
+  </div>
+</section><section class="study-section theory" id="why-private-addresses-are-necessary">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>Why private addresses are necessary</h2>
+    <blockquote><p><strong>Final-exam Q35 (2024) — &quot;Critique this argument&quot;:</strong> <em>&quot;Since the NAT box converts internal addresses, public addresses can be used inside the network without any restriction.&quot;</em></p><p><strong>Correct critique (B):</strong> The argument <strong>does not consider</strong> that <strong>public IP addresses are allocated to specific countries / organisations</strong>. Routers inside the organisation could become confused, since the addresses physically inside the LAN belong to someone else on the Internet. If those external addresses are ever queried inside the LAN, internal routers would refuse to forward to them externally. Hence private ranges exist to ensure internal addresses <strong>never escape</strong> onto the public Internet.</p></blockquote>
+<hr>
+  </div>
+</section><section class="study-section theory" id="8-icmp-arp-layer-3-support-protocols">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>8. ICMP &amp; ARP — Layer-3 Support Protocols</h2>
+    <p>ICMP and ARP are not routing protocols and don&#x27;t perform Layer-4 functions, but they support IP. They are conventionally classified on <strong>Layer 3</strong>.</p>
+  </div>
+</section><section class="study-section theory" id="8-1-icmp-internet-control-message-protocol">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>8.1 ICMP — Internet Control Message Protocol</h2>
+    <p>ICMP sends <strong>control and status messages</strong>. ICMP packets are very simple: a number (Type) plus an optional payload. ICMP packets are carried as the <strong>payload of an IP packet</strong>.</p>
+<h3 id="common-icmp-types">Common ICMP types</h3>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>Name</th><th>Purpose</th></tr></thead><tbody>
+<tr><td>0</td><td><strong>Echo Reply</strong></td><td>Response to a ping.</td></tr>
+<tr><td>3</td><td>Destination Unreachable</td><td>Sent when IP cannot deliver/forward a packet.</td></tr>
+<tr><td><strong>8</strong></td><td><strong>Echo Request</strong></td><td>The actual <em>outgoing</em> ping.</td></tr>
+<tr><td>11 / 10</td><td><strong>Time Exceeded</strong></td><td>Sent when TTL hits 0 (some legacy material uses Type 10).</td></tr>
+</tbody></table></div>
+<blockquote><p><strong>MCQ fact:</strong> &quot;When a client performs a <code>ping</code> command, it sends an ICMP <strong>Echo Request</strong> (Type 8).&quot; ✓</p><p>&quot;If a router discards a datagram because its TTL becomes 0, it may send a <strong>Time Exceeded</strong> ICMP message to the source.&quot;</p></blockquote>
+<h3 id="traceroute-tracert-uses-ttl-icmp-time-exceeded"><code>traceroute</code> / <code>tracert</code> — uses TTL + ICMP Time Exceeded</h3>
+<p>The trick: send a datagram to the destination with <strong>TTL = 1</strong>. The very first router decrements TTL to 0, discards, and (with luck) returns a <strong>Time Exceeded</strong> ICMP message — revealing its identity. Repeat with TTL = 2, then 3, etc. Each increment exposes the next hop along the route.</p>
+<blockquote><p><strong>Useful exam phrasing:</strong></p><p>- Which IPv4 header field makes <code>traceroute</code> possible? → <strong>TTL.</strong></p><p>- Which ICMP message implements <code>traceroute</code>? → <strong>Time Exceeded</strong> (Type 11 / Type 10).</p><p>- Which ICMP request is sent by ping? → <strong>Echo Request</strong> (Type 8).</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="8-2-arp-address-resolution-protocol">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>8.2 ARP — Address Resolution Protocol</h2>
+    <p>ARP translates a <strong>known Layer-3 IP address</strong> into the <strong>Layer-2 MAC address</strong> of the same host. Required because Layer 2 (Ethernet, etc.) delivers based on MAC addresses, not IP addresses.</p>
+<h3 id="how-arp-works">How ARP works</h3>
+<ol>
+<li>Node <code>10.1.1.1</code> wants to send data to <code>10.1.1.2</code> on the same switch.</li>
+<li>It broadcasts an ARP request: <em>&quot;Who has 10.1.1.2? Tell 10.1.1.1.&quot;</em></li>
+<li>Node <code>10.1.1.2</code> replies with its MAC address (e.g. <code>00-1a-92-1f-9e-0f</code>).</li>
+<li><code>10.1.1.1</code> can now construct Layer-2 frames addressed to that MAC and deliver the data directly.</li>
+</ol>
+<p>ARP caches translations in an <strong>ARP cache</strong> to avoid re-broadcasting for every packet.</p>
+<hr>
+  </div>
+</section><section class="study-section theory" id="9-ipv6-the-successor-to-ipv4">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>9. IPv6 — The Successor to IPv4</h2>
+    <p>IPv4&#x27;s 32-bit space is exhausted. IPv6 uses <strong>128-bit</strong> addresses, written as <strong>8 blocks of 4 hex digits</strong> separated by colons.</p>
+  </div>
+</section><section class="study-section theory" id="9-1-notation-rules">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>9.1 Notation rules</h2>
+    <ul>
+<li>Full: <code>2001:0db8:0000:0000:0000:0000:0000:0123</code></li>
+<li>Suppress one run of consecutive zero-blocks with <code>::</code>: <code>2001:0db8::0123</code></li>
+<li>Drop leading zeros within each block: <code>2001:db8::123</code></li>
+<li><strong>Only one <code>::</code> is allowed per address</strong> (otherwise it would be ambiguous).</li>
+<li>Each block represents 16 bits (4 hex digits → 16 bits).</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="9-2-ipv6-header-simpler-than-ipv4">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>9.2 IPv6 header — simpler than IPv4</h2>
+    <ul>
+<li><strong>Version</strong> field retained (now = 6).</li>
+<li><strong>TTL</strong> is renamed <strong>&quot;Hop limit&quot;</strong> (same function).</li>
+<li><strong>Source / Destination addresses</strong> are 128-bit (long).</li>
+<li><strong>Payload length</strong> is included.</li>
+<li><strong>No header checksum</strong> (removed — higher layers checksum).</li>
+<li><strong>Fragmentation is moved entirely to extension headers</strong> (no longer in the main header).</li>
+<li><strong>Extension headers:</strong> form a linked list off the main header. Used for options that in IPv4 were inline.</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="9-3-ipv6-address-structure">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>9.3 IPv6 address structure</h2>
+    <p>In typical cases:</p>
+<ul>
+<li>Top <strong>64 bits</strong> = <strong>routing prefix</strong> (network portion, sometimes including subnet bits).</li>
+<li>Bottom <strong>64 bits</strong> = <strong>interface identifier</strong> (host/node ID — but more precisely the identifier of the <em>interface</em>, since IPv6 binds addresses to interfaces, not to hosts).</li>
+</ul>
+<p>A &quot;normal&quot; routable address: 48-to-64-bit ISP-assigned prefix + 0-to-16 subnet bits + 64-bit interface ID.</p>
+  </div>
+</section><section class="study-section theory" id="9-4-special-prefixes-memorise">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>9.4 Special prefixes (MEMORISE)</h2>
+    <div class="table-wrap"><table><thead><tr><th>Prefix</th><th>Name</th><th>Equivalent / purpose</th></tr></thead><tbody>
+<tr><td><strong><code>::0/128</code></strong></td><td>Unspecified address</td><td>Like IPv4 <code>0.0.0.0</code> (DHCP requests, etc.)</td></tr>
+<tr><td><strong><code>::1/128</code></strong></td><td><strong>Loopback / localhost</strong></td><td>Like IPv4 <code>127.0.0.1</code>. Uses the full 128 bits — no interface ID added.</td></tr>
+<tr><td><strong><code>::ffff:0:0/96</code></strong></td><td><strong>IPv4-mapped IPv6 addresses</strong></td><td>E.g. IPv4 <code>10.10.10.10</code> → <code>::ffff:10.10.10.10</code> or <code>::ffff:A0A:A0A</code> in pure-hex. Cannot be routed on IPv6; if IPv4 is available, the datagram is routed via the IPv4 stack.</td></tr>
+<tr><td><strong><code>fc00::/7</code></strong></td><td><strong>Unique local addresses</strong> (&quot;private&quot;)</td><td>Like IPv4 <code>10.0.0.0/8</code> and <code>192.168.0.0/16</code>. Split into <code>fc00::/8</code> (format not yet defined) and <code>fd00::/8</code> (random-prefix).</td></tr>
+<tr><td><strong><code>fd00::/8</code></strong></td><td>Unique local addresses (random prefix)</td><td>Site picks a <strong>40-bit random global ID</strong> to ensure uniqueness when networks merge. Then 16-bit subnet ID, then 64-bit interface ID.</td></tr>
+<tr><td><strong><code>fe80::/10</code></strong></td><td><strong>Link-local unicast</strong> (a.k.a. SLAAC)</td><td>Like IPv4 <code>169.254.0.0/16</code>. Only valid on the local link; never routed.</td></tr>
+<tr><td><strong><code>2001:db8::/32</code></strong></td><td>Documentation prefix</td><td>Reserved for examples / docs.</td></tr>
+<tr><td><strong><code>ff00::/8</code></strong></td><td><strong>Multicast</strong></td><td>IPv6 has no broadcast — uses multicast and anycast instead.</td></tr>
+</tbody></table></div>
+<blockquote><p><strong>MCQ fact:</strong> &quot;Which of the following IPv6 addresses correspond with the IPv4 address <code>10.10.10.10</code>?&quot;</p><p>10.10.10.10 in hex: <code>0A.0A.0A.0A</code>. Group into 16-bit pieces: <code>0A0A</code>, <code>0A0A</code>. With leading-zero suppression: <code>A0A</code> and <code>A0A</code>. So the answer is <strong><code>::FFFF:A0A:A0A</code></strong> (i.e. option <strong><code>0::FFFF:A0A:A0A</code></strong> or <strong><code>::ffff:A:A:A:A</code></strong> depending on lecturer&#x27;s preferred form).</p><p>Note: in 2023 exam memo the printed answer was given as C (<code>0::FFFF:A:A:A:A</code> form — but be careful — the 2025 ST2-aligned variant uses <strong><code>0::FFFF:A0A:A0A</code></strong>). The mathematical content is the same in both: <code>::ffff:</code> followed by the IPv4 address in hex.</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="9-5-slaac-stateless-address-autoconfiguration">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>9.5 SLAAC — Stateless Address Autoconfiguration</h2>
+    <p>A host without DHCP can autoconfigure an IPv6 address:</p>
+<ol>
+<li>Take the <code>fe80::/10</code> (link-local) prefix.</li>
+<li>Extend with zeros to make a <code>/64</code> prefix: <code>fe80::/64</code>.</li>
+<li>Append a randomly generated 64-bit interface identifier (the chance of collision is vanishingly small).</li>
+<li>Run a duplicate-address-detection check on the link. If unique, use it.</li>
+</ol>
+<blockquote><p><strong>MCQ fact:</strong> Considering an IPv6 address like <code>fd12:3456:789a:bcde:f0fe:dcba:9876:5432</code>, the prefix <code>fd00::/8</code> tells us this is a <strong>unique local / &quot;subnet&quot; / private</strong> address. The bottom 64 bits (<code>f0fe:dcba:9876:5432</code>) was <strong>calculated from the MAC address of the interface</strong> (or, in more recent SLAAC implementations, is a random number — the textbook&#x27;s older question treats it as MAC-derived).</p></blockquote>
+  </div>
+</section><section class="study-section scope" id="9-6-address-scopes">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge scope">Scope</span></div>
+    <h2>9.6 Address scopes</h2>
+    <p>Every IPv6 address has an intended <strong>scope</strong> in which it must be unique:</p>
+<div class="table-wrap"><table><thead><tr><th>Prefix</th><th>Scope</th></tr></thead><tbody>
+<tr><td><code>::1/128</code></td><td>Host-local</td></tr>
+<tr><td><code>fe80::/10</code></td><td>Link-local</td></tr>
+<tr><td><code>fc00::/7</code></td><td>Site-local</td></tr>
+<tr><td><code>2001:...</code> (regular routable)</td><td>Global</td></tr>
+<tr><td><code>ff00::/8</code></td><td>Depends (varies by multicast scope)</td></tr>
+</tbody></table></div>
+<p>Link-local addresses include an <strong>adapter identifier</strong> (e.g. <code>fe80::...%eth0</code> on Linux, or <code>fe80::...%19</code> on Windows) because the same <code>fe80::</code> address may legitimately exist on two different network adapters connected to two different links.</p>
+  </div>
+</section><section class="study-section theory" id="9-7-unicast-multicast-anycast-no-broadcast">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>9.7 Unicast, multicast, anycast (no broadcast!)</h2>
+    <ul>
+<li><strong>Unicast:</strong> to one specific interface.</li>
+<li><strong>Multicast:</strong> (prefix <code>ff00::/8</code>) to all members of a group.</li>
+<li><strong>Anycast:</strong> to <strong>any one</strong> member of a group (any of several nodes with the same anycast address). Unicast and anycast addresses look the same on the wire; only multicast is distinguishable (via the <code>ff</code> prefix).</li>
+<li><strong>Broadcast: does not exist in IPv6.</strong> Its functions are taken over by multicast and anycast.</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="9-8-transitioning-ipv4-ipv6">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>9.8 Transitioning IPv4 → IPv6</h2>
+    <p>Two main strategies:</p>
+<ol>
+<li><strong>Dual stack:</strong> the host runs both IPv4 and IPv6 stacks simultaneously. When a destination has both an IPv4 and an IPv6 address (DNS returns A and AAAA records), the host picks one — usually preferring IPv6 if working.</li>
+<li><strong>Tunnelling:</strong> encapsulate an IPv6 packet inside an IPv4 packet (or vice versa) and forward to a tunnel endpoint that unwraps and re-injects. Useful when only one of the two protocols is available end-to-end.</li>
+</ol>
+  </div>
+</section><section class="study-section theory" id="9-9-deprecated-transitional-prefixes-recognise-but-don-t-memorise">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>9.9 Deprecated / transitional prefixes (recognise but don&#x27;t memorise)</h2>
+    <ul>
+<li><code>2002::/16</code> — 6to4 tunnelling</li>
+<li><code>2001::/32</code> — Teredo tunnelling</li>
+<li><code>3ffe::/16</code> — 6bone (deprecated)</li>
+<li><code>::/96</code> — IPv4-compatible addresses (old format, deprecated; superseded by <code>::ffff:0:0/96</code>)</li>
+<li><code>fec0::/10</code> — site-local (deprecated; replaced by <code>fc00::/7</code>)</li>
+</ul>
+<hr>
+  </div>
+</section><section class="study-section theory" id="10-routing-for-ipv6">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>10. Routing for IPv6</h2>
+    <p>Like IPv4, IPv6 prefixes are assigned by IANA → RIRs → ISPs → end organisations. A large ISP may get a <code>/32</code>, sub-allocate <code>/48</code>s to corporate customers, and so on. The routing table format <code>(destination, next hop, interface)</code> is unchanged in concept.</p>
+<p>A multicast advertisement of an organisation&#x27;s prefix (rather than statically configuring it everywhere) is how IPv6 networks usually announce themselves, simplifying changes of ISP.</p>
+<hr>
+  </div>
+</section><section class="study-section practice" id="examinable-practice-questions-on-layer-3">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practice">Practice</span></div>
+    <h2>Examinable Practice Questions on Layer 3</h2>
+    
+  </div>
+</section><section class="study-section practice" id="multiple-choice">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practice">Practice</span></div>
+    <h2>Multiple Choice</h2>
+    <p><strong>Q1.</strong> The primary metric used by interior gateway protocols is: A. Cost   B. Hop count   C. Distance   D. Static routing tables   E. Speed   F. Noise</p>
+<p><strong>Q2.</strong> Which of the following protocols is/are examples of an external gateway protocol (EGP)? A. BGP   B. OSPF   C. RIP   D. More than one of the above   E. All of the above</p>
+<p><strong>Q3.</strong> In which of the following algorithms is counting to infinity a cause for concern? A. Dijkstra   B. Bellman-Ford   C. RIP   D. More than one of the above   E. All of the above</p>
+<p><strong>Q4.</strong> Routers using OSPF broadcast their ... and use the received information to apply the ... algorithm. A. Routing tables; Dijkstra B. Routing tables; Bellman-Ford C. Routing tables; RIP D. Version of the network topology; Dijkstra E. Version of the network topology; Bellman-Ford</p>
+<p><strong>Q5.</strong> Consider a scenario in RIP where a router <em>r</em> sends its routing table to a router <em>s</em>. An entry in <em>r</em>&#x27;s table indicates that it can reach a network <em>n</em> at a cost of 5. Before receiving the message, the routing table at <em>s</em> indicated that it could reach <em>n</em> at a cost of 8. What will the cost from <em>s</em> to <em>n</em> be according to the routing table at <em>s</em> after <em>s</em> processes the message from <em>r</em>? A. 5   B. 6   C. 7   D. 8   E. More information about <em>r</em> is required to answer the question.</p>
+<p><strong>Q6.</strong> If one sends a message to an IP multicast address, the message will be delivered to: A. The node to which that IP address has been assigned. B. All nodes on the local network. C. All nodes that are members of some group. D. The network itself, rather than to a host on the network. E. The network gateway that connects the network to other networks.</p>
+<p><strong>Q7.</strong> An IP datagram may be fragmented to: A. Expedite routing. B. Fit IP datagrams in size-constrained layer 2 frames. C. Ensure that fixed-size packets are sent to the lower layer. D. Fit IP datagrams in size-constrained layer 4 segments. E. Minimise data loss if a packet is discarded.</p>
+<p><strong>Q8.</strong> Suppose a router receives an IP datagram <em>d</em> and its TTL becomes 0. What may the router do next? A. Discard <em>d</em>. B. Forward <em>d</em> to the next hop. C. Send a Time Exceeded ICMP message to the source. D. More than one of the above. E. All of the above.</p>
+<p><strong>Q9.</strong> The private class B IPv4 addresses are: A. 172.1.0.0–172.1.255.255 B. 172.2.0.0–172.3.255.255 C. 172.4.0.0–172.7.255.255 D. 172.8.0.0–172.15.255.255 E. 172.16.0.0–172.31.255.255</p>
+<p><strong>Q10.</strong> What is the address (in CIDR notation) of the netblock <code>41.32.0.0</code> to <code>41.39.255.255</code>? A. 41.32.0.0/10   B. 41.32.0.0/11   C. 41.32.0.0/12   D. 41.32.0.0/13   E. None of the above</p>
+<p><strong>Q11.</strong> Which of the following IPv6 addresses correspond with the IPv4 address <code>10.10.10.10</code>? A. 0::A:A:A:A   B. 0::AA:AA   C. 0::FFFF:A.A.A.A   D. 0::FFFF:AA:AA   E. 0::FFFF:A0A:A0A</p>
+<p><strong>Q12.</strong> Consider the IP routing algorithm. Assume it has reached the point where it either consulted the routing table and found no match, or it noted that no routing table exists. What is the next step it will attempt? A. Check whether a default gateway is defined and, if one is defined, forward the packet to such a default gateway. B. Transfer the packet to layer 4. C. Directly deliver the packet. D. Discard the packet. E. More than one of the above.</p>
+<p><strong>Q13.</strong> (Final-exam style) An IP datagram addressed to <code>10.10.1.2</code> arrives at node R. R is not directly connected to the destination. The routing table at R includes:</p>
+<pre><code>10.10.10.0/24    192.168.1.1   eth1
+10.10.0.0/16     192.168.2.2   eth2
+10.0.0.0/8       192.168.3.3   eth3
+0.0.0.0/0        192.168.4.4   eth4</code></pre>
+<p>To which next hop does R forward the datagram? A. 192.168.1.1   B. 192.168.2.2   C. 192.168.3.3   D. 192.168.4.4   E. More than one of the above</p>
+<p><strong>Q14.</strong> Consider the IPv6 address <code>fd12:3456:789a:bcde:f0fe:dcba:9876:5432</code>. Which of the following is true about the part <code>12:3456:789a</code>? A. It was supplied by an ISP/RIR. B. It designates a subnet. C. It is a random number. D. It was calculated from the MAC address of the interface. E. None of the above.</p>
+<p><strong>Q15.</strong> Consider the IPv6 address <code>fd12:3456:789a:bcde:f0fe:dcba:9876:5432</code>. Which of the following is true about the part <code>bcde</code>? A. It was supplied by an ISP/RIR. B. It designates a subnet. C. It is a random number. D. It was calculated from the MAC address of the interface. E. None of the above.</p>
+<p><strong>Q16.</strong> Consider the IPv6 address <code>fe80:1234:5678:9abc:def0:fedb:a987:6543/128</code>. This address: A. Is an SLA address. B. Is a link-local address. C. Is a site-local address. D. Is a global address. E. Would currently not be a legal address.</p>
+<p><strong>Q17.</strong> Which of the following prefixes indicate an IPv4-mapped address expressed in IPv6 notation? A. <code>::ffff:0:0/96</code> B. <code>::ffff:0/80/96</code> (mistyped variant — equivalent to A) C. <code>0:0:0:0:ffff:0:0/96</code> D. More than one of the above E. All of the above</p>
+  </div>
+</section><section class="study-section practice" id="long-form-calculation">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practice">Practice</span></div>
+    <h2>Long-Form &amp; Calculation</h2>
+    <p><strong>Q18. ICMP/IPv4 utilities.</strong> Provide the answers to the following: a) Which IPv4 header field makes it possible to implement the <code>traceroute</code> command? b) Which ICMP message is typically used to implement <code>traceroute</code>? c) Which ICMP request is sent by the client to perform a <code>ping</code> command? d) Which IPv4 addresses are reserved for link-local addresses? (CIDR) e) Provide the IPv4 entry used as the destination in a routing table to identify the default gateway. (CIDR)</p>
+<p><strong>Q19. IPv4 addressing (Scenario A).</strong> Use CIDR notation for all answers. a) Which IPv4 address is used in a routing table to indicate the default-gateway entry? b) A block of 256 &#x27;class C&#x27; network addresses is reserved for private use. Provide the <em>first</em> class C network address that occurs within this block. c) A block of 16 &#x27;class B&#x27; network addresses is reserved for private use. Provide the <em>last</em> class B network address that occurs within this block. d) <code>137.215.98.140</code> is a host on the University of Pretoria network. What is the UP network address? e) <code>8.8.8.8</code> is a popular DNS server. If this address were still part of a class-based address, what would the broadcast address on this network be?</p>
+<p><strong>Q20. Subnetting &amp; supernetting (Scenario B).</strong> Your organisation uses <code>170.170.170.170/16</code>. They decide to subnet so that they have at least 1000 subnets each handling at least 60 hosts. a) What netmask will they use for the subnets? b) Consider <em>subnet number 170</em>. What is the network address of this subnet in CIDR? c) What is the broadcast address of subnet 170? d) What is the last (biggest) address that may be assigned to a host on subnet 170? e) On which subnet is the host <code>170.170.170.170</code>? Provide only the number. f) The organisation needs a much bigger subnet at the same location, handling at least 1000 hosts, sacrificing as few subnets as possible. Provide the netmask of this supernet. g) Provide the network address of this supernet in CIDR. h) What is the <em>number</em> of the first subnet that will be lost once this supernet has been created?</p>
+<p><strong>Q21. Subnetting &amp; supernetting (alternate Scenario B&#x27;).</strong> Same as Q20 but starting from <code>204.204.204.204/16</code>, with at least 2000 subnets each handling at least 30 hosts. a)–g) (analogous to above; see memo) h) (variant question) How many MORE hosts can the supernet address than the sacrificed subnets?</p>
+<p><strong>Q22. Routing — Dijkstra.</strong> Apply Dijkstra&#x27;s algorithm from node A given the costs: <code>A–B: 1 | C–D: 1 | A–F: 10 | D–E: 3 | B–C: 6 | E–F: 2 | B–E: 1</code></p>
+<p>a) Which node is picked as the cheapest alternative at the end of iteration 3? b) Before starting iteration 4, what is the cost to reach C from A? c) Before starting iteration 4, which node will finally deliver a packet en route to C? d) Which node is added to the finalised set at the end of iteration 4? e) Before starting iteration 5, what is the cost to reach C from A?</p>
+<p><strong>Q23. Routing — Bellman-Ford / RIP.</strong> Initial tables at C, D, E:</p>
+<ul>
+<li>C: <code>A 7 B | B 1 B | D 3 D | F 2 B</code></li>
+<li>D: <code>A 20 E | C 3 C | E 4 E | F 7 E</code></li>
+<li>E: <code>A 6 F | B 1 F | D 2 D | F 4 F</code></li>
+</ul>
+<p>At <em>t₁</em> C sends its table to D. At <em>t₂ &gt; t₁</em> E sends its table to D.</p>
+<p>a) D&#x27;s entry for <strong>A</strong> after receiving C&#x27;s table (prior to <em>t₂</em>)? b) D&#x27;s entry for <strong>B</strong> after receiving C&#x27;s table? c) D&#x27;s entry for <strong>A</strong> after receiving E&#x27;s table? d) D&#x27;s entry for <strong>B</strong> after receiving E&#x27;s table? e) D&#x27;s entry for <strong>F</strong> after receiving E&#x27;s table?</p>
+<p><strong>Q24. NAT critique.</strong> A NAT box converts internal addresses to external addresses and vice versa. Critique the following argument: <em>&quot;Since the NAT box hides internal addresses, an organisation can use any addresses internally without restriction — even public addresses allocated to other organisations.&quot;</em></p>
+<hr>
+  </div>
+</section><section class="study-section memo" id="memo-answer-key">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge memo">Memo / Answers</span></div>
+    <h2>Memo / Answer Key</h2>
+    
+  </div>
+</section><section class="study-section memo" id="mcq-answers">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge memo">Memo / Answers</span></div>
+    <h2>MCQ Answers</h2>
+    <p><strong>A1.</strong> B (Hop count — the metric used by RIP). <em>Note: OSPF actually uses &#x27;cost&#x27;, but the lecturer&#x27;s question phrasing about &quot;primary metric&quot; expects hop count as the canonical IGP answer.</em></p>
+<p><strong>A2.</strong> A (BGP). OSPF and RIP are IGPs, not EGPs.</p>
+<p><strong>A3.</strong> D (More than one of the above — both Bellman-Ford and RIP, because RIP <em>uses</em> Bellman-Ford).</p>
+<p><strong>A4.</strong> D (Version of the network topology; Dijkstra).</p>
+<p><strong>A5.</strong> E (More information about <em>r</em> is required). To update its table, <em>s</em> must know the cost of the link from <em>s</em> to <em>r</em>, which isn&#x27;t supplied.</p>
+<p><strong>A6.</strong> C (All nodes that are members of some group).</p>
+<p><strong>A7.</strong> B (Fit IP datagrams in size-constrained layer 2 frames).</p>
+<p><strong>A8.</strong> D (More than one of the above — discard <em>and</em> send ICMP Time Exceeded).</p>
+<p><strong>A9.</strong> E (172.16.0.0–172.31.255.255).</p>
+<p><strong>A10.</strong> D (41.32.0.0/13). The 5 unchanging high bits of the second octet (<code>00100</code>) plus the first 8 bits of the first octet give 13 prefix bits.</p>
+<p><strong>A11.</strong> E (<code>0::FFFF:A0A:A0A</code> or equivalently <code>::FFFF:A0A:A0A</code>). 10.10.10.10 = <code>0A.0A.0A.0A</code> hex → grouped into 16-bit hex words: <code>0A0A:0A0A</code> → <code>A0A:A0A</code>. (Note: option C, <code>0::FFFF:A.A.A.A</code>, would represent IPv4 <code>10.10.10.10</code> only if each <code>A</code> represents <code>0A</code>, which is uncommon — <em>exam-key answer is E</em>.)</p>
+<p><strong>A12.</strong> A (Check whether a default gateway is defined and, if so, forward to it).</p>
+<p><strong>A13.</strong> B (192.168.2.2 / eth2 — longest-prefix match wins).</p>
+<p><strong>A14.</strong> A (It was supplied by an ISP/RIR). The leading bits <code>fd</code> indicate a unique-local address, and the next 40 bits form the randomly chosen &quot;global ID&quot; — but in the textbook-style question about a <em>normal routable</em> address, the leading part <code>12:3456:789a</code> is the ISP-supplied prefix. <em>In the actual exam variant on a <code>fd...</code> address, this part is a</em> <strong>random number</strong> <em>(answer C).</em> Be alert to which variant your paper presents.</p>
+<p><strong>A15.</strong> B (It designates a subnet). For a <code>fd00::/8</code> address, after the 40-bit global ID comes a 16-bit subnet ID — <code>bcde</code> (in the example) is the 16-bit subnet ID.</p>
+<p><strong>A16.</strong> E (Would currently not be a legal address). The prefix <code>fe80::/10</code> indicates a link-local address, and bits 11–63 (i.e. the rest of the upper 64 bits before the interface ID) must be zero. The example has non-zero bits there → not currently legal.</p>
+<p><strong>A17.</strong> D (More than one — answer C is the same as <code>::ffff:0:0/96</code>, written out in full).</p>
+  </div>
+</section><section class="study-section memo" id="long-form-answers">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge memo">Memo / Answers</span></div>
+    <h2>Long-Form Answers</h2>
+    <p><strong>A18.</strong> a) <strong>TTL</strong> (Time-to-Live). b) <strong>Time Exceeded</strong> (ICMP Type 11, or Type 10 in some legacy material). c) <strong>Echo Request</strong> (ICMP Type 8). d) <strong><code>169.254.0.0/16</code>.</strong> e) <strong><code>0.0.0.0/0</code>.</strong></p>
+<p><strong>A19.</strong> a) <code>0.0.0.0/0</code> b) <code>192.168.0.0/24</code> (first /24 in the 192.168.0.0/16 block) c) <code>172.31.0.0/16</code> (last /16 in the 16-network 172.16–172.31 block) d) <code>137.215.0.0/16</code> (class B → /16 prefix) e) <code>8.255.255.255/8</code> (class A broadcast — all host bits set inside the 8.0.0.0/8 network)</p>
+<p><strong>A20. Subnetting (170.170.170.170/16; ≥1000 subnets, ≥60 hosts each)</strong></p>
+<p>Need ≥60 hosts → 6 host bits (2⁶−2 = 62). Mask = 32 − 6 = <strong>/26</strong>. Subnet bits = 32 − 16 − 6 = 10 → 2¹⁰ = 1024 subnets ≥ 1000 ✓.</p>
+<p>a) <strong>255.255.255.192</strong> (/26 netmask) b) Subnet 170 → 10-bit binary <code>0010101010</code>. 3rd octet: <code>00101010</code> = <strong>42</strong>. 4th octet: top 2 bits = <code>10</code> → <code>10000000</code> = <strong>128</strong>. <strong>Address: <code>170.170.42.128/26</code>.</strong> c) Broadcast = network + (host bits all 1) = 128 + 63 = 191. <strong><code>170.170.42.191</code>.</strong> d) Broadcast − 1 = <strong><code>170.170.42.190</code>.</strong> e) Host <code>170.170.170.170</code>: 3rd octet 170 = <code>10101010</code>, 4th octet 170 = <code>10101010</code> (top 2 bits = <code>10</code>). Subnet bits combined: <code>1010101010</code> = <strong>682.</strong> f) Need ≥1000 hosts → 10 host bits → mask = /22. <strong><code>255.255.252.0</code>.</strong> g) Apply /22 to 170.170.170.170. 3rd octet <code>10101010</code> AND <code>11111100</code> = <code>10101000</code> = 168. 4th octet AND <code>00000000</code> = 0. <strong><code>170.170.168.0/22</code>.</strong> h) Supernet starts at subnet <code>1010100000</code> = <strong>672</strong>. (Originally 10 subnet bits; supernet reduces to 6 subnet bits, absorbing 2⁴ = 16 subnets numbered 672–687.)</p>
+<p><strong>A21. Subnetting (204.204.204.204/16; ≥2000 subnets, ≥30 hosts each)</strong></p>
+<p>Need ≥30 hosts → 5 host bits (2⁵−2 = 30). Mask = <strong>/27</strong>. Subnet bits = 32 − 16 − 5 = 11 → 2¹¹ = 2048 ≥ 2000 ✓.</p>
+<p>a) <strong>255.255.255.224</strong> (/27 netmask) b) Subnet 204 in 11-bit binary = <code>00011001100</code>. 3rd octet: <code>00011001</code> = 25. 4th octet: top 3 bits = <code>100</code>, → <code>10000000</code> = 128. Network: <strong><code>204.204.25.128/27</code>.</strong> c) Broadcast = 128 + 31 = <strong><code>204.204.25.159</code>.</strong> d) Last host = <strong><code>204.204.25.158</code>.</strong> e) Host <code>204.204.204.204</code>: 3rd octet 204 = <code>11001100</code>. 4th octet 204 = <code>11001100</code> (top 3 bits = <code>110</code>). Subnet bits: <code>11001100110</code> = <strong>1638.</strong> f) Need ≥2000 hosts → 11 host bits → mask = /21. <strong><code>255.255.248.0</code>.</strong> g) Apply /21 to 204.204.204.204. 3rd octet <code>11001100</code> AND <code>11111000</code> = <code>11001000</code> = 200. 4th octet = 0. <strong><code>204.204.200.0/21</code>.</strong> h) <strong>How many MORE hosts:</strong> Move from /27 (30 hosts each) to /21 (2046 hosts). Combine 2⁶ = <strong>64 subnets</strong>. Hosts before = 64 × 30 = 1920. Hosts after = 2046. Difference = <strong>126 more hosts.</strong></p>
+<p><strong>A22. Dijkstra</strong> Trace as in §3.4 above:</p>
+<ul>
+<li>a) <strong>F</strong> picked at end of iter 3 (cost 4)</li>
+<li>b) Cost to C before iter 4 = <strong>7</strong> (via A→B→C)</li>
+<li>c) Final delivering node to C at this stage = <strong>B</strong></li>
+<li>d) <strong>D</strong> picked at end of iter 4 (cost 5)</li>
+<li>e) Cost to C before iter 5 = <strong>7</strong> (D was just added; its neighbours not yet evaluated)</li>
+</ul>
+<p><strong>A23. Bellman-Ford</strong> (as in §3.5):</p>
+<ul>
+<li>a) <strong>A: cost 10, next hop C</strong> (10 = 7 + 3 — better than the old 20)</li>
+<li>b) <strong>B: cost 4, next hop C</strong> (1 + 3; D had no prior route)</li>
+<li>c) <strong>A: cost 10, next hop C</strong> (or E — tied; keep existing per standard implementation)</li>
+<li>d) <strong>B: cost 4, next hop C</strong> (existing route via C at 4 is cheaper than 5 via E)</li>
+<li>e) <strong>F: cost 8, next hop E</strong> — <strong>crucial rule:</strong> because E is D&#x27;s <em>current next-hop</em> for F, D must adopt E&#x27;s new advertisement (4 + 4 = 8) even though it&#x27;s worse than the old 7. This is precisely the mechanism that drives the count-to-infinity problem.</li>
+</ul>
+<p><strong>A24. NAT critique.</strong> The naive argument fails because <strong>public IPv4 addresses are allocated to specific countries and organisations</strong>. If an internal network uses, say, <code>137.215.0.0/16</code> (the University of Pretoria&#x27;s allocation), then internal routers cannot tell whether a packet to <code>137.215.x.y</code> belongs to the internal LAN or to a legitimate UP host on the public Internet. The two would collide. Even worse, any internal application that tries to reach the <em>real</em> <code>137.215.x.y</code> will be incorrectly handed to the internal device with that address — making external hosts using those addresses unreachable. <strong>NAT boxes therefore exist specifically to keep internal addresses inside the</strong> <strong>RFC-defined private ranges</strong> (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code>), which are guaranteed never to appear on the public Internet. The correct answer is therefore the option that explicitly identifies &quot;the fact that public IP addresses are allocated to specific countries/organisations&quot; as the flaw in the argument.</p>
+  </div>
+</section></article></div></main>
+<footer class="footer"><div class="footer-inner">Generated from the markdown notes in this folder. Use the index to jump between layers.</div></footer>
+</body></html>

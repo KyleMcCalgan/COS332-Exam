@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Long Questions Study Guide | COS332 Study Notes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <nav class="breadcrumb"><a href="index.html">Study Index</a><span>/</span><span>Long Questions Study Guide</span></nav>
+    <h1>Long Questions Study Guide</h1>
+    <p class="subtitle">A dedicated walkthrough page for the longer-question study guide, with collapsible sections for step-by-step exam practice, worked solutions, and quick revision.</p>
+    <div class="hero-actions">
+      <a class="action" href="#guide-top">Jump Into The Guide</a>
+      <a class="action secondary" href="cos332_st2_long_questions_study_guide.md">Open Source Markdown</a>
+    </div>
+  </div>
+</header>
+
+<main id="guide-top">
+  <div class="layout">
+    <aside class="sidebar panel nav-panel">
+      <p class="nav-title">On This Page</p>
+      <ol class="nav-list">
+        <li><a href="#guide-overview">Guide Overview</a></li>
+        <li><a href="#predicted-structure">Expected Long-Question Structure</a></li>
+        <li><a href="#high-probability-topics">Highest-Probability Topics</a></li>
+        <li><a href="#subnetting-cidr">IPv4 Subnetting, CIDR, Supernetting</a></li>
+        <li><a href="#routing-algorithms">Routing Algorithms</a></li>
+        <li><a href="#tcp-reliability">TCP Reliability</a></li>
+        <li><a href="#tcp-timers">TCP Timers</a></li>
+        <li><a href="#tcp-calculations">TCP Window And ACK Calculations</a></li>
+        <li><a href="#quic">QUIC</a></li>
+        <li><a href="#asn1">ASN.1</a></li>
+        <li><a href="#supporting-topics">Supporting Topics</a></li>
+        <li><a href="#cram-checklist">Cram Checklist</a></li>
+        <li><a href="#study-order">Study Order</a></li>
+      </ol>
+    </aside>
+
+    <article class="content">
+      <section class="study-section scope" id="guide-overview">
+        <div class="section-inner">
+          <div class="section-kicker"><span class="badge scope">Overview</span></div>
+          <h2>Guide Overview</h2>
+          <p>This page expands the dedicated long-question markdown into its own mobile-friendly study page. Each major heading below can be collapsed or expanded, so you can either skim the predictions quickly or open the detailed walkthroughs when you want full worked steps.</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Focus</th><th>What this page helps with</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Prediction</td><td>Shows the most likely long-question patterns based on the study guide.</td></tr>
+                <tr><td>Method</td><td>Breaks each topic into the steps you would actually use under exam conditions.</td></tr>
+                <tr><td>Revision</td><td>Ends with a cram checklist and a recommended study order for time-limited prep.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="control-bar" aria-label="Section controls">
+            <button class="collapse-button" type="button" data-expand-all>Expand all sections</button>
+            <button class="collapse-button" type="button" data-collapse-all>Collapse all sections</button>
+          </div>
+        </div>
+      </section>
+
+      <details class="collapsible scope" id="predicted-structure" open>
+        <summary>
+          <div class="summary-head">
+            <div class="summary-title">
+              <span class="badge scope">Format</span>
+              <h2>Expected Long-Question Structure</h2>
+              <p>What the paper is likely to look like, and why the longer questions tend to be calculation-heavy rather than essay-heavy.</p>
+            </div>
+            <span class="summary-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="collapsible-body">
+          <p>The guide predicts a paper with <strong>25 marks of multiple choice</strong> and <strong>25 marks of longer questions</strong>, probably split across <strong>four longer questions</strong> in a <strong>90-minute</strong> test.</p>
+          <p>Past papers suggest the longer questions are usually short, mark-splittable tasks rather than pure theory essays. The most common forms are calculations, table completion, structured protocol explanations, encoding questions, and "list any five" style answers.</p>
+          <ul>
+            <li>Subnetting works well because every intermediate value can earn marks.</li>
+            <li>Routing algorithms work well because iterations or updates can be marked step by step.</li>
+            <li>TCP timers and TCP reliability work well because each mechanism can be awarded separately.</li>
+            <li>QUIC and ASN.1 fit nicely as compact explanation or structure-definition questions.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="collapsible theory" id="high-probability-topics" open>
+        <summary>
+          <div class="summary-head">
+            <div class="summary-title">
+              <span class="badge theory">Prediction</span>
+              <h2>Highest-Probability Topic Mix</h2>
+              <p>The four-topic combination the markdown guide considers most likely, plus smaller backup topics.</p>
+            </div>
+            <span class="summary-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="collapsible-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Likely question</th><th>Most likely topic</th><th>Why it fits</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Q2</td><td>IPv4 subnetting / CIDR / supernetting</td><td>Repeated across past papers and easy to split into many marks.</td></tr>
+                <tr><td>Q3</td><td>TCP timers or TCP reliability</td><td>Directly examinable from Layer 4 and already seen in recent papers.</td></tr>
+                <tr><td>Q4</td><td>Dijkstra or Bellman-Ford / RIP</td><td>Routing algorithms produce neat table-style answers.</td></tr>
+                <tr><td>Q5</td><td>QUIC or ASN.1</td><td>Both are explicitly highlighted and compact enough for long-form explanations.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="two-col">
+            <div class="callout">
+              <h3>Backup Topics</h3>
+              <ul class="compact-list">
+                <li>IPv6 notation and special addresses</li>
+                <li>ARP and local delivery</li>
+                <li>ICMP and TTL expiry</li>
+                <li>TCP header fields</li>
+                <li>TCP window and acknowledgement calculations</li>
+                <li>Layer 5 checkpoints and rollback</li>
+              </ul>
+            </div>
+            <div class="callout">
+              <h3>Revision Strategy</h3>
+              <p>If time is tight, treat subnetting, TCP timers, routing algorithms, and QUIC or ASN.1 as the core long-question set. Everything else supports those four.</p>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="collapsible practical" id="subnetting-cidr" open>
+        <summary>
+          <div class="summary-head">
+            <div class="summary-title">
+              <span class="badge practical">Worked Topic</span>
+              <h2>IPv4 Subnetting, CIDR, And Supernetting</h2>
+              <p>The most likely calculation topic, including the full `/26` walkthrough, supernetting logic, longest-prefix match, and common traps.</p>
+            </div>
+            <span class="summary-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="collapsible-body">
+          <h3>Why this is highly likely</h3>
+          <p>Subnetting naturally breaks into parts such as subnet mask, network address, broadcast address, usable hosts, supernet choice, and routing-table matching. That makes it one of the cleanest long-question topics to mark.</p>
+
+          <h3>Core formulas</h3>
+          <pre><code>host bits = 32 - prefix length
+total addresses = 2^(host bits)
+usable hosts = 2^(host bits) - 2</code></pre>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>CIDR</th><th>Mask</th><th>Block size</th><th>Usable hosts</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>/24</code></td><td><code>255.255.255.0</code></td><td>256</td><td>254</td></tr>
+                <tr><td><code>/26</code></td><td><code>255.255.255.192</code></td><td>64</td><td>62</td></tr>
+                <tr><td><code>/27</code></td><td><code>255.255.255.224</code></td><td>32</td><td>30</td></tr>
+                <tr><td><code>/30</code></td><td><code>255.255.255.252</code></td><td>4</td><td>2</td></tr>
+                <tr><td><code>/22</code></td><td><code>255.255.252.0</code></td><td>4 in the third octet</td><td>1022</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Full worked example: <code>170.170.42.150/26</code></h3>
+          <ol>
+            <li>Convert <code>/26</code> to a mask: <code>255.255.255.192</code>.</li>
+            <li>Find the block size: <code>256 - 192 = 64</code>.</li>
+            <li>List final-octet ranges: <code>0-63</code>, <code>64-127</code>, <code>128-191</code>, <code>192-255</code>.</li>
+            <li>Locate <code>150</code>: it falls in <code>128-191</code>.</li>
+            <li>So the network is <code>170.170.42.128/26</code>.</li>
+            <li>The broadcast address is the end of that range: <code>170.170.42.191</code>.</li>
+            <li>The first usable host is <code>170.170.42.129</code>.</li>
+            <li>The last usable host is <code>170.170.42.190</code>.</li>
+            <li>Host bits are <code>32 - 26 = 6</code>, so usable hosts are <code>2^6 - 2 = 62</code>.</li>
+          </ol>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Item</th><th>Answer</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Subnet mask</td><td><code>255.255.255.192</code></td></tr>
+                <tr><td>Network address</td><td><code>170.170.42.128/26</code></td></tr>
+                <tr><td>Broadcast address</td><td><code>170.170.42.191</code></td></tr>
+                <tr><td>First usable host</td><td><code>170.170.42.129</code></td></tr>
+                <tr><td>Last usable host</td><td><code>170.170.42.190</code></td></tr>
+                <tr><td>Usable hosts</td><td><code>62</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Supernetting example</h3>
+          <p>For the range <code>41.32.0.0</code> to <code>41.39.255.255</code>, the second octet spans <code>32</code> to <code>39</code>. In binary that range shares the prefix <code>00100xxx</code>, which gives <strong>5 fixed bits</strong> in the second octet. Add the <strong>8 fixed bits</strong> from the first octet and you get a <strong>/13</strong> prefix.</p>
+          <pre><code>Answer: 41.32.0.0/13</code></pre>
+
+          <h3>Longest-prefix match</h3>
+          <pre><code>10.10.10.0/24    next hop A
+10.10.0.0/16     next hop B
+10.0.0.0/8       next hop C
+0.0.0.0/0        next hop D</code></pre>
+          <p>For destination <code>10.10.1.2</code>, the best route is <code>10.10.0.0/16</code> because it is the <strong>longest matching prefix</strong> among the valid matches.</p>
+
+          <h3>Common traps</h3>
+          <ul class="compact-list">
+            <li><code>/26</code> means 26 network bits, not 26 hosts.</li>
+            <li>Usable hosts usually require subtracting 2 for network and broadcast.</li>
+            <li>Do not pick the first matching route; pick the most specific matching route.</li>
+            <li><code>0.0.0.0/0</code> is the default route, not "no route".</li>
+            <li>The broadcast address is the final address in the subnet, not the last usable host.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="collapsible practical" id="routing-algorithms" open>
+        <summary>
+          <div class="summary-head">
+            <div class="summary-title">
+              <span class="badge practical">Worked Topic</span>
+              <h2>Routing Algorithms</h2>
+              <p>Dijkstra and Bellman-Ford / RIP in the exact table-driven style these questions usually use.</p>
+            </div>
+            <span class="summary-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="collapsible-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Protocol / concept</th><th>Algorithm</th><th>Exchange style</th><th>Key issue or feature</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>OSPF</td><td>Dijkstra</td><td>Link-state / topology information</td><td>Each router builds a map and computes shortest paths.</td></tr>
+                <tr><td>RIP</td><td>Bellman-Ford</td><td>Distance vectors / routing tables</td><td>Counting to infinity can occur.</td></tr>
+                <tr><td>BGP</td><td>Path-vector style</td><td>Inter-AS route exchange</td><td>External gateway protocol.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Dijkstra method</h3>
+          <ol>
+            <li>Set the source to cost <code>0</code> and every other node to infinity.</li>
+            <li>Finalise the source.</li>
+            <li>Update costs to neighbouring nodes.</li>
+            <li>Pick the unfinished node with the lowest current cost.</li>
+            <li>Repeat until all required nodes are finalised.</li>
+          </ol>
+
+          <h3>Dijkstra worked example from <code>A</code></h3>
+          <pre><code>A-B: 1
+B-E: 1
+E-F: 2
+E-D: 3
+D-C: 1
+B-C: 6
+A-F: 10</code></pre>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Step</th><th>Picked node</th><th>Important update</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Initial</td><td><code>A</code></td><td><code>B = 1</code>, <code>F = 10</code></td></tr>
+                <tr><td>1</td><td><code>B</code></td><td><code>E = 2</code>, <code>C = 7</code></td></tr>
+                <tr><td>2</td><td><code>E</code></td><td><code>F</code> improves to <code>4</code>, <code>D = 5</code></td></tr>
+                <tr><td>3</td><td><code>F</code></td><td>No better update</td></tr>
+                <tr><td>4</td><td><code>D</code></td><td><code>C</code> improves from <code>7</code> to <code>6</code></td></tr>
+                <tr><td>5</td><td><code>C</code></td><td>Finished</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Final shortest path to <code>C</code> is <code>A-B-E-D-C</code> with total cost <code>6</code>.</p>
+          <p><strong>Trap:</strong> the predecessor of <code>C</code> is <code>D</code>, but the next hop from <code>A</code> to <code>C</code> is <code>B</code>.</p>
+
+          <h3>Bellman-Ford / RIP update rule</h3>
+          <pre><code>new cost via neighbour = cost to neighbour + neighbour's advertised cost</code></pre>
+          <p>If router <code>D</code> reaches <code>C</code> at cost <code>3</code> and <code>C</code> advertises destination <code>A</code> at cost <code>7</code>, then <code>D</code> can reach <code>A</code> via <code>C</code> at cost <code>10</code>.</p>
+
+          <h3>Counting to infinity</h3>
+          <p>This is specifically associated with <strong>Bellman-Ford / RIP</strong>. A router may have to adopt a worse cost if the update comes from its current next hop, which is exactly how costs can keep increasing after a failure.</p>
+        </div>
+      </details>
+
+      <details class="collapsible theory" id="tcp-reliability" open>
+        <summary>
+          <div class="summary-head">
+            <div class="summary-title">
+              <span class="badge theory">Layer 4</span>
+              <h2>TCP Reliability Mechanisms</h2>
+              <p>The high-value "list and briefly explain five" topic, plus the common ACK and phantom-byte traps.</p>
+            </div>
+            <span class="summary-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="collapsible-body">
+          <p>A strong answer to "TCP is reliable. List and briefly explain five mechanisms" can be built from the following pool:</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Mechanism</th><th>Short explanation</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>3-way handshake to establish</td><td>Checks that both endpoints are alive and both directions work before data transfer begins.</td></tr>
+                <tr><td>Sequence numbers</td><td>Allow missing, duplicated, or out-of-order bytes to be detected.</td></tr>
+                <tr><td>Acknowledgement numbers</td><td>Tell the sender which byte the receiver expects next.</td></tr>
+                <tr><td>ACK-based ARQ</td><td>If data is not acknowledged, TCP retransmits it.</td></tr>
+                <tr><td>Retransmission timer</td><td>Drives retransmission when acknowledgement does not arrive in time.</td></tr>
+                <tr><td>Sliding window / window advertisement</td><td>Supports flow control so the sender does not overwhelm the receiver.</td></tr>
+                <tr><td>Checksum</td><td>Detects segment corruption.</td></tr>
+                <tr><td>Slow start</td><td>Prevents the sender from injecting too much traffic too quickly.</td></tr>
+                <tr><td>Exponential back-off</td><td>Spaces out retransmissions more aggressively under repeated loss.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>3-way handshake</h3>
+          <pre><code>A -> B: SYN
+B -> A: SYN + ACK
+A -> B: ACK</code></pre>
+          <p>The SYN and SYN+ACK each consume a sequence number even though they do not carry real payload data. These are the so-called phantom bytes. The final ACK does <strong>not</strong> consume one.</p>
+
+          <h3>ACK flag trap</h3>
+          <p>If the acknowledgement field contains a value like <code>150</code> but the <code>ACK</code> flag is not set, the number has <strong>no meaning</strong> and must be ignored.</p>
+
+          <h3>Useful header fields to memorise</h3>
+          <p>Source Port, Destination Port, Sequence Number, Acknowledgement Number, Window, Checksum, Urgent Pointer, Options, Padding, and Flags. A common distractor is <strong>Length</strong>, which is not a standard TCP header field.</p>
+        </div>
+      </details>
+
+      <details class="collapsible theory" id="tcp-timers" open>
+        <summary>
+          <div class="summary-head">
+            <div class="summary-title">
+              <span class="badge theory">Layer 4</span>
+              <h2>TCP Timers</h2>
+              <p>The direct memo-style timer question with the exact "what happens when it expires" framing.</p>
+            </div>
+            <span class="summary-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="collapsible-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Timer</th><th>What happens when it expires</th><th>Why it matters</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Retransmission</td><td>Unacknowledged data is sent again.</td><td>Handles loss and damaged segments.</td></tr>
+                <tr><td>Acknowledgement</td><td>An ACK is sent.</td><td>Supports delayed acknowledgements and piggybacking.</td></tr>
+                <tr><td>Persistence</td><td>A probe is sent.</td><td>Checks whether the receiver's window has opened again.</td></tr>
+                <tr><td>Keepalive</td><td>Probe messages are sent.</td><td>Checks whether the peer is still alive.</td></tr>
+                <tr><td>Quiet</td><td>The wait period ends and resources or port usage can be released.</td><td>Prevents old traffic from colliding with a new connection.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>Timer traps</h3>
+          <ul class="compact-list">
+            <li>Persistence sends a probe, not normal retransmitted data.</li>
+            <li>Keepalive is about peer liveness, not congestion control.</li>
+            <li>Quiet applies after closing, before safe reuse of the connection context.</li>
+            <li>Retransmission and acknowledgement timers do different jobs: one resends data, the other sends an ACK.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="collapsible practical" id="tcp-calculations" open>
+        <summary>
+          <div class="summary-head">
+            <div class="summary-title">
+              <span class="badge practical">Calculation</span>
+              <h2>TCP Window And ACK Calculations</h2>
+              <p>The byte-counting logic behind sequence numbers, acknowledgement numbers, and advertised windows.</p>
+            </div>
+            <span class="summary-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="collapsible-body">
+          <h3>Key meanings</h3>
+          <ul class="compact-list">
+            <li>The sequence number identifies the first byte in a segment.</li>
+            <li>The acknowledgement number says "I have received everything up to ACK minus 1, and I next expect ACK".</li>
+            <li>The advertised window is roughly remaining receive-buffer space.</li>
+          </ul>
+
+          <h3>Mini example</h3>
+          <p>If a segment starts with sequence number <code>500</code> and contains <code>100</code> bytes, then it covers bytes <code>500</code> to <code>599</code>, so the receiver will acknowledge with <code>600</code>.</p>
+
+          <h3>Worked window example</h3>
+          <p>A receiver has a <code>1000</code>-byte buffer. It has accepted bytes <code>1</code> to <code>400</code>, but the application has only consumed bytes <code>1</code> to <code>150</code>.</p>
+          <ol>
+            <li>Next expected byte is <code>401</code>.</li>
+            <li>Unconsumed bytes are <code>151</code> to <code>400</code>, which is <code>250</code> bytes.</li>
+            <li>Advertised window is <code>1000 - 250 = 750</code>.</li>
+          </ol>
+        </div>
+      </details>
+
+      <details class="collapsible theory" id="quic" open>
+        <summary>
+          <div class="summary-head">
+            <div class="summary-title">
+              <span class="badge theory">Layer 4</span>
+              <h2>QUIC</h2>
+              <p>Why QUIC is called quick, what it inherits from UDP, and the exam-ready talking points for comparison questions.</p>
+            </div>
+            <span class="summary-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="collapsible-body">
+          <h3>Core facts</h3>
+          <ul class="compact-list">
+            <li>QUIC runs over <strong>UDP</strong>.</li>
+            <li>It integrates transport and encryption setup more tightly than TCP plus TLS.</li>
+            <li>It supports multiple independent streams in one connection.</li>
+            <li>It supports client-initiated connection migration using connection IDs.</li>
+          </ul>
+
+          <h3>Why QUIC is "quick"</h3>
+          <ol>
+            <li>It reduces setup latency with <strong>1-RTT</strong> establishment.</li>
+            <li>It can sometimes send data immediately on repeat connections using <strong>0-RTT</strong>.</li>
+            <li>It supports multiplexed streams, so one delayed stream does not necessarily stall everything else in the same way as a single TCP stream.</li>
+            <li>It can survive client IP changes through connection migration instead of full reconnection.</li>
+          </ol>
+
+          <div class="callout">
+            <h3>Exam-ready answer</h3>
+            <p>QUIC reduces latency by reducing round trips before useful data can be exchanged, supporting 0-RTT and 1-RTT establishment, multiplexing multiple streams, and allowing client-initiated connection migration via connection IDs. It is quick because it reduces waiting time, not because it increases raw physical bit rate.</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="collapsible theory" id="asn1" open>
+        <summary>
+          <div class="summary-head">
+            <div class="summary-title">
+              <span class="badge theory">Layer 6</span>
+              <h2>ASN.1</h2>
+              <p>The likely Layer 6 long-question option, including constructors, BER, and a full declaration example.</p>
+            </div>
+            <span class="summary-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="collapsible-body">
+          <p>ASN.1 stands for <strong>Abstract Syntax Notation One</strong>. It defines the structure of protocol messages, while encoding rules such as BER define how those structures are represented as bytes.</p>
+
+          <div class="two-col">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Constructor</th><th>Meaning</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>SEQUENCE</code></td><td>Ordered structured record</td></tr>
+                  <tr><td><code>SET</code></td><td>Unordered collection of fields</td></tr>
+                  <tr><td><code>SEQUENCE OF</code></td><td>Ordered repeated list</td></tr>
+                  <tr><td><code>SET OF</code></td><td>Unordered repeated collection</td></tr>
+                  <tr><td><code>CHOICE</code></td><td>One alternative from several options</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Primitive type</th><th>Meaning</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>INTEGER</code></td><td>Whole number</td></tr>
+                  <tr><td><code>VisibleString</code></td><td>Human-readable text</td></tr>
+                  <tr><td><code>OCTET STRING</code></td><td>Raw bytes</td></tr>
+                  <tr><td><code>BOOLEAN</code></td><td>True or false</td></tr>
+                  <tr><td><code>NULL</code></td><td>No value</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <h3>BER</h3>
+          <pre><code>BER = Type, Length, Value</code></pre>
+          <p>If the exam asks what a BER triple contains, the answer is simply <strong>type, length, and value</strong>.</p>
+
+          <h3>Invalid distractors to reject</h3>
+          <ul class="compact-list">
+            <li><code>STRUCT</code></li>
+            <li><code>ARRAY</code></li>
+            <li><code>MESSAGE</code></li>
+          </ul>
+
+          <h3>Worked ASN.1 declaration</h3>
+          <pre><code>Student ::= SEQUENCE {
+  surname        VisibleString,
+  initials       VisibleString,
+  studentNumber  INTEGER,
+  courses        SET OF Course,
+  address        Address
+}
+
+Course ::= SEQUENCE {
+  code        VisibleString,
+  courseName  VisibleString,
+  mark        INTEGER
+}
+
+Address ::= CHOICE {
+  streetAddress  StreetAddress,
+  poBoxAddress   POBoxAddress
+}</code></pre>
+          <p>This works because the student record is a structured record, courses repeat, and the address is one of two alternatives.</p>
+        </div>
+      </details>
+
+      <details class="collapsible theory" id="supporting-topics" open>
+        <summary>
+          <div class="summary-head">
+            <div class="summary-title">
+              <span class="badge theory">Support</span>
+              <h2>Supporting Topics</h2>
+              <p>Shorter structured topics that may appear as smaller long-question parts or important MCQ support material.</p>
+            </div>
+            <span class="summary-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="collapsible-body">
+          <div class="two-col">
+            <div class="callout">
+              <h3>IPv6 essentials</h3>
+              <p>IPv6 uses 128-bit hexadecimal addresses. You can remove leading zeroes in each group and replace one consecutive run of zero groups with <code>::</code>, but only once.</p>
+              <pre><code>2001:0db8:0000:0000:0000:ff00:0042:8329
+-> 2001:db8::ff00:42:8329</code></pre>
+            </div>
+            <div class="callout">
+              <h3>ARP and ICMP</h3>
+              <p>ARP maps an IPv4 address to a local MAC address. If the destination is remote, the host ARPs for the default gateway's MAC address, not the final host. TTL is decremented at each router, and when it reaches zero the router discards the packet and may send an ICMP Time Exceeded message.</p>
+            </div>
+            <div class="callout">
+              <h3>Packet forwarding rule</h3>
+              <p>Routers check for direct delivery first, then routing-table matches, then a default route. If multiple routes match, the longest matching prefix wins.</p>
+            </div>
+            <div class="callout">
+              <h3>Layer 5 session ideas</h3>
+              <p>The Session Layer is associated with checkpoints, rollback or recovery, long-lived sessions, and heartbeat-style liveness checks.</p>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="collapsible practice" id="cram-checklist" open>
+        <summary>
+          <div class="summary-head">
+            <div class="summary-title">
+              <span class="badge practice">Checklist</span>
+              <h2>One-Page Cram Checklist</h2>
+              <p>A fast self-test before the exam.</p>
+            </div>
+            <span class="summary-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="collapsible-body">
+          <div class="two-col">
+            <div class="callout">
+              <h3>Subnetting</h3>
+              <ul class="compact-list">
+                <li>I can convert prefixes like <code>/26</code> into masks.</li>
+                <li>I can calculate block size and usable hosts.</li>
+                <li>I can find network, broadcast, and host range.</li>
+                <li>I can find the smallest CIDR block for a range.</li>
+                <li>I can apply longest-prefix match.</li>
+              </ul>
+            </div>
+            <div class="callout">
+              <h3>Routing</h3>
+              <ul class="compact-list">
+                <li>I know OSPF uses Dijkstra and RIP uses Bellman-Ford.</li>
+                <li>I know counting to infinity is a RIP or Bellman-Ford issue.</li>
+                <li>I can run a Dijkstra trace.</li>
+                <li>I can update a routing table using neighbour advertisements.</li>
+              </ul>
+            </div>
+            <div class="callout">
+              <h3>TCP</h3>
+              <ul class="compact-list">
+                <li>I know the 3-way handshake and phantom-byte rule.</li>
+                <li>I know the ACK field is meaningless without the ACK flag.</li>
+                <li>I can list TCP header fields.</li>
+                <li>I can explain five reliability mechanisms.</li>
+                <li>I know all five TCP timers.</li>
+                <li>I can calculate basic ACK and window values.</li>
+              </ul>
+            </div>
+            <div class="callout">
+              <h3>QUIC and ASN.1</h3>
+              <ul class="compact-list">
+                <li>I know QUIC runs over UDP and reduces latency.</li>
+                <li>I know QUIC supports 0-RTT, 1-RTT, multiplexing, and migration.</li>
+                <li>I know BER means type-length-value.</li>
+                <li>I know <code>SEQUENCE</code>, <code>SET</code>, and <code>CHOICE</code>.</li>
+                <li>I can reject invalid distractors like <code>STRUCT</code> and <code>ARRAY</code>.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="collapsible memo" id="study-order" open>
+        <summary>
+          <div class="summary-head">
+            <div class="summary-title">
+              <span class="badge memo">Priorities</span>
+              <h2>Recommended Study Order</h2>
+              <p>The sequence suggested by the guide if you want the highest long-question payoff first.</p>
+            </div>
+            <span class="summary-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="collapsible-body">
+          <ol>
+            <li>Subnetting, supernetting, and CIDR</li>
+            <li>TCP timers</li>
+            <li>TCP reliability mechanisms</li>
+            <li>Dijkstra and Bellman-Ford / RIP</li>
+            <li>QUIC</li>
+            <li>ASN.1</li>
+            <li>IPv6 basics</li>
+            <li>ARP, ICMP, TTL, and forwarding</li>
+            <li>Layer 5 session concepts</li>
+          </ol>
+          <p>If you only have time for four areas, prioritise <strong>subnetting</strong>, <strong>TCP timers and reliability</strong>, <strong>routing algorithms</strong>, and <strong>QUIC plus ASN.1 basics</strong>.</p>
+        </div>
+      </details>
+    </article>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">Generated from the dedicated long-question study guide. Use the index to jump between this page and the layer-specific notes.</div>
+</footer>
+
+<script>
+  (function () {
+    var sections = Array.prototype.slice.call(document.querySelectorAll(".collapsible"));
+    var expandButton = document.querySelector("[data-expand-all]");
+    var collapseButton = document.querySelector("[data-collapse-all]");
+
+    if (expandButton) {
+      expandButton.addEventListener("click", function () {
+        sections.forEach(function (section) {
+          section.open = true;
+        });
+      });
+    }
+
+    if (collapseButton) {
+      collapseButton.addEventListener("click", function () {
+        sections.forEach(function (section) {
+          section.open = false;
+        });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+  }());
+</script>
+</body>
+</html>

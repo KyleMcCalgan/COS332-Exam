@@ -1,0 +1,81 @@
+Here is the memorandum for semester test 2.  E&OE.
+
+
+
+Question 1
+
+ 1) B D C D B
+
+ 6) B B D D D
+
+11) E D E A E
+
+16) B C D A A
+
+21) E A C E C
+
+
+
+Question 2
+
+a) 300
+
+b) 300
+
+c) 320
+
+d) 110
+
+e) 440
+
+
+
+Question 3
+
+a) 222.222.220.0/22
+
+b) 222.222.223.255/22
+
+c) 255.255.252.0
+
+d) 255.255.255.192
+
+e) 222.222.222.192/26
+
+f) 222.222.222.255/26
+
+g) 11
+
+h) 30
+
+i) 222.222.222.0/24
+
+j) 255.255.255.0
+
+
+
+Question 4
+
+a) Retransmission
+
+b) Acknowledgement
+
+c) Keepalive
+
+d) Persistent or keepalive
+
+e) Retransmission
+
+
+
+Question 5
+
+a) eth0 on R1
+
+b) eth9 – br0
+
+c) 192.168.1.13, 192.168.2.1
+
+d) Default gateway
+
+e) 192.168.2.14

@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Layer 4: The Transport Layer | COS332 Study Notes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header"><div class="header-inner">
+  <nav class="breadcrumb"><a href="index.html">Study Index</a><span>/</span><span>Layer 4: The Transport Layer</span></nav>
+  <h1>Layer 4: The Transport Layer</h1>
+  <p class="subtitle">Structured study notes with theory separated from worked examples, practice questions, and memo answers.</p>
+</div></header>
+<main><div class="layout"><aside class="sidebar panel nav-panel"><p class="nav-title">On This Page</p><ol class="nav-list">
+<li><a href="#scope-and-study-focus">Scope And Study Focus</a></li><li><a href="#1-introduction-the-pipe-between-processes">1. Introduction — The &quot;Pipe&quot; Between Processes</a></li><li><a href="#two-layers-of-hiding">Two layers of hiding</a></li><li><a href="#two-core-design-decisions-for-any-layer-4-protocol">Two core design decisions for any Layer 4 protocol</a></li><li><a href="#monitoring-transport-layer-connections">Monitoring transport-layer connections</a></li><li><a href="#2-identifying-processes-ports-and-sockets">2. Identifying Processes — Ports and Sockets</a></li><li><a href="#port-classifications">Port classifications</a></li><li><a href="#sockets">Sockets</a></li><li><a href="#server-socket-vs-client-socket">Server-socket vs client-socket</a></li><li><a href="#3-reliability-mechanisms">3. Reliability Mechanisms</a></li><li><a href="#connection-oriented-vs-connectionless">Connection-oriented vs connectionless</a></li><li><a href="#what-can-go-wrong-on-a-pipe">What can go wrong on a &quot;pipe&quot;</a></li><li><a href="#flow-control-mechanisms">Flow control mechanisms</a></li><li><a href="#congestion-control">Congestion control</a></li><li><a href="#4-tcp-transmission-control-protocol">4. TCP (Transmission Control Protocol)</a></li><li><a href="#4-1-tcp-reliability-mechanisms-memorise">4.1 TCP reliability mechanisms (memorise!)</a></li><li><a href="#4-2-connection-establishment-3-way-handshake">4.2 Connection establishment (3-way handshake)</a></li><li><a href="#4-3-connection-termination">4.3 Connection termination</a></li><li><a href="#4-4-tcp-states">4.4 TCP states</a></li><li><a href="#4-5-tcp-header-fields">4.5 TCP header fields</a></li><li><a href="#4-6-the-ack-flag-and-the-acknowledgement-field">4.6 The ACK flag and the acknowledgement field</a></li><li><a href="#4-7-damaged-packet-handling-tcp-has-no-nak">4.7 Damaged-packet handling — TCP has no NAK</a></li><li><a href="#4-8-tcp-timers-memorise-the-five-timers">4.8 TCP timers — **memorise the five timers**</a></li><li><a href="#4-9-tcp-flow-control-sliding-window-in-bytes">4.9 TCP flow control — sliding window in bytes</a></li><li><a href="#4-10-tcp-congestion-control-slow-start-exponential-back-off">4.10 TCP congestion control — slow start + exponential back-off</a></li><li><a href="#4-11-minimum-number-of-timer-types-for-any-sliding-window-arq">4.11 Minimum number of timer types for any sliding-window ARQ</a></li><li><a href="#4-12-the-tcp-quiet-timer-and-time-wait-2024-st2">4.12 The TCP **Quiet** timer and TIME-WAIT (2024 ST2)</a></li><li><a href="#5-udp-user-datagram-protocol">5. UDP (User Datagram Protocol)</a></li><li><a href="#5-1-what-udp-lacks">5.1 What UDP lacks</a></li><li><a href="#5-2-udp-header-very-simple">5.2 UDP header (very simple)</a></li><li><a href="#5-3-when-udp-is-preferable">5.3 When UDP is preferable</a></li><li><a href="#5-4-dns-uses-both-tcp-and-udp">5.4 DNS uses *both* TCP and UDP</a></li><li><a href="#6-quic-quick-udp-internet-connections">6. QUIC (Quick UDP Internet Connections)</a></li><li><a href="#6-1-key-facts">6.1 Key facts</a></li><li><a href="#6-2-security-by-default">6.2 Security by default</a></li><li><a href="#6-3-connection-ids-and-connection-migration">6.3 Connection IDs and connection migration</a></li><li><a href="#6-4-long-header-fields-always-present">6.4 Long-header fields always present</a></li><li><a href="#6-5-speed-1-rtt-and-0-rtt">6.5 Speed — 1-RTT and 0-RTT</a></li><li><a href="#6-6-multiplexed-streams-head-of-line-blocking">6.6 Multiplexed streams — head-of-line blocking</a></li><li><a href="#6-7-packets-vs-frames">6.7 Packets vs frames</a></li><li><a href="#6-8-protocol-ossification-and-quic-s-defences">6.8 Protocol ossification — and QUIC&#x27;s defences</a></li><li><a href="#6-9-quic-port-usage">6.9 QUIC port usage</a></li><li><a href="#examinable-practice-questions-on-layer-4">Examinable Practice Questions on Layer 4</a></li><li><a href="#multiple-choice">Multiple Choice</a></li><li><a href="#long-form-calculation">Long-Form &amp; Calculation</a></li><li><a href="#memo-answer-key">Memo / Answer Key</a></li><li><a href="#mcq-answers">MCQ Answers</a></li><li><a href="#long-form-answers">Long-Form Answers</a></li>
+</ol></aside><article class="content"><section class="study-section scope" id="scope-and-study-focus">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge scope">Scope</span></div>
+    <h2>Scope And Study Focus</h2>
+    <blockquote><p><strong>Scope note:</strong> All of Layer 4 is examinable. Non-TCP/IP transport protocols (TP0–TP4, ATM, etc.) are explicitly <strong>out of scope</strong> per the lecturer&#x27;s announcement. The protocols you must know are <strong>UDP</strong>, <strong>TCP</strong>, and <strong>QUIC</strong>.</p></blockquote>
+<hr>
+  </div>
+</section><section class="study-section theory" id="1-introduction-the-pipe-between-processes">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>1. Introduction — The &quot;Pipe&quot; Between Processes</h2>
+    <p>The Transport Layer provides a <strong>logical &quot;pipe&quot;</strong> between two processes communicating across a network. At one end might be a web browser, at the other a web server; or an email program at one end and a mailbox server (IMAP4) at the other.</p>
+  </div>
+</section><section class="study-section theory" id="two-layers-of-hiding">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>Two layers of hiding</h2>
+    <p>The Transport Layer hides the <strong>network&#x27;s</strong> complexity (routing, cable access, etc.) from the application-oriented layers, <em>and</em> it hides the application&#x27;s behaviour (which process talks when, what data looks like) from the network-oriented layers. As far as the application is concerned, the network is just an abstract pipe; as far as the network is concerned, it is just providing a transport service that the application can use however it wants.</p>
+  </div>
+</section><section class="study-section theory" id="two-core-design-decisions-for-any-layer-4-protocol">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>Two core design decisions for any Layer 4 protocol</h2>
+    <ol>
+<li><strong>How to identify the processes</strong> at the endpoints of the pipe.</li>
+<li><strong>How reliable the pipe should be.</strong></li>
+</ol>
+  </div>
+</section><section class="study-section theory" id="monitoring-transport-layer-connections">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>Monitoring transport-layer connections</h2>
+    <blockquote><p><strong>MCQ fact:</strong> The command that enables one to see the status of transport layer connections on a host (in most operating systems) is <strong><code>netstat</code></strong>. (Not <code>ping</code>, not <code>tracert/traceroute</code>, not <code>tcp-show</code>, not <code>ps</code>.)</p></blockquote>
+<p>A typical <code>netstat</code> line on Linux looks like:</p>
+<pre><code>tcp 127.0.0.1:27117 127.0.0.1:48956 ESTABLISHED keepalive</code></pre>
+<p>This shows two endpoints (local and remote IP:port), the TCP state (<code>ESTABLISHED</code>), and which timer is currently active (<code>keepalive</code>).</p>
+<hr>
+  </div>
+</section><section class="study-section theory" id="2-identifying-processes-ports-and-sockets">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>2. Identifying Processes — Ports and Sockets</h2>
+    <p>Processes are identified by <strong>numerical port numbers</strong> carried in the Layer 4 header.</p>
+  </div>
+</section><section class="study-section theory" id="port-classifications">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>Port classifications</h2>
+    <div class="table-wrap"><table><thead><tr><th>Range</th><th>Name</th><th>Use</th></tr></thead><tbody>
+<tr><td>0 – 1023</td><td><strong>Well-known</strong></td><td>Reserved for standard internet services (HTTP=80, HTTPS=443, DNS=53, SMTP=25, FTP=21, SSH=22, etc.)</td></tr>
+<tr><td>1024 – 49151</td><td><strong>Registered</strong></td><td>Registered for specific applications but usable by others if open.</td></tr>
+<tr><td>49152 – 65535</td><td><strong>Dynamic / Private</strong></td><td>Ad-hoc, requested by clients from the OS for receiving responses.</td></tr>
+</tbody></table></div>
+<blockquote><p><strong>MCQ fact:</strong> Port <strong>55555</strong> is a <strong>Dynamic</strong> port (it falls in the 49152–65535 range).</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="sockets">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>Sockets</h2>
+    <p>A <strong>socket</strong> is the combination of an IP address and a port: <code>&lt;IP, port&gt;</code>.</p>
+<p>Example: when a web browser connects to a web server at <code>xx.co.za</code> on port 80, the browser opens the socket <code>&lt;xx.co.za, 80&gt;</code>.</p>
+  </div>
+</section><section class="study-section theory" id="server-socket-vs-client-socket">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>Server-socket vs client-socket</h2>
+    <p>A program opening a socket to act as a <strong>server</strong> must:</p>
+<ul>
+<li>Specify an <strong>address</strong> and <strong>port number</strong></li>
+<li><strong>Wait for connections</strong> (it does not initiate)</li>
+</ul>
+<p>A client, conversely, <em>initiates</em> connections.</p>
+<hr>
+  </div>
+</section><section class="study-section theory" id="3-reliability-mechanisms">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>3. Reliability Mechanisms</h2>
+    <p>A protocol is <strong>reliable</strong> if it guarantees data is delivered (or, if delivery fails, both ends know about the failure).</p>
+  </div>
+</section><section class="study-section theory" id="connection-oriented-vs-connectionless">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>Connection-oriented vs connectionless</h2>
+    <ul>
+<li><strong>Reliable protocols</strong> are typically <strong>connection-oriented</strong>: they explicitly establish, use, and tear down a connection. <em>Analogy:</em> a telephone call — you dial, talk, ask the other party to repeat unclear words, and hang up.</li>
+<li><strong>Unreliable protocols</strong> are <strong>connectionless</strong>: no setup or teardown. <em>Analogy:</em> the snail-mail postal system — you send a letter blindly without knowing if the recipient is ready or even alive.</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="what-can-go-wrong-on-a-pipe">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>What can go wrong on a &quot;pipe&quot;</h2>
+    <ul>
+<li>Data <strong>changes</strong> before arriving (corruption)</li>
+<li>Data <strong>never arrives</strong> (loss)</li>
+<li>Data arrives <strong>faster</strong> than the receiver can cope (flow problem)</li>
+<li>Data arrives <strong>out of sequence</strong></li>
+<li>Data is <strong>duplicated</strong> and arrives multiple times</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="flow-control-mechanisms">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>Flow control mechanisms</h2>
+    <p>Flow control prevents a fast sender from overwhelming a slow receiver:</p>
+<ul>
+<li><strong>Stop-and-wait:</strong> sender transmits one message, then waits for an ACK before sending the next. Highly inefficient on long-latency links.</li>
+<li><strong>Sliding window:</strong> a specified number of messages may be sent without waiting for each ACK.</li>
+<li><strong>Go-Back-N:</strong> if a message is lost, the sender re-sends the lost message <em>and every subsequent message</em>.</li>
+<li><strong>Selective Repeat:</strong> the sender re-sends only the specifically lost message.</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="congestion-control">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>Congestion control</h2>
+    <p>A mechanism to <strong>slow down transmission</strong> when packet loss indicates the network is congested. Ensures fair sharing of bandwidth amongst all senders on the network.</p>
+<hr>
+  </div>
+</section><section class="study-section theory" id="4-tcp-transmission-control-protocol">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4. TCP (Transmission Control Protocol)</h2>
+    <p>TCP is the standard <strong>reliable, connection-oriented</strong> Layer 4 protocol.</p>
+  </div>
+</section><section class="study-section theory" id="4-1-tcp-reliability-mechanisms-memorise">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.1 TCP reliability mechanisms (memorise!)</h2>
+    <blockquote><p><strong>Exam Q (typical):</strong> &quot;TCP is a reliable protocol. List any <strong>five</strong> mechanisms used by TCP to provide this reliability.&quot;</p></blockquote>
+<p>Any <strong>five</strong> of the following are accepted:</p>
+<ol>
+<li><strong>3-way handshake to establish</strong> the connection</li>
+<li><strong>3-way handshake to terminate</strong> the connection</li>
+<li><strong>ACK for ARQ</strong> (Automatic Repeat reQuest)</li>
+<li><strong>Slow start</strong> (congestion-window control)</li>
+<li><strong>Exponential back-off</strong> (on repeated loss)</li>
+<li><strong>CRC / checksum over the entire segment</strong></li>
+<li><strong>Window advertisements</strong> (sliding-window flow control)</li>
+<li><strong>Sequence numbers / acknowledgement numbers</strong></li>
+</ol>
+  </div>
+</section><section class="study-section theory" id="4-2-connection-establishment-3-way-handshake">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.2 Connection establishment (3-way handshake)</h2>
+    <p>The handshake exists because we have one wire from A to B and another from B to A — both directions must be verified before reliable communication can be claimed.</p>
+<pre><code>A → B :  SYN          (Are you there, ready to talk?)
+A ← B :  SYN+ACK      (Yes! Are *you* there?)
+A → B :  ACK          (Yes!)</code></pre>
+<h3 id="phantom-bytes-common-mcq-trap">Phantom bytes — common MCQ trap</h3>
+<p>The SYN and SYN+ACK messages each consume <strong>one sequence number</strong> (the so-called <em>phantom byte</em>), even though they carry <strong>no actual payload data</strong>.</p>
+<blockquote><p><strong>MCQ fact:</strong> &quot;Which of the following statements is/are <em>false</em> about phantom bytes used in an initial 3-way TCP/IP handshake?&quot;</p><p>- It is counted as part of the SYN message ✓ (TRUE)</p><p>- It is counted as part of the SYN+ACK message ✓ (TRUE)</p><p>- It is counted as part of the ACK message ✗ (FALSE)</p><p>- It consists of one byte of data ✗ (FALSE — it does NOT contain payload data)</p><p>Answer: <strong>More than one of the statements above are false</strong> (C and D are both false).</p></blockquote>
+<h3 id="differentiating-handshake-packets-2024-st2">Differentiating handshake packets (2024 ST2)</h3>
+<p><strong>Q (2024 ST2 m):</strong> &quot;How are the SYN and ACK packets sent during a TCP handshake differentiated from one another?&quot;</p>
+<ul>
+<li><strong>A: The flags are used to determine the type of handshake packet.</strong> ✓</li>
+</ul>
+<p><strong>Q (2024 ST2 n):</strong> &quot;How does the server differentiate between the ACK packet it receives as the last part of the handshake to establish a connection, and an ACK packet that acknowledges data that has been received?&quot;</p>
+<ul>
+<li><strong>E: None of the above.</strong> (The server differentiates by <em>which TCP state it is in</em> — it is in SYN-RECEIVED for the final handshake ACK, vs ESTABLISHED for data ACKs — not by any flag/sequence-number convention.)</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="4-3-connection-termination">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.3 Connection termination</h2>
+    <p>A separate 3-way (sometimes 4-way) handshake using FIN and FIN+ACK flags.</p>
+  </div>
+</section><section class="study-section theory" id="4-4-tcp-states">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.4 TCP states</h2>
+    <p>Include <code>LISTEN</code>, <code>SYN-SENT</code>, <code>SYN-RECEIVED</code>, <code>ESTABLISHED</code>, <code>FIN-WAIT-1</code>, <code>FIN-WAIT-2</code>, <code>CLOSE-WAIT</code>, <code>LAST-ACK</code>, <code>TIME-WAIT</code>, <code>CLOSED</code>.</p>
+<ul>
+<li><strong><code>LISTEN</code></strong> — Node is acting as a <strong>server</strong> and waiting for a SYN message.</li>
+<li><strong><code>TIME-WAIT</code></strong> — Node is waiting for <strong>&#x27;lost&#x27; traffic to arrive at the port that is no longer in use</strong>, before that port becomes available for reuse. (Distractor B in a 2025 ST2 MCQ (&quot;The connection is about to time-out&quot;) is <strong>wrong</strong>; D is correct.)</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="4-5-tcp-header-fields">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.5 TCP header fields</h2>
+    <p>Standard TCP header fields include:</p>
+<ul>
+<li>Source port</li>
+<li>Destination port</li>
+<li><strong>Sequence number</strong></li>
+<li><strong>Acknowledgement number</strong></li>
+<li><strong>Flags</strong> (SYN, ACK, FIN, RST, PSH, URG)</li>
+<li><strong>Window advertisement</strong> (window size)</li>
+<li>Checksum</li>
+<li>Urgent pointer</li>
+<li><strong>Options</strong></li>
+<li>Padding</li>
+</ul>
+<blockquote><p><strong>MCQ fact:</strong> Which field does <strong>NOT</strong> occur in a TCP header? — <strong>Length</strong>. (Length is in the <em>UDP</em> header and in the <em>IP</em> header, not the TCP header.)</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="4-6-the-ack-flag-and-the-acknowledgement-field">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.6 The ACK flag and the acknowledgement field</h2>
+    <p>The acknowledgement-number field is <em>only valid</em> when the <strong>ACK flag is set</strong>.</p>
+<blockquote><p><strong>MCQ fact:</strong> &quot;A sends a TCP segment to node B. The acknowledgement field contains the value 150. The ACK flag is <strong>not</strong> set. This means:&quot;</p><p>- <strong>B: B should disregard the value 150 — it has no meaning.</strong> ✓</p></blockquote>
+<blockquote><p><strong>Related fact:</strong> Conversely, when node A <em>does</em> set the ACK flag on a segment to B, this may cause an existing <strong>retransmission timer at A</strong> to be <strong>deleted/reset</strong>, because the data it covered has now been acknowledged by B in the opposite direction. (2023 paper question: &quot;A sends a TCP segment to node B with its ACK flag set. This may affect (or create) relevant timers at A and/or B. What happens to one or more of the <strong>retransmission</strong> timers at A?&quot; → <strong>D: An existing timer may be deleted.</strong> Similarly the <strong>acknowledgement</strong> timer at A may be deleted, or <strong>B&#x27;s</strong> acknowledgement timer may be reset.)</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="4-7-damaged-packet-handling-tcp-has-no-nak">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.7 Damaged-packet handling — TCP has no NAK</h2>
+    <p>TCP does <strong>not</strong> have a NAK (negative acknowledgement) flag.</p>
+<blockquote><p><strong>MCQ fact:</strong> &quot;A sends a TCP segment to B, but it arrives damaged. How is this resolved?&quot;</p><p>- <strong>B: B discards the segment and does not acknowledge it; the retransmission timer at A expires and the packet is sent again.</strong> ✓</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="4-8-tcp-timers-memorise-the-five-timers">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.8 TCP timers — <strong>memorise the five timers</strong></h2>
+    <blockquote><p><strong>Exam Q (asked almost every year):</strong> Very briefly state what happens when each TCP timer expires.</p></blockquote>
+<div class="table-wrap"><table><thead><tr><th>Timer</th><th>When activated</th><th>What happens when it expires</th></tr></thead><tbody>
+<tr><td><strong>Retransmission timer</strong></td><td>When a segment is sent</td><td>A segment containing data is (re)transmitted. The timer is restarted for the retransmitted segment.</td></tr>
+<tr><td><strong>Acknowledgement timer</strong></td><td>When data is received that needs acknowledging (used to delay sending an ACK so it can be piggybacked or batched)</td><td>A segment containing an acknowledgement is transmitted.</td></tr>
+<tr><td><strong>Persistence timer</strong></td><td>When the sender is informed that the receiver&#x27;s window size has become 0</td><td>A <strong>probe</strong> message (a single byte that is not part of the data stream) is sent to check whether the receiver has freed up window space. The receiver responds with the last ACK plus an updated window size.</td></tr>
+<tr><td><strong>Keepalive timer</strong></td><td>When a TCP connection has been idle for a long time (default ~2 hours)</td><td>Either a <strong>probe</strong> is sent to check whether the other party is still alive (which restarts the timer if a response arrives), or — if no response — <strong>connection resources are released</strong>.</td></tr>
+<tr><td><strong>Quiet timer</strong></td><td>When the final FIN is sent in the 3-way termination handshake (i.e. the connection enters <code>TIME-WAIT</code>)</td><td>The <strong>port</strong> that the connection occupied is freed and made available for reuse. Lasts twice the maximum segment lifetime.</td></tr>
+</tbody></table></div>
+<h3 id="notes-on-the-persistence-timer">Notes on the persistence timer</h3>
+<blockquote><p><strong>MCQ fact:</strong> &quot;When the persistence timer at A expires, it implies that:&quot; — <strong>A is waiting for space to free up in B&#x27;s window before further data can be sent.</strong></p></blockquote>
+<h3 id="round-trip-time-rtt-for-the-retransmission-timer">Round-Trip Time (RTT) for the retransmission timer</h3>
+<p>The wait time before retransmitting is based on the <strong>measured round-trip time (RTTm)</strong>: send a packet, measure how long the ACK takes. In practice, a series of RTT measurements are combined into a <em>smoothed weighted average</em> RTT, which is used to set the timer. The round trip is the time for a message to travel from sender to receiver <em>and</em> the ACK back.</p>
+<h3 id="definitions-q4-style-2024-st2">Definitions (Q4-style, 2024 ST2)</h3>
+<ul>
+<li><strong>TCP slow start:</strong> A congestion-control mechanism. The congestion window (<code>cwnd</code>) starts small (1 segment). For each ACK received, <code>cwnd</code> increases — initially exponentially, so the sender quickly probes the network&#x27;s capacity. When loss is detected, <code>cwnd</code> is halved (or reset to 1) to back off.</li>
+<li><strong>TCP acknowledgement timer:</strong> A timer that delays sending an ACK after receiving data, so that the ACK can be piggybacked onto reverse traffic or aggregated with other ACKs. When it expires, an ACK is sent.</li>
+<li><strong>Round-trip time (RTT):</strong> The time taken for a message to travel from sender to receiver plus the time for the ACK to return. Used to set the retransmission timer.</li>
+<li><strong>Middlebox (Layer 4 context):</strong> A device deployed between two TCP endpoints (typically a firewall or NAT) that &quot;digs into&quot; TCP headers — and sometimes TCP payloads — to make decisions. Middleboxes that were designed around current TCP behaviour are the reason TCP cannot easily be updated; any change would break the middleboxes (and effectively break the Internet for those connections). This problem is called <strong>protocol ossification</strong>.</li>
+<li><strong>Protocol ossification:</strong> The inability to modify a protocol because doing so would break unrelated middleboxes and equipment that have made assumptions about that protocol&#x27;s on-the-wire form. QUIC was designed deliberately to avoid this (encrypts headers heavily and randomises version numbering — e.g. QUICv2 uses hex <code>6b3343cf</code>).</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="4-9-tcp-flow-control-sliding-window-in-bytes">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.9 TCP flow control — sliding window in bytes</h2>
+    <p>TCP&#x27;s sliding window is byte-oriented (not segment-oriented like the congestion window). Each segment carries a <strong>window advertisement</strong> stating how much buffer space the receiver currently has free. The sender must not send more unacknowledged bytes than this window permits.</p>
+  </div>
+</section><section class="study-section theory" id="4-10-tcp-congestion-control-slow-start-exponential-back-off">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.10 TCP congestion control — slow start + exponential back-off</h2>
+    <ul>
+<li><strong>Congestion window (<code>cwnd</code>):</strong> A second window kept at the <em>sender</em> (in addition to the receiver&#x27;s advertised window). <code>cwnd</code> counts <strong>segments</strong>, not bytes.</li>
+<li><strong>Slow start:</strong> Begin with <code>cwnd = 1</code>. For every ACK received, increase <code>cwnd</code>. Because multiple segments can be acknowledged together, <code>cwnd</code> grows roughly exponentially up to a threshold.</li>
+<li><strong>On loss:</strong> Halve the current <code>cwnd</code> to derive a new threshold, then reset <code>cwnd</code> to 1 and restart slow start. Once <code>cwnd</code> reaches the new threshold, growth slows to <strong>linear</strong> to avoid overshooting the safe rate again. This combined behaviour is &quot;slow start + exponential back-off&quot;.</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="4-11-minimum-number-of-timer-types-for-any-sliding-window-arq">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.11 Minimum number of timer types for any sliding-window ARQ</h2>
+    <p><strong>Q (2024 ST2 o):</strong> &quot;What is the minimum number of timer types required by any sliding window ARQ protocol?&quot;</p>
+<ul>
+<li><strong>Answer: 2.</strong> (A retransmission timer for the sender, and an acknowledgement timer for the receiver. Other timers — persistence, keepalive, quiet — are TCP-specific refinements.)</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="4-12-the-tcp-quiet-timer-and-time-wait-2024-st2">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>4.12 The TCP <strong>Quiet</strong> timer and TIME-WAIT (2024 ST2)</h2>
+    <p><strong>Q (2024 ST2 p):</strong> &quot;The TCP <em>quiet</em> timer determines when a port may be used for a new TCP connection after a previous connection has been closed. Which of the following claims is/are true?&quot;</p>
+<ul>
+<li>A: The port (or socket) is in the <code>TIME-WAIT</code> state while the quiet timer is active. ✓</li>
+<li>B: The quiet timer is activated when the FIN+ACK message is sent. (This is not quite right; activated at the 3rd-handshake stage.)</li>
+<li>C: The quiet timer solves the problem of a packet from a previous connection being deemed part of a new connection. ✓</li>
+</ul>
+<p>Answer: <strong>D — More than one of the above</strong> (A and C are both true).</p>
+<hr>
+  </div>
+</section><section class="study-section theory" id="5-udp-user-datagram-protocol">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5. UDP (User Datagram Protocol)</h2>
+    <p>UDP is an <strong>unreliable, connectionless</strong> Layer 4 protocol offering a &quot;best-effort&quot; service.</p>
+  </div>
+</section><section class="study-section theory" id="5-1-what-udp-lacks">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5.1 What UDP lacks</h2>
+    <ul>
+<li>No flow control (the flow-control mechanism is described as <strong>unrestricted</strong> — i.e. <em>none</em>)</li>
+<li>No congestion control</li>
+<li>No sequencing</li>
+<li>No acknowledgements</li>
+<li>No retransmission</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="5-2-udp-header-very-simple">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5.2 UDP header (very simple)</h2>
+    <ul>
+<li>Source port</li>
+<li>Destination port</li>
+<li><strong>Length</strong></li>
+<li>Checksum</li>
+<li>Payload</li>
+</ul>
+<p>(Contrast TCP, where Length is <em>not</em> present.)</p>
+  </div>
+</section><section class="study-section theory" id="5-3-when-udp-is-preferable">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5.3 When UDP is preferable</h2>
+    <blockquote><p><strong>MCQ fact:</strong> Of <code>Web page</code>, <code>File transfer</code>, <code>Audio</code>, the data stream that generally works <em>better</em> with an unreliable Layer 4 protocol is <strong>Audio</strong>.</p></blockquote>
+<p>Reasons:</p>
+<ul>
+<li><strong>Real-time speech transmission:</strong> Dropping a small fraction of a second of audio is preferable to pausing transmission to retransmit. Reliability would introduce intolerable delays.</li>
+<li><strong>DNS lookup:</strong> Requires only a single request and a single reply. A full TCP 3-way handshake plus tear-down would be 8 messages for a 2-message transaction — wasteful overhead.</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="5-4-dns-uses-both-tcp-and-udp">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>5.4 DNS uses <em>both</em> TCP and UDP</h2>
+    <blockquote><p><strong>MCQ fact:</strong> &quot;Which of the following protocol(s) is/are used on the transport layer by DNS?&quot; — <strong>D: More than one of the above</strong> (DNS uses <strong>UDP</strong> for standard queries and <strong>TCP</strong> for zone transfers and large responses).</p></blockquote>
+<hr>
+  </div>
+</section><section class="study-section theory" id="6-quic-quick-udp-internet-connections">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6. QUIC (Quick UDP Internet Connections)</h2>
+    <p>QUIC is a modern, <strong>reliable, connection-oriented</strong> Layer 4 protocol that runs <strong>on top of UDP</strong>. Google began work on it in 2012; QUICv1 was standardised in RFC 9000 (2022) and QUICv2 in RFC 9369 (December 2023).</p>
+  </div>
+</section><section class="study-section theory" id="6-1-key-facts">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.1 Key facts</h2>
+    <ul>
+<li>QUIC provides reliability above the unreliable UDP it sits on. The underlying UDP packets remain connectionless and unreliable; QUIC supplies the reliability on top.</li>
+<li>Some informally refer to QUIC as &quot;TCP version 2&quot;. QUIC shares all TCP&#x27;s goals but adds more.</li>
+<li><strong>Within 10 years of its 2012 introduction, more than 50% of Web traffic was already QUIC</strong> rather than TCP. Many predict QUIC will eventually replace TCP entirely.</li>
+<li>QUIC&#x27;s original full name was <strong>Quick UDP Internet Connections</strong> — useful for remembering its three core properties: <strong>quick, connection-oriented, on top of UDP</strong>.</li>
+<li>QUIC was originally referred to as <strong>gQUIC</strong> (Google&#x27;s version); the standardised IETF version is sometimes called IETF QUIC.</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="6-2-security-by-default">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.2 Security by default</h2>
+    <blockquote><p>QUIC inherently integrates <strong>TLS 1.3</strong> encryption. There is <strong>no unencrypted version</strong> of QUIC. The handshake bundles together the connection setup and the TLS handshake.</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="6-3-connection-ids-and-connection-migration">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.3 Connection IDs and connection migration</h2>
+    <p>TCP identifies a connection by the 4-tuple <code>(srcIP, srcPort, dstIP, dstPort)</code>. If the client&#x27;s IP changes (e.g. a mobile user switches from Wi-Fi to cellular), TCP drops the connection. QUIC instead uses opaque <strong>Connection IDs</strong>, so the connection survives an IP change.</p>
+<blockquote><p><strong>MCQ fact:</strong> In QUICv1 and QUICv2, <strong>the client</strong> is the party that can initiate a connection migration. (Not the server, not a network management system.)</p></blockquote>
+  </div>
+</section><section class="study-section theory" id="6-4-long-header-fields-always-present">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.4 Long-header fields always present</h2>
+    <blockquote><p><strong>MCQ fact:</strong> Which headers are always present in a long QUIC header? (Include cases where the length of the field will be 0, meaning the field itself may be omitted.)</p><p>- <strong>Version</strong></p><p>- <strong>Source connection ID</strong></p><p>- <strong>Destination connection ID</strong></p><p>Answer: <strong>All of the above (E).</strong></p></blockquote>
+  </div>
+</section><section class="study-section theory" id="6-5-speed-1-rtt-and-0-rtt">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.5 Speed — 1-RTT and 0-RTT</h2>
+    <blockquote><p><strong>MCQ fact (memorise):</strong> &quot;The claim that QUIC is a <em>quick</em> protocol means that:&quot;</p><p>- <strong>B:</strong> It reduces latency when establishing or re-establishing a connection.</p><p>- <strong>C:</strong> Where multiple parts of a message must be transported, it ensures that parts of the message are delivered quickly even if some parts are delayed (multiplexed streams).</p><p>Answer: <strong>D — More than one of the above</strong> (both B and C are correct).</p></blockquote>
+<h3 id="the-0-rtt-vs-1-rtt-timing-question">The 0-RTT vs 1-RTT timing question</h3>
+<p>Assume a client establishes a new QUIC connection at time <code>t₀</code> and the server replies at <code>t₁</code>. The reply arrives at the client at <code>t₂</code>. The client transmits at even times (<code>t₀, t₂, t₄, …</code>) and the server at odd times (<code>t₁, t₃, t₅, …</code>).</p>
+<ul>
+<li><strong>Soonest application data may (sometimes) be sent:</strong> <code>t₀</code> (via <strong>0-RTT</strong> if the client has cached keys from a prior session). 0-RTT lets the client piggyback encrypted application data into the very first packet.</li>
+<li><strong>Soonest 1-RTT application data may be sent:</strong> <code>t₂</code>. The client must wait one full round trip to receive the server&#x27;s reply before sending 1-RTT data.</li>
+<li><strong>Soonest the connection may be deemed fully established:</strong> <code>t₃</code> (the client sends a finish-handshake packet at <code>t₂</code>, the server receives and acks at <code>t₃</code>). However, some textbook-aligned versions of this question answer <strong>E (None of the above)</strong> — the exact answer depends on what the lecturer considers &quot;fully established&quot;.</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="6-6-multiplexed-streams-head-of-line-blocking">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.6 Multiplexed streams — head-of-line blocking</h2>
+    <p>Within a single QUIC connection, data is transported in multiple independent <strong>streams</strong>. If a packet on one stream is lost, only that stream is delayed; other streams continue. This avoids TCP&#x27;s &quot;head-of-line blocking&quot; problem.</p>
+<p><em>Example:</em> A browser loading a webpage requests images, CSS, and scripts in parallel. If an image packet is lost, only the image stream pauses to retransmit; CSS and scripts keep loading.</p>
+  </div>
+</section><section class="study-section theory" id="6-7-packets-vs-frames">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.7 Packets vs frames</h2>
+    <ul>
+<li><strong>Packets:</strong> the on-the-wire units (Initial, Handshake, 0-RTT, 1-RTT, Retry, Version Negotiation).</li>
+<li><strong>Frames:</strong> carried inside packets — STREAM, ACK, PING, CRYPTO, etc.</li>
+<li><strong>Only packets are acknowledged and retransmitted</strong>, not individual frames.</li>
+</ul>
+  </div>
+</section><section class="study-section theory" id="6-8-protocol-ossification-and-quic-s-defences">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.8 Protocol ossification — and QUIC&#x27;s defences</h2>
+    <p>TCP can&#x27;t be upgraded because middleboxes (firewalls, NATs) make hardcoded assumptions about TCP headers and payloads — updates break those middleboxes. This is called <strong>protocol ossification</strong>.</p>
+<p>QUIC defends against this in two ways:</p>
+<ol>
+<li><strong>Heavy encryption of headers and metadata</strong>, so middleboxes can&#x27;t easily &quot;dig into&quot; packets.</li>
+<li><strong>Randomised version numbering</strong> — QUICv2 uses the version-field value <code>6b3343cf</code> (hex), a deliberately arbitrary number, to prevent middleboxes from assuming any pattern. Furthermore, QUICv1 and QUICv2 use <em>different</em> bit patterns to identify the same packet type, so a firewall coded to recognise QUICv1&#x27;s handshake packets won&#x27;t recognise QUICv2&#x27;s.</li>
+</ol>
+  </div>
+</section><section class="study-section theory" id="6-9-quic-port-usage">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge theory">Theory</span></div>
+    <h2>6.9 QUIC port usage</h2>
+    <p>QUIC is currently used primarily to transport HTTPS, and on the server side will commonly use the same ports TCP uses (e.g. 443 for HTTPS).</p>
+<hr>
+  </div>
+</section><section class="study-section practice" id="examinable-practice-questions-on-layer-4">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practice">Practice</span></div>
+    <h2>Examinable Practice Questions on Layer 4</h2>
+    
+  </div>
+</section><section class="study-section practice" id="multiple-choice">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practice">Practice</span></div>
+    <h2>Multiple Choice</h2>
+    <p><strong>Q1.</strong> Which of the following data streams generally work(s) better with an unreliable Layer 4 protocol? A. Web page   B. File transfer   C. Audio   D. More than one of the above   E. All of the above</p>
+<p><strong>Q2.</strong> Which of the following protocol(s) is/are used on the transport layer by DNS? A. TCP   B. UDP   C. IP   D. More than one of the above   E. All of the above</p>
+<p><strong>Q3.</strong> Which command enables one to see the status of transport layer connections on a host (in most operating systems)? A. netstat   B. ping   C. tracert/traceroute   D. tcp-show   E. ps</p>
+<p><strong>Q4.</strong> UDP uses the following flow-control mechanism: A. Stop and Wait   B. Sliding window   C. Unrestricted   D. More than one of the above   E. All of the above</p>
+<p><strong>Q5.</strong> A sends a TCP segment to node B. The acknowledgement field contains the value 150. The ACK flag is <em>not</em> set. This means: A. B may assume that bytes up to byte 149 that it had sent are acknowledged. B. B should disregard the value 150 — it has no meaning. C. This is a negative acknowledgement of the segment B has sent that had the sequence number 150. D. The TCP layer at A is misconfigured; it should have set the ACK flag.</p>
+<p><strong>Q6.</strong> Which of the following fields does <em>not</em> occur in a TCP header? A. Source port   B. Window advertisement   C. Sequence number   D. Options   E. Length</p>
+<p><strong>Q7.</strong> Which of the following statements is/are <em>false</em> about phantom bytes used in an initial 3-way TCP/IP handshake? A. It is counted as part of the SYN message. B. It is counted as part of the SYN+ACK message. C. It is counted as part of the ACK message. D. It consists of one byte of data. E. More than one of the statements above are false.</p>
+<p><strong>Q8.</strong> A TCP connection in the <code>TIME-WAIT</code> state means that: A. The node is waiting for data from the node that it is connected to. B. The connection is about to time-out if no further data is transmitted soon. C. The connection will soon be established (as soon as the handshake is completed). D. The node is waiting for &#x27;lost&#x27; traffic to arrive at the port that is no longer in use, before it will be available for reuse. E. The network is congested.</p>
+<p><strong>Q9.</strong> A TCP node that is in the <code>LISTEN</code> state: A. Is acting as a server and waiting for a SYN message. B. Is acting as a client and has sent a SYN message. C. May act as a client after sending a SYN message. D. More than one of the above. E. None of the above.</p>
+<p><strong>Q10.</strong> What does the claim that QUIC is a <em>quick</em> protocol mean? A. It manages the lower layers to transmit raw data at higher bit rates. B. It reduces latency when establishing or re-establishing a connection. C. Where multiple parts of a message have to be transported, it ensures that parts of the message are delivered quickly even if some parts are delayed. D. More than one of the above. E. All of the above.</p>
+<p><strong>Q11.</strong> QUIC connections can migrate. Which party can initiate such a migration in QUICv1 or QUICv2? A. The client   B. The server   C. The network management system   D. More than one of the above   E. All of the above</p>
+<p><strong>Q12.</strong> Say a damaged packet arrives at its destination. Suppose A sends a TCP segment to B, but it arrives damaged at B. How is this resolved? A. B sets the NAK TCP flag and sends it as a response to A. B. B discards the segment and does not acknowledge it; the retransmission timer at A expires and the packet is sent again. C. B requests the network layer at B to deal with the error. D. B corrects the damaged segment and (eventually) acknowledges receipt. E. The lower layer protocols perform error checking, so a damaged segment will never arrive.</p>
+<p><strong>Q13.</strong> Suppose node A is connected to node B via TCP. When the persistence timer at A expires it implies that: A. B has not yet acknowledged the last segment A sent to B. B. A is waiting for space to free up in B&#x27;s window before further data can be sent. C. A has no data to send, so it transmits a single byte to indicate that it is still present. D. More than one of the above.</p>
+<p><strong>Q14.</strong> What is the soonest time at which application data may (sometimes) be sent in QUIC? (Client at even times, server at odd times.) A. t₀   B. t₁   C. t₂   D. t₃</p>
+<p><strong>Q15.</strong> What is the soonest time at which <strong>1-RTT</strong> application data may be sent in QUIC? A. t₀   B. t₁   C. t₂   D. t₃</p>
+<p><strong>Q16.</strong> What type of port is port 55555? A. Registered   B. Well-known   C. Dynamic   D. Practical   E. Temporary</p>
+<p><strong>Q17.</strong> What is the minimum number of timer types required by any sliding window ARQ protocol? A. 1   B. 2   C. 3   D. 4   E. 5</p>
+<p><strong>Q18.</strong> A program that wants to open a socket in order to act as a server needs to specify: A. The address of the server   B. The address of the client   C. The port on the server   D. The port on the client   E. More than one of the above</p>
+<p><strong>Q19.</strong> Which of the following headers are always present in a <em>long</em> QUIC header? (Include cases where the length of the field will be present and may be 0, meaning the field itself may be omitted.) A. Version   B. Source connection ID   C. Destination connection ID   D. More than one of the above   E. All of the above</p>
+<p><strong>Q20.</strong> (2024 ST2) Which ISO OSI layer may provide checkpoints, such that only messages sent since the last checkpoint have to be retransmitted after a connection has been lost? A. 2   B. 3   C. 4   D. 5   E. 6</p>
+<p><strong>Q21.</strong> (2024 ST2) How are the SYN and ACK packets sent during a TCP handshake differentiated from one another? A. The flags are used to determine the type of handshake packet. B. These packets carry a phantom byte in which the type (SYN or ACK) is encoded. C. The sequence and acknowledgement numbers determine the type of packet; a sequence number of 0 indicates a SYN, while sequence number 0 and acknowledgement number 1 indicate a SYN+ACK. D. More than one of the above. E. All of the above.</p>
+  </div>
+</section><section class="study-section practice" id="long-form-calculation">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge practice">Practice</span></div>
+    <h2>Long-Form &amp; Calculation</h2>
+    <p><strong>Q22. TCP timers definition.</strong> Very briefly state what happens when the following TCP timers expire: a) Retransmission timer b) Acknowledgement timer c) Persistence timer d) Keepalive timer e) Quiet timer</p>
+<p><strong>Q23. TCP reliability.</strong> TCP is a reliable protocol. List any <strong>five</strong> mechanisms used by TCP to provide this reliability. Keep your answers brief; no explanation required.</p>
+<p><strong>Q24. TCP flow control &amp; sequence calculation (standard variant).</strong> Node A is busy communicating with node B via a TCP connection. At some time <em>t</em> the next byte A will send is byte 300. The next byte B will send is byte 500. The window size at A is 1000. The window size at B is 100.</p>
+<ul>
+<li>At time <em>t+1</em> A wants to send <strong>200</strong> bytes to B. Call this message <em>m₁</em>.</li>
+<li>At time <em>t+2</em> B consumes 100 bytes from its buffer.</li>
+<li>At time <em>t+3</em> B sends a message containing 50 bytes to A — message <em>m₃</em>.</li>
+<li>At time <em>t+4</em> A sends a message to B acknowledging <em>m₃</em> (and including any residual data) — message <em>m₄</em>.</li>
+<li>At time <em>t+5</em> B sends an empty acknowledgement <em>m₅</em>.</li>
+</ul>
+<p>a) Sequence number included with <em>m₁</em>? b) Acknowledgement number included with <em>m₄</em>? c) Length of <em>m₄</em>? d) Window advertisement included with <em>m₄</em>? e) Window advertisement included with <em>m₅</em>?</p>
+<p><strong>Q25. TCP flow control &amp; sequence calculation (2024 variant).</strong> Same setup as Q24 except A wants to send <strong>300</strong> bytes at <em>t+1</em>, and B consumes <strong>200</strong> bytes at <em>t+2</em>. Answer the same a)–e).</p>
+<p><strong>Q26. Definitions (2024 ST2 style).</strong> Briefly define or describe the following terms: a) TCP slow start b) TCP acknowledgement timer c) Round-trip time d) Middlebox (especially in the context of Layer 4) e) Protocol ossification</p>
+<hr>
+  </div>
+</section><section class="study-section memo" id="memo-answer-key">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge memo">Memo / Answers</span></div>
+    <h2>Memo / Answer Key</h2>
+    
+  </div>
+</section><section class="study-section memo" id="mcq-answers">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge memo">Memo / Answers</span></div>
+    <h2>MCQ Answers</h2>
+    <p><strong>A1.</strong> C (Audio). Real-time media tolerates loss better than retransmission delay. <strong>A2.</strong> D (More than one — DNS uses UDP normally and TCP for zone transfers). <strong>A3.</strong> A (<code>netstat</code>). <strong>A4.</strong> C (Unrestricted — UDP has no flow control). <strong>A5.</strong> B (Disregard the value — without the ACK flag the field is meaningless). <strong>A6.</strong> E (Length — present in UDP and IP headers, not TCP). <strong>A7.</strong> E (More than one statement is false — C is false because the phantom byte is <em>not</em> counted in the final ACK, and D is false because the phantom byte does <em>not</em> consist of one byte of payload data; it only consumes one sequence number). <strong>A8.</strong> D (Waiting for lost traffic on the now-unused port). <strong>A9.</strong> A (Acting as a server, waiting for a SYN). <strong>A10.</strong> D (More than one of the above — both B and C are correct). <strong>A11.</strong> A (The client initiates connection migration via Connection IDs). <strong>A12.</strong> B (TCP has no NAK; the retransmission timer drives recovery). <strong>A13.</strong> B (Waiting for B&#x27;s window to free up). <strong>A14.</strong> A (<em>t₀</em> via <strong>0-RTT</strong> using cached keys from a previous session). <strong>A15.</strong> C (<em>t₂</em> — one full round trip after the initial <em>t₀</em> send and the <em>t₁</em> server reply). <strong>A16.</strong> C (Dynamic — 55555 is in the 49152–65535 dynamic/private range). <strong>A17.</strong> B (2 — a retransmission timer at the sender and an acknowledgement timer at the receiver are the minimum for any sliding-window ARQ). <strong>A18.</strong> E (More than one of the above — both an address and a port on the server must be specified, and the socket must wait for connections). <strong>A19.</strong> E (All of the above — Version, Source connection ID, and Destination connection ID are always present in a long QUIC header). <strong>A20.</strong> D (5 — Session Layer is responsible for checkpointing). <strong>A21.</strong> A (The flags differentiate SYN from ACK from SYN+ACK).</p>
+  </div>
+</section><section class="study-section memo" id="long-form-answers">
+  <div class="section-inner">
+    <div class="section-kicker"><span class="badge memo">Memo / Answers</span></div>
+    <h2>Long-Form Answers</h2>
+    <p><strong>A22. TCP Timers</strong></p>
+<ul>
+<li>a) <strong>Retransmission timer:</strong> A segment containing data is (re)transmitted.</li>
+<li>b) <strong>Acknowledgement timer:</strong> A segment containing an acknowledgement is transmitted.</li>
+<li>c) <strong>Persistence timer:</strong> A probe message is sent (to check whether the receiver&#x27;s window has freed up).</li>
+<li>d) <strong>Keepalive timer:</strong> Connection resources are released (or a probe is sent; if no answer, resources are released).</li>
+<li>e) <strong>Quiet timer:</strong> The port is made available for a new connection (the connection in TIME-WAIT is fully torn down).</li>
+</ul>
+<p><strong>A23. TCP Reliability — any five of:</strong></p>
+<ol>
+<li>3-way handshake to establish the connection</li>
+<li>3-way handshake to terminate the connection</li>
+<li>ACK for ARQ</li>
+<li>Slow start</li>
+<li>Exponential back-off</li>
+<li>CRC / checksum over the entire segment</li>
+<li>Window advertisements (sliding-window flow control)</li>
+<li>Sequence / acknowledgement numbers</li>
+</ol>
+<p><strong>A24. TCP flow-control &amp; sequence calculation (200-byte variant)</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Sub-question</th><th>Answer</th><th>Reasoning</th></tr></thead><tbody>
+<tr><td>a) Seq # of <em>m₁</em></td><td><strong>300</strong></td><td>The next byte A is to send is byte 300, so <em>m₁</em> starts at 300.</td></tr>
+<tr><td>b) Ack # of <em>m₄</em></td><td><strong>550</strong></td><td>B sent 50 bytes starting at byte 500 — bytes 500–549. A acknowledges the next expected byte: 550.</td></tr>
+<tr><td>c) Length of <em>m₄</em></td><td><strong>100</strong></td><td>A wanted to send 200 but B&#x27;s window allows only 100. So <em>m₁</em> contained 100 bytes, leaving 100 residual to be sent in <em>m₄</em>.</td></tr>
+<tr><td>d) Window advert in <em>m₄</em></td><td><strong>950</strong></td><td>A&#x27;s window started at 1000. A received 50 bytes from B (in <em>m₃</em>) which now occupy A&#x27;s buffer. A&#x27;s remaining window: 1000 − 50 = 950.</td></tr>
+<tr><td>e) Window advert in <em>m₅</em></td><td><strong>0</strong></td><td>B&#x27;s window starts at 100. After <em>m₁</em> (100 bytes), B&#x27;s window is 0. B then consumes 100 (window back to 100). <em>m₄</em> delivers another 100 residual bytes, refilling the window to 0. B&#x27;s <em>m₅</em> therefore advertises 0.</td></tr>
+</tbody></table></div>
+<p><strong>A25. TCP flow-control &amp; sequence calculation (300-byte variant)</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Sub-question</th><th>Answer</th><th>Reasoning</th></tr></thead><tbody>
+<tr><td>a) Seq # of <em>m₁</em></td><td><strong>300</strong></td><td>(Same — next byte to send is 300.)</td></tr>
+<tr><td>b) Ack # of <em>m₄</em></td><td><strong>550</strong></td><td>(Same — B sent 50 bytes from 500.)</td></tr>
+<tr><td>c) Length of <em>m₄</em></td><td><strong>200</strong></td><td>A wanted to send 300 but B&#x27;s window allowed only 100 in <em>m₁</em>. Residual = 200. B consumes 200 (so B&#x27;s buffer is now bigger than 100 free), allowing A to send all 200 residual bytes in <em>m₄</em>.</td></tr>
+<tr><td>d) Window advert in <em>m₄</em></td><td><strong>950</strong></td><td>(Same as before — A&#x27;s window 1000 − 50 received = 950.)</td></tr>
+<tr><td>e) Window advert in <em>m₅</em></td><td><strong>0</strong></td><td>B&#x27;s buffer accommodated 200 newly freed bytes plus the original 100 buffer; <em>m₄</em> delivers 200 bytes filling that space. Window back to 0.</td></tr>
+</tbody></table></div>
+<p><strong>A26. Definitions</strong></p>
+<ul>
+<li>a) <strong>TCP slow start:</strong> A congestion-control algorithm. The sender&#x27;s congestion window <code>cwnd</code> starts at 1 segment. For each ACK received, <code>cwnd</code> increases — initially roughly exponentially — letting the sender quickly discover the network&#x27;s capacity. When loss occurs, the threshold is set to <code>cwnd/2</code>, <code>cwnd</code> resets to 1, and growth restarts (linear past the threshold) — this is the slow start combined with exponential back-off.</li>
+<li>b) <strong>TCP acknowledgement timer:</strong> A timer started after data is received, that delays sending an ACK so that it can be piggybacked onto reverse traffic or aggregated with other ACKs. When it expires, an ACK segment is transmitted on its own.</li>
+<li>c) <strong>Round-trip time (RTT):</strong> The total time for a message to travel from sender to receiver <em>and</em> the corresponding ACK to return. TCP measures it (RTTm) and smooths it over time to set the retransmission timer.</li>
+<li>d) <strong>Middlebox (Layer 4 context):</strong> Network device placed between TCP endpoints — typically a firewall, NAT, or load balancer — that &quot;digs into&quot; TCP headers (or payloads) to make decisions. Middleboxes break the OSI layering ideal because they operate at lower layers but inspect Layer 4 information. They are the main reason TCP cannot be safely upgraded.</li>
+<li>e) <strong>Protocol ossification:</strong> The inability to modify a protocol because too many middleboxes have made assumptions about its on-the-wire form. Updating the protocol would break those middleboxes (and the connections passing through them). QUIC was designed to combat ossification by encrypting headers and randomising version numbers (QUICv2&#x27;s version field is hex <code>6b3343cf</code>).</li>
+</ul>
+  </div>
+</section></article></div></main>
+<footer class="footer"><div class="footer-inner">Generated from the markdown notes in this folder. Use the index to jump between layers.</div></footer>
+</body></html>

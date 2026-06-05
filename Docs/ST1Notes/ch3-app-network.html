@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ch 3 — Application Layer (Network) · COS332</title>
+<link rel="stylesheet" href="style.css">
+<style>
+#routing-demo * { box-sizing: border-box; }
+#routing-demo .container { padding: 0.5rem 0; }
+#routing-demo .tabs { display: flex; gap: 8px; margin-bottom: 1rem; border-bottom: none; }
+#routing-demo .tab { padding: 6px 16px; border: 0.5px solid #d1d5db; border-radius: 4px; background: transparent; color: #6b7280; cursor: pointer; font-size: 13px; font-weight: 500; transition: all .15s; }
+#routing-demo .tab.active { background: #eff6ff; color: #2563eb; border-color: #93c5fd; }
+#routing-demo .controls { display: flex; gap: 8px; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
+#routing-demo .btn { padding: 6px 14px; border: 0.5px solid #d1d5db; border-radius: 4px; background: transparent; color: #1a1a1a; cursor: pointer; font-size: 13px; transition: all .15s; }
+#routing-demo .btn:hover { background: #f3f4f6; }
+#routing-demo .btn:disabled { opacity: 0.4; cursor: default; }
+#routing-demo .btn.primary { background: #eff6ff; color: #2563eb; border-color: #93c5fd; }
+#routing-demo .speed-label { font-size: 12px; color: #6b7280; }
+#routing-demo .panel { display: flex; gap: 12px; flex-wrap: wrap; }
+#routing-demo canvas { border: 0.5px solid #e5e7eb; border-radius: 6px; display: block; background: transparent; max-width: 100%; }
+#routing-demo .info-panel { flex: 1; min-width: 200px; }
+#routing-demo .dist-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+#routing-demo .dist-table th { text-align: left; color: #6b7280; font-weight: 500; border-bottom: 0.5px solid #e5e7eb; padding: 4px 6px; background: none; }
+#routing-demo .dist-table td { padding: 4px 6px; border-bottom: 0.5px solid #e5e7eb; color: #1a1a1a; border-left: none; border-right: none; border-top: none; }
+#routing-demo .dist-table td.inf { color: #9ca3af; }
+#routing-demo .dist-table tr.updated td { color: #2563eb; font-weight: 500; }
+#routing-demo .dist-table tr.source td { color: #059669; font-weight: 500; }
+#routing-demo .log { font-size: 12px; color: #6b7280; max-height: 140px; overflow-y: auto; line-height: 1.6; margin-top: 8px; border: 0.5px solid #e5e7eb; border-radius: 4px; padding: 8px; }
+#routing-demo .log .step { color: #1a1a1a; }
+#routing-demo .log .relax { color: #2563eb; }
+#routing-demo .log .neg { color: #c0392b; }
+#routing-demo .log .done { color: #059669; font-weight: 500; }
+#routing-demo .section-title { font-size: 12px; font-weight: 500; color: #6b7280; margin: 0 0 6px; text-transform: uppercase; letter-spacing: .04em; }
+#routing-demo .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500; margin-left: 6px; }
+#routing-demo .badge-neg { background: #fde8e8; color: #c0392b; }
+#routing-demo .badge-pos { background: #e8f6ed; color: #059669; }
+#routing-demo .algo-meta { font-size: 12px; color: #6b7280; margin-bottom: 10px; line-height: 1.6; }
+#routing-demo .step-counter { font-size: 12px; color: #6b7280; margin-left: auto; }
+</style>
+</head>
+<body>
+
+<nav class="breadcrumb"><a href="index.html">COS332</a><span>›</span> Chapter 3</nav>
+<h1>Chapter 3: Application Layer — Network-Oriented Protocols</h1>
+<p class="subtitle">DNS, DHCP, SNMP, LDAP, and routing protocols.</p>
+
+<ul class="toc">
+  <li><a href="#dns">3.2 DNS — Domain Name System</a></li>
+  <li class="sub"><a href="#dns-hierarchy">Domain Hierarchy &amp; TLDs</a></li>
+  <li class="sub"><a href="#dns-records">Record Types &amp; Zone Files</a></li>
+  <li class="sub"><a href="#dns-resolution">Name Resolution (Recursive vs Iterative)</a></li>
+  <li class="sub"><a href="#dns-traps">DNS Exam Traps</a></li>
+  <li><a href="#dhcp">3.3 DHCP &amp; TFTP</a></li>
+  <li><a href="#snmp">3.4 SNMP &amp; CMIP</a></li>
+  <li><a href="#ldap">3.5 X.500 / X.509 / LDAP</a></li>
+  <li><a href="#routing">3.6 Routing Protocols</a></li>
+  <li class="sub"><a href="#dijkstra">Dijkstra's Algorithm (OSPF)</a></li>
+  <li class="sub"><a href="#bellman">Bellman-Ford (RIP)</a></li>
+  <li><a href="#traps">⚠ Exam Traps</a></li>
+  <li><a href="#demo-dns">Demo: DNS Resolution Simulator</a></li>
+  <li><a href="#demo-routing">Demo: Dijkstra &amp; Bellman-Ford Interactive</a></li>
+</ul>
+
+<h2 id="dns">3.2 DNS — Domain Name System</h2>
+<p>Translates (strictly speaking, <em>resolves</em>) human-readable domain names into IP addresses. Replaced the old centralised <code>/etc/hosts</code> file approach (which didn't scale).</p>
+<div class="note">
+  DNS normally operates on <strong>port 53</strong>. It uses <strong>both TCP and UDP</strong>: UDP for standard fast lookups, TCP for larger tasks like zone transfers.<br>
+  The popular server software used as a name server is known as <strong>bind</strong>. The 'd' in bind stands for <em>dæmon</em>.
+</div>
+
+<h3 id="dns-hierarchy">Domain Hierarchy &amp; TLDs</h3>
+<p>DNS uses a hierarchical namespace with the principle of <strong>local autonomy</strong>: authority over a subtree can be delegated independently. If a group wants to establish a new TLD, <strong>ICANN</strong> is the body that must approve it.</p>
+<table>
+  <tr><th>TLD Type</th><th>Examples</th><th>Notes</th></tr>
+  <tr><td>gTLD (generic)</td><td>.com, .gov, .net, .org</td><td></td></tr>
+  <tr><td>ccTLD (country-code)</td><td>.za (South Africa), .bw (Botswana), .ls (Lesotho), .io</td><td>.io is a ccTLD (British Indian Ocean Territory). Domain hacking: who.is uses .is (Iceland).</td></tr>
+  <tr><td>sTLD (sponsored)</td><td>.capetown, .google, .microsoft</td><td>Must adhere to policies from both ICANN <em>and</em> ZADNA — more than one authority.</td></tr>
+</table>
+<div class="note"><strong>Landrush phase:</strong> When a new DNS TLD is "in landrush", it means the domain recently started accepting registrations from the general public — possibly at a higher cost than the eventual annual fees.</div>
+
+<h4>South African .za Second-Level Domains</h4>
+<p>The .co.za registry is operated by <strong>UniForum SA</strong>. ZADNA controls the .za ccTLD.</p>
+<table>
+  <tr><th>Domain</th><th>Intended for</th></tr>
+  <tr><td>ac.za</td><td>Universities and research institutions</td></tr>
+  <tr><td>co.za</td><td>Commercial (anyone — no SA citizenship required)</td></tr>
+  <tr><td>gov.za</td><td>South African government</td></tr>
+  <tr><td>nom.za</td><td>Specifically intended to allow <strong>individuals</strong> to register subdomains</td></tr>
+  <tr><td>school.za, edu.za, law.za, mil.za, org.za</td><td>Respective domains</td></tr>
+</table>
+<div class="warn"><strong>tech.za does NOT exist</strong> — common exam trap.</div>
+<div class="note">To register a subdomain within .za: you do NOT need to be a South African citizen, nor have a SA residential address ("None of the above" in MCQs).</div>
+<div class="note"><strong>WHOIS:</strong> The whois service retrieves ownership information of a domain. Usually associated with <strong>port 43</strong>. Command: <code>whois xx.co.za</code></div>
+
+<h3 id="dns-records">Record Types &amp; Zone Files</h3>
+<p>A zone file is a text-based database on a DNS name server. Strictly: a file on a name server that maps names to IP addresses is known as a <strong>zone file</strong>.</p>
+<table>
+  <tr><th>Type</th><th>Name</th><th>Purpose</th><th>Data Field</th></tr>
+  <tr><td><strong>A</strong></td><td>Address</td><td>Hostname → IPv4 address</td><td>192.168.1.1</td></tr>
+  <tr><td><strong>AAAA</strong></td><td>IPv6 Address</td><td>Hostname → IPv6 address</td><td>2001:db8::1</td></tr>
+  <tr><td><strong>CNAME</strong></td><td>Canonical Name</td><td>Alias — one name points to another</td><td>www.up.ac.za → server1.up.ac.za</td></tr>
+  <tr><td><strong>MX</strong></td><td>Mail Exchange</td><td>Directs email to mail server. Lower priority number = higher preference.</td><td>Priority + Hostname</td></tr>
+  <tr><td><strong>NS</strong></td><td>Name Server</td><td>Delegates zone to authoritative server</td><td>ns1.isp.com</td></tr>
+  <tr><td><strong>PTR</strong></td><td>Pointer</td><td>Reverse DNS: IP → hostname. Uses in-addr.arpa.</td><td>host.example.com</td></tr>
+  <tr><td><strong>SOA</strong></td><td>Start of Authority</td><td>Admin info and serial numbers for the zone</td><td>Admin email, Serial, Refresh/Retry/Expire/TTL</td></tr>
+  <tr><td><strong>TXT</strong></td><td>Text</td><td>Arbitrary text — often security (SPF, DKIM)</td><td>"v=spf1 include:..."</td></tr>
+</table>
+
+<h4>Zone File Example &amp; Key Details</h4>
+<pre><code>$TTL 7200
+@ IN SOA ns1.example.com. admin.example.com. (
+    2026031801 ; serial (YYYYMMDDnn format)
+    3600       ; refresh
+    1800       ; retry   ← seconds secondary waits after failed sync
+    3600000    ; expire
+    3600 )     ; minimum TTL
+
+www  IN A    192.168.18.59
+mail IN A    192.168.18.59
+@    IN NS   ns1.example.com.
+@    IN MX 10 mail          ← priority 10 = preferred
+@    IN MX 20 mail.example.com.  ← priority 20 = fallback
+ftp  IN CNAME www</code></pre>
+
+<p><strong>Key zone file details:</strong></p>
+<ul>
+  <li><code>@</code> symbol matches the domain name itself (e.g. routes example.com rather than www.example.com).</li>
+  <li><strong>Serial</strong> format: <code>YYYYMMDDnn</code>. Example: serial <code>2001102002</code> was created on 20 October 2001 (<em>nn</em> = the 2nd change that day).</li>
+  <li><strong>RETRY field:</strong> seconds a secondary nameserver waits before retrying after a failed synchronisation attempt.</li>
+  <li><strong>Zone transfer:</strong> the process of copying DNS entries from a primary server to a secondary server. Uses TCP.</li>
+  <li><strong>TTL:</strong> controls how long clients cache DNS responses before refreshing.</li>
+  <li><strong>Non-authoritative answer:</strong> served from cache rather than directly from the authoritative server.</li>
+  <li><strong>Reverse DNS:</strong> uses the <code>in-addr.arpa</code> domain. Address is reversed: <code>4.3.2.1.in-addr.arpa</code> resolves the PTR for <code>1.2.3.4</code>.</li>
+</ul>
+
+<h4>Glue Records &amp; CNAME Restrictions</h4>
+<div class="note">
+  <strong>Glue Record:</strong> When an NS record points to a subdomain of the same zone (e.g. <code>ns1.up.ac.za</code> for the <code>up.ac.za</code> zone), the parent zone must also provide an A record for that nameserver. This "glue" prevents a circular dependency — otherwise you'd need the IP of the server to ask the server for its own IP.
+</div>
+<div class="warn">
+  <strong>CNAME restriction:</strong> A CNAME record must always point to another domain name — never directly to an IP address. Furthermore, MX records should never point to a CNAME; they must point to an A or AAAA record.
+</div>
+
+<h3 id="dns-resolution">Name Resolution: Recursive vs Iterative</h3>
+<div id="demo-dns" class="demo">
+  <div class="demo-header">Demo — DNS Resolution Simulator</div>
+  <div class="demo-body">
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap">
+      <button onclick="dnsSimulate('recursive')">Recursive Query</button>
+      <button onclick="dnsSimulate('iterative')">Iterative Query</button>
+      <button class="secondary" onclick="dnsReset()">Reset</button>
+    </div>
+    <div id="dns-steps" style="font-size:0.88rem;line-height:1.9;"></div>
+  </div>
+</div>
+
+<ul>
+  <li><strong>Recursive:</strong> The DNS server behaves like a personal assistant — does all the legwork and only returns the final answer (the IP) to the client.</li>
+  <li><strong>Iterative:</strong> The DNS server behaves like a receptionist — says "I don't know, but ask that server" and provides a referral pointer. Root servers strictly use this method to avoid being overloaded.</li>
+</ul>
+<p>In practice: client sends a recursive query to the ISP/corporate nameserver, which internally uses iterative queries to root and TLD servers.</p>
+
+<p><strong>13 root name servers:</strong> <code>a.root-servers.net</code> through <code>m.root-servers.net</code>. Their addresses are hardcoded into DNS software.</p>
+<div class="note">If the FQDNs of DNS root name servers are ordered lexicographically, the last entry is <strong>m.root-servers.net</strong>.</div>
+<div class="warn"><strong>Root server trap:</strong> Root name servers do NOT perform iterative, recursive, or non-authoritative name resolution — they merely return referrals/NS pointers to other servers. The bulk of resource records in root name servers are of type <strong>NS</strong>.</div>
+
+<h3 id="dns-traps">Zone File Tracing Logic (Exam Walkthroughs)</h3>
+<div class="warn"><strong>Iterative tracing:</strong> If a name server is strictly iterative and only has an NS record for a domain, asking it for an A or MX record will yield N/A (no address returned). You must follow the NS pointer to the next server.</div>
+<div class="note">A command like <code>set type=NS</code> followed by <code>com.</code> specifically asks for the NS record of the <code>com.</code> TLD.</div>
+<p><strong>nslookup tools:</strong> <code>nslookup</code> (Windows), <code>dig</code> (Linux). Use <code>server &lt;ip&gt;</code> inside nslookup to change the nameserver used.</p>
+
+<h2 id="dhcp">3.3 Bootstrapping Protocols</h2>
+<p><strong>DHCP</strong> (Dynamic Host Configuration Protocol): Used when computers boot to obtain configuration automatically.</p>
+<ul>
+  <li>Provides: IP address (with lease), default gateway, DNS server addresses, SMTP server addresses.</li>
+  <li>For diskless computers: also provides address of network boot image (loaded via TFTP).</li>
+</ul>
+<p><strong>TFTP</strong> (Trivial File Transfer Protocol): Very simple protocol used to retrieve files via the network. The protocol a diskless computer uses to transfer an OS image from a server at boot. Uses <strong>UDP</strong>.</p>
+
+<h2 id="snmp">3.4 Network Management Protocols</h2>
+<h3>SNMP — Simple Network Management Protocol</h3>
+<p>Most popular network management protocol. Uses variables to represent network state/config.</p>
+<div class="note"><strong>An SNMP agent is BOTH a client and a server</strong> — it pushes Traps as a client, and accepts Get/Set configuration reads/writes as a server. ("More than one of the above" in MCQs.)</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:0.75rem 0">
+  <div style="border:1px solid #d1d5db;border-radius:4px;padding:0.75rem">
+    <strong>Manager → Agent (polling)</strong>
+    <table style="margin-top:0.4rem">
+      <tr><td><code>Get</code></td><td>Retrieve a variable's value</td></tr>
+      <tr><td><code>GetNext</code></td><td>Retrieve next variable</td></tr>
+      <tr><td><code>GetBulk</code></td><td>Retrieve multiple variables</td></tr>
+      <tr><td><code>Set</code></td><td>Change a variable's value</td></tr>
+    </table>
+  </div>
+  <div style="border:1px solid #d1d5db;border-radius:4px;padding:0.75rem">
+    <strong>Agent → Manager (alerts)</strong>
+    <table style="margin-top:0.4rem">
+      <tr><td><code>Trap</code></td><td>Push critical alert (no acknowledgement expected)</td></tr>
+      <tr><td><code>Inform</code></td><td>Like Trap but expects acknowledgement</td></tr>
+    </table>
+  </div>
+</div>
+<h3>CMIP — Common Management Information Protocol</h3>
+<p>ISO OSI counterpart to SNMP. More powerful; primarily used in telecommunications. CMOT = CMIP over TCP/IP. Managed entities = Network Elements (NEs); management system = Element Management System (EMS). SNMP, CMIP, and CMOT are all valid network management protocol examples.</p>
+
+<h2 id="ldap">3.5 Directory Access Protocols</h2>
+<h3>X.500</h3>
+<p>OSI standard for directory services (introduced by the CCITT). Organises data in a Directory Information Tree (DIT).</p>
+<table>
+  <tr><th>Component</th><th>Role</th></tr>
+  <tr><td>DSA</td><td>Directory System Agent — manages the tree/subtree</td></tr>
+  <tr><td>DUA</td><td>Directory User Agent — queries the DSA</td></tr>
+  <tr><td>DAP</td><td>Directory Access Protocol (DUA↔DSA)</td></tr>
+  <tr><td>DSP</td><td>Directory Systems Protocol (DSA↔DSA)</td></tr>
+</table>
+<p><strong>Distinguished Name (DN):</strong> Unique path in the DIT, e.g. <code>{C=ZA, O=SANDF, OU=Air Force, CN=Col Burger}</code></p>
+
+<h3>X.509 — Public Key Certificates</h3>
+<p>Part of the X.500 series. Implements a public key infrastructure (PKI) for encryption purposes.</p>
+<table>
+  <tr><th>Operation</th><th>Keys Used</th><th>Purpose</th></tr>
+  <tr><td>Encrypt for confidentiality</td><td>Recipient's public key</td><td>Only recipient can decrypt (with private key)</td></tr>
+  <tr><td>Sign for authentication</td><td>Sender's private key</td><td>Anyone can verify with sender's public key</td></tr>
+  <tr><td>Both confidential + signed</td><td>Recipient's public + sender's private</td><td>Confidential AND authenticated</td></tr>
+</table>
+<p><strong>Certificate Authorities (CAs):</strong> Trusted third parties who sign public keys. Certificate chain: User cert → intermediate CA → root CA. Root CAs are pre-trusted (built into browsers).</p>
+<div class="note">Mark Shuttleworth founded Thawte (SA) — one of the first trusted CAs in browsers. Later acquired by VeriSign.</div>
+
+<h3>LDAP — Lightweight Directory Access Protocol</h3>
+<p>Simplified version of X.500 DAP. Widely used for authentication and directory services (e.g. Microsoft Active Directory). Enables <strong>single sign-on</strong>.</p>
+<ul>
+  <li>Base DN uses X.500 notation (<code>c=ZA, o=Example</code>) or DNS components (<code>dc=example, dc=za</code>).</li>
+  <li><strong>LDIF</strong> (LDAP Data Interchange Format, RFC 2849): standard format for migrating LDAP data between servers.</li>
+</ul>
+
+<h2 id="routing">3.6 Gateway Protocols (Routing)</h2>
+<table>
+  <tr><th>Term</th><th>Meaning</th></tr>
+  <tr><td>Cost</td><td>Metric assigned to links — monetary, congestion, speed, or hop count. Primary metric for IGPs.</td></tr>
+  <tr><td>Hop count</td><td>Number of links traversed from source to destination</td></tr>
+  <tr><td>IGP</td><td>Interior Gateway Protocol — within an autonomous system. Decision by cost. Examples: RIP, OSPF.</td></tr>
+  <tr><td>EGP</td><td>Exterior Gateway Protocol — between autonomous systems. Decision by policy. Prime example: <strong>BGP</strong> (Border Gateway Protocol).</td></tr>
+  <tr><td>AS</td><td>Autonomous System — network under a single administrative domain</td></tr>
+</table>
+
+<h3 id="dijkstra">Dijkstra's Algorithm (used by OSPF)</h3>
+<p><strong>Characteristics:</strong> Greedy, static/non-adaptive, centralised. Finds shortest paths from a single source to all nodes.</p>
+<ol>
+  <li><strong>Start:</strong> put source in 'Done' set. Record cost and predecessor for each neighbour.</li>
+  <li><strong>Greedy selection:</strong> from 'Candidates', pick the node with lowest known total cost from source → move to 'Done'.</li>
+  <li><strong>Update:</strong> for each unvisited neighbour of the newly added node, if new path cost &lt; current known cost, update.</li>
+  <li><strong>Repeat</strong> until all nodes are in 'Done'. Evaluate neighbours of the <em>entire finalised set</em> to find the absolute cheapest next step.</li>
+</ol>
+
+<div id="demo-routing" class="demo">
+  <div class="demo-header">Demo — Dijkstra's &amp; Bellman-Ford Interactive</div>
+  <div class="demo-body">
+    <div id="routing-demo">
+      <div class="container">
+        <div class="tabs">
+          <button class="tab active" onclick="switchAlgo('dijkstra')">Dijkstra's</button>
+          <button class="tab" onclick="switchAlgo('bellman')">Bellman-Ford</button>
+        </div>
+        <div id="algo-meta" class="algo-meta"></div>
+        <div class="controls">
+          <button class="btn primary" onclick="start()" id="btn-start">&#9654; Run</button>
+          <button class="btn" onclick="stepForward()" id="btn-step">Step &rarr;</button>
+          <button class="btn" onclick="reset()" id="btn-reset">&#8634; Reset</button>
+          <label class="speed-label">Speed: <input type="range" min="100" max="1200" value="600" id="speed" step="100" style="width:80px; vertical-align:middle"></label>
+          <span class="step-counter" id="step-counter"></span>
+        </div>
+        <div class="panel">
+          <canvas id="gc" width="420" height="320"></canvas>
+          <div class="info-panel">
+            <p class="section-title">Distances from S</p>
+            <table class="dist-table">
+              <thead><tr><th>Node</th><th>Dist</th><th>Via</th></tr></thead>
+              <tbody id="dist-body"></tbody>
+            </table>
+            <div class="log" id="log-box"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>OSPF — Open Shortest Path First (IGP)</h3>
+<ul>
+  <li>Each router stores the entire network topology as a Link-State Database (LSDB).</li>
+  <li>LSDB is flooded to all routers — all routers broadcast their <strong>version of the network topology</strong>.</li>
+  <li>Each router independently runs Dijkstra's algorithm on the LSDB.</li>
+  <li>Only sends LSDB updates when topology changes — more efficient than RIP's periodic full broadcasts.</li>
+  <li>Networks divided into areas; border routers summarise area info for inter-area efficiency.</li>
+</ul>
+
+<h3 id="bellman">Bellman-Ford Algorithm (used by RIP)</h3>
+<p><strong>Characteristics:</strong> Distributed, adaptive. Can handle <strong>negative edge weights</strong> (unlike Dijkstra).</p>
+<p>Each router maintains a routing table: ⟨destination, next-hop, cost⟩. Routers exchange tables and update their own. If router <em>r1</em> receives from <em>r2</em> that <em>r2</em> can reach destination <em>d</em> in <em>h</em> hops, then <em>r1</em> knows it can reach <em>d</em> in <em>h+1</em> hops via <em>r2</em>.</p>
+<div class="warn"><strong>'Count to infinity' problem:</strong> Bellman-Ford suffers from this — when a link goes down, nodes may slowly increment cost toward infinity before converging. This is Bellman-Ford's distinguishing weakness.</div>
+
+<h3>RIP — Routing Information Protocol</h3>
+<p>Implements Bellman-Ford. Uses <strong>hop count</strong> as metric (max 15 hops; 16 = infinity = unreachable).</p>
+<ul>
+  <li>Routers periodically broadcast/multicast their routing tables.</li>
+  <li>Any receiving router knows it is 1 hop away from the broadcasting router.</li>
+  <li>Easy to deploy: no manual configuration needed — starts learning immediately.</li>
+</ul>
+<div class="note"><strong>RIP cost calculation (exam question):</strong> If router <em>r</em> sends its routing table to router <em>s</em>, and <em>r</em> says it can reach network <em>n</em> at a cost of 5 — what is the cost from <em>s</em> to <em>n</em>? Answer: <strong>6</strong> (cost from r to n + the 1 hop from s to r).</div>
+<div class="warn"><strong>Security concern:</strong> An intruder could broadcast false short routes to redirect traffic.</div>
+
+<h2 id="traps">⚠ Exam Traps</h2>
+<div class="warn"><strong>Root servers use iterative only</strong> — they return NS referrals; they do not recursively resolve names or return non-authoritative answers.</div>
+<div class="warn"><strong>SNMP agent = client AND server</strong>. It pushes Traps (client) and responds to Get/Set (server). Answer is "more than one of the above".</div>
+<div class="warn"><strong>BGP is the EGP example</strong>. RIP and OSPF are IGPs. BGP operates between autonomous systems and makes decisions based on policies, not cost.</div>
+<div class="warn"><strong>DNS port 53 uses both TCP and UDP</strong> — UDP for standard lookups, TCP for zone transfers. Don't say just one.</div>
+<div class="warn"><strong>tech.za does not exist.</strong> nom.za is for individuals. .co.za registration requires no SA citizenship.</div>
+
+<script>
+function dnsSimulate(type) {
+  const el = document.getElementById('dns-steps');
+  if (type === 'recursive') {
+    el.innerHTML = `
+      <div>1. 🖥️ <strong>Client</strong> → ISP resolver: <em>"What is the IP of www.example.co.za?"</em></div>
+      <div>2. 🔄 ISP resolver → Root server (a.root-servers.net): <em>"What is the IP of www.example.co.za?"</em></div>
+      <div>3. ↩️ Root → ISP: <em>"Ask .za TLD server: 1.2.3.4"</em> (returns NS referral)</div>
+      <div>4. 🔄 ISP resolver → .za TLD (1.2.3.4): <em>"What is the IP of www.example.co.za?"</em></div>
+      <div>5. ↩️ .za TLD → ISP: <em>"Ask co.za server: 5.6.7.8"</em></div>
+      <div>6. 🔄 ISP resolver → co.za NS (5.6.7.8): <em>"What is the IP of www.example.co.za?"</em></div>
+      <div>7. ✅ co.za NS → ISP resolver: <em>"192.168.18.59"</em></div>
+      <div>8. ✅ ISP resolver → Client: <em>"192.168.18.59"</em> (cached for TTL duration)</div>
+      <div style="margin-top:0.5rem;padding:0.4rem;background:#f0fdf4;border-radius:3px;color:#374151;font-size:0.85rem">The client only talks to the ISP resolver. The resolver does all the legwork — like a personal assistant. The resolver uses iterative queries internally to root/TLD servers.</div>`;
+  } else {
+    el.innerHTML = `
+      <div>1. 🖥️ <strong>Client</strong> → Root server: <em>"What is www.example.co.za?"</em></div>
+      <div>2. ↩️ Root → Client: <em>"I don't know, ask .za TLD at 1.2.3.4"</em> (Root servers ONLY use iterative)</div>
+      <div>3. 🖥️ Client → .za TLD (1.2.3.4): <em>"What is www.example.co.za?"</em></div>
+      <div>4. ↩️ .za TLD → Client: <em>"Ask co.za NS at 5.6.7.8"</em></div>
+      <div>5. 🖥️ Client → co.za NS (5.6.7.8): <em>"What is www.example.co.za?"</em></div>
+      <div>6. ✅ co.za NS → Client: <em>"192.168.18.59"</em></div>
+      <div style="margin-top:0.5rem;padding:0.4rem;background:#f0fdf4;border-radius:3px;color:#374151;font-size:0.85rem">The client queries each server itself — like a receptionist handing off. More work for the client, but full visibility. Root servers <strong>always</strong> use this method to avoid being overloaded.</div>`;
+  }
+}
+function dnsReset() {
+  document.getElementById('dns-steps').innerHTML = 'Click a button to simulate a DNS lookup for <strong>www.example.co.za</strong>.';
+}
+dnsReset();
+
+// Routing algorithm interactive demo
+const INF = 1e9;
+const NODES = {
+  S: {x:60,  y:160, label:'S'},
+  A: {x:160, y:60,  label:'A'},
+  B: {x:160, y:260, label:'B'},
+  C: {x:270, y:60,  label:'C'},
+  D: {x:270, y:260, label:'D'},
+  E: {x:370, y:160, label:'E'},
+};
+const EDGES_POS = [
+  {u:'S',v:'A',w:4},{u:'S',v:'B',w:2},
+  {u:'A',v:'C',w:3},{u:'A',v:'B',w:1},
+  {u:'B',v:'D',w:5},{u:'C',v:'E',w:2},
+  {u:'D',v:'E',w:1},{u:'A',v:'D',w:8},
+];
+const EDGES_NEG = [
+  {u:'S',v:'A',w:4},{u:'S',v:'B',w:2},
+  {u:'A',v:'C',w:3},{u:'A',v:'B',w:-2},
+  {u:'B',v:'D',w:5},{u:'C',v:'E',w:2},
+  {u:'D',v:'E',w:1},{u:'A',v:'D',w:8},
+];
+let algo='dijkstra', edges=EDGES_POS;
+let steps=[], stepIdx=0, running=false, timer=null;
+let dist={}, prev={}, highlighted={}, relaxed={}, visitedNodes=new Set(), activeNode=null, activeEdge=null;
+const canvas=document.getElementById('gc'), ctx=canvas.getContext('2d');
+const isDark=()=>matchMedia('(prefers-color-scheme: dark)').matches;
+function getColors(){
+  return {
+    node: isDark()?'#3c3a36':'#f1efe8',
+    nodeBorder: '#888780',
+    nodeText: isDark()?'#e0ddd4':'#2c2c2a',
+    edge: isDark()?'rgba(180,178,169,0.35)':'rgba(96,95,90,0.35)',
+    edgeLabel: isDark()?'#b4b2a9':'#5f5e5a',
+    visited: isDark()?'#0c447c':'#b5d4f4',
+    visitedBorder: '#185fa5',
+    active: isDark()?'#854f0b':'#faeeda',
+    activeBorder: isDark()?'#EF9F27':'#BA7517',
+    activeEdge: '#EF9F27',
+    relaxEdge: '#185fa5',
+    negEdge: '#c0392b',
+    source: isDark()?'#0f6e56':'#e1f5ee',
+    sourceBorder:'#1D9E75',
+    done: isDark()?'#3b6d11':'#eaf3de',
+    doneBorder:'#639922',
+  };
+}
+
+function buildDijkstraSteps(){
+  const d={}, p={}, vis=new Set();
+  const nodeNames=Object.keys(NODES);
+  nodeNames.forEach(n=>{d[n]=INF;p[n]=null;});
+  d['S']=0;
+  const steps=[];
+  steps.push({type:'init',dist:{...d},prev:{...p},log:'Initialize: dist[S]=0, all others = \u221e',visited:new Set()});
+  for(let i=0;i<nodeNames.length;i++){
+    let u=null;
+    nodeNames.forEach(n=>{if(!vis.has(n)&&(u===null||d[n]<d[u]))u=n;});
+    if(u===null||d[u]===INF) break;
+    vis.add(u);
+    steps.push({type:'pick',node:u,dist:{...d},prev:{...p},visited:new Set(vis),log:`Pick unvisited node with smallest dist: ${u} (dist=${d[u]===INF?'\u221e':d[u]})`});
+    const neighbors=edges.filter(e=>e.u===u||e.v===u);
+    for(const e of neighbors){
+      const v=e.u===u?e.v:e.u;
+      if(vis.has(v)) continue;
+      const nd=d[u]+e.w;
+      if(nd<d[v]){
+        const old=d[v];
+        d[v]=nd; p[v]=u;
+        steps.push({type:'relax',node:v,from:u,edge:e,dist:{...d},prev:{...p},visited:new Set(vis),
+          log:`Relax ${u}\u2192${v}: ${old===INF?'\u221e':old} > ${d[u]}+${e.w}=${nd} \u2713 update`});
+      } else {
+        steps.push({type:'norelax',node:v,from:u,edge:e,dist:{...d},prev:{...p},visited:new Set(vis),
+          log:`Check ${u}\u2192${v}: ${d[v]} \u2264 ${d[u]}+${e.w}=${nd}, no update`});
+      }
+    }
+  }
+  steps.push({type:'done',dist:{...d},prev:{...p},visited:new Set(vis),log:'Done! Shortest paths found.'});
+  return steps;
+}
+
+function buildBellmanSteps(){
+  const d={}, p={};
+  const nodeNames=Object.keys(NODES);
+  nodeNames.forEach(n=>{d[n]=INF;p[n]=null;});
+  d['S']=0;
+  const steps=[];
+  steps.push({type:'init',dist:{...d},prev:{...p},log:'Initialize: dist[S]=0, all others = \u221e',visited:new Set()});
+  const V=nodeNames.length;
+  for(let i=1;i<V;i++){
+    steps.push({type:'iter',iter:i,dist:{...d},prev:{...p},visited:new Set(),log:`Iteration ${i} of ${V-1}: scan all edges`});
+    for(const e of edges){
+      if(d[e.u]===INF) continue;
+      const nd=d[e.u]+e.w;
+      if(nd<d[e.v]){
+        const old=d[e.v];
+        d[e.v]=nd; p[e.v]=e.u;
+        steps.push({type:'relax',node:e.v,from:e.u,edge:e,dist:{...d},prev:{...p},visited:new Set(),
+          log:`Relax ${e.u}\u2192${e.v}: ${old===INF?'\u221e':old} > ${d[e.u]}+${e.w}=${nd} \u2713`});
+      }
+    }
+  }
+  let negCycle=false;
+  for(const e of edges){
+    if(d[e.u]!==INF && d[e.u]+e.w<d[e.v]){negCycle=true;break;}
+  }
+  if(negCycle){
+    steps.push({type:'negcycle',dist:{...d},prev:{...p},visited:new Set(),log:'\u26a0 Negative cycle detected on extra scan!'});
+  } else {
+    steps.push({type:'done',dist:{...d},prev:{...p},visited:new Set(),log:'Done! All shortest paths found (no negative cycles).'});
+  }
+  return steps;
+}
+
+function reset(){
+  clearInterval(timer); running=false;
+  edges=algo==='dijkstra'?EDGES_POS:EDGES_NEG;
+  steps=algo==='dijkstra'?buildDijkstraSteps():buildBellmanSteps();
+  stepIdx=0;
+  dist={}; prev={}; highlighted={}; relaxed={}; visitedNodes=new Set(); activeNode=null; activeEdge=null;
+  Object.keys(NODES).forEach(n=>{dist[n]=INF; prev[n]=null;});
+  dist['S']=0;
+  document.getElementById('btn-start').disabled=false;
+  document.getElementById('btn-step').disabled=false;
+  document.getElementById('log-box').innerHTML='<span style="color:#6b7280">Press Run or Step to begin.</span>';
+  document.getElementById('step-counter').textContent='';
+  renderDistTable(dist, prev, new Set(), null, null);
+  draw(null, null, new Set(), {});
+}
+
+function applyStep(s){
+  dist={...s.dist}; prev={...s.prev}; visitedNodes=s.visited||new Set();
+  activeNode=s.node||null;
+  activeEdge=s.edge||null;
+  relaxed={};
+  if(s.type==='relax') relaxed[s.node]=true;
+  document.getElementById('step-counter').textContent=`Step ${stepIdx} / ${steps.length-1}`;
+  const logBox=document.getElementById('log-box');
+  const cls=s.type==='relax'?'relax':s.type==='negcycle'?'neg':s.type==='done'?'done':'step';
+  logBox.innerHTML+=`<div class="${cls}">${s.log}</div>`;
+  logBox.scrollTop=logBox.scrollHeight;
+  renderDistTable(dist, prev, visitedNodes, activeNode, relaxed);
+  draw(activeNode, activeEdge, visitedNodes, relaxed);
+  if(s.type==='done'||s.type==='negcycle'){
+    clearInterval(timer); running=false;
+    document.getElementById('btn-start').disabled=true;
+  }
+}
+
+function stepForward(){
+  if(stepIdx>=steps.length) return;
+  applyStep(steps[stepIdx]);
+  stepIdx++;
+}
+
+function start(){
+  if(running) return;
+  running=true;
+  document.getElementById('btn-start').disabled=true;
+  const speed=()=>parseInt(document.getElementById('speed').value);
+  timer=setInterval(()=>{
+    if(stepIdx>=steps.length){clearInterval(timer);running=false;return;}
+    applyStep(steps[stepIdx]); stepIdx++;
+  }, 1600-speed());
+}
+
+function switchAlgo(a){
+  algo=a;
+  document.querySelectorAll('#routing-demo .tab').forEach((t,i)=>{t.classList.toggle('active',['dijkstra','bellman'][i]===a);});
+  const meta=document.getElementById('algo-meta');
+  if(a==='dijkstra'){
+    meta.innerHTML='<strong>Dijkstra\'s</strong> \u2014 greedy, visits nodes in order of shortest known dist. Uses positive-weight edges only. O((V+E) log V) with a priority queue.<span class="badge badge-pos">No negative weights</span>';
+  } else {
+    meta.innerHTML='<strong>Bellman-Ford</strong> \u2014 relaxes all edges V-1 times. Handles negative weights, detects negative cycles. O(VE).<span class="badge badge-neg">Negative edge: A\u2192B = -2</span>';
+  }
+  reset();
+}
+
+function renderDistTable(d, p, vis, active, rlx){
+  const body=document.getElementById('dist-body');
+  body.innerHTML='';
+  Object.keys(NODES).forEach(n=>{
+    const tr=document.createElement('tr');
+    if(n==='S') tr.className='source';
+    else if(rlx&&rlx[n]) tr.className='updated';
+    const dv=d[n]===INF?'\u221e':d[n];
+    const pv=p[n]||'-';
+    tr.innerHTML=`<td>${n}</td><td class="${dv==='\u221e'?'inf':''}">${dv}</td><td>${pv}</td>`;
+    body.appendChild(tr);
+  });
+}
+
+function draw(activeN, activeE, vis, rlx){
+  const C=getColors();
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  edges.forEach(e=>{
+    const s=NODES[e.u], t=NODES[e.v];
+    const isActive=activeE&&((activeE.u===e.u&&activeE.v===e.v));
+    const isNeg=e.w<0;
+    ctx.save();
+    ctx.strokeStyle=isActive?(isNeg?C.negEdge:C.relaxEdge):isNeg?'rgba(192,57,43,0.5)':C.edge;
+    ctx.lineWidth=isActive?2.5:1.5;
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(t.x,t.y); ctx.stroke();
+    const angle=Math.atan2(t.y-s.y,t.x-s.x);
+    const r=22, ax=t.x-r*Math.cos(angle), ay=t.y-r*Math.sin(angle);
+    ctx.fillStyle=ctx.strokeStyle;
+    ctx.beginPath();
+    ctx.moveTo(ax,ay);
+    ctx.lineTo(ax-8*Math.cos(angle-0.4),ay-8*Math.sin(angle-0.4));
+    ctx.lineTo(ax-8*Math.cos(angle+0.4),ay-8*Math.sin(angle+0.4));
+    ctx.closePath(); ctx.fill();
+    const mx=(s.x+t.x)/2, my=(s.y+t.y)/2;
+    const offset=12;
+    const nx=-(t.y-s.y), ny=(t.x-s.x), mag=Math.sqrt(nx*nx+ny*ny);
+    const lx=mx+offset*nx/mag, ly=my+offset*ny/mag;
+    ctx.fillStyle=isNeg?C.negEdge:C.edgeLabel;
+    ctx.font=`${isActive?500:400} 12px system-ui,sans-serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(e.w,lx,ly);
+    ctx.restore();
+  });
+  Object.entries(NODES).forEach(([n,pos])=>{
+    const isActive=n===activeN;
+    const isVis=vis.has(n);
+    const isRlx=rlx&&rlx[n];
+    const isSrc=n==='S';
+    ctx.save();
+    let fill, border;
+    if(isSrc){ fill=C.source; border=C.sourceBorder; }
+    else if(isActive){ fill=C.active; border=C.activeBorder; }
+    else if(isRlx){ fill='#e6f1fb'; border='#185fa5'; }
+    else if(isVis){ fill=isDark()?'#085041':'#9fe1cb'; border=C.doneBorder; }
+    else { fill=C.node; border=C.nodeBorder; }
+    ctx.beginPath();
+    ctx.arc(pos.x,pos.y,20,0,Math.PI*2);
+    ctx.fillStyle=fill;
+    ctx.fill();
+    ctx.strokeStyle=border;
+    ctx.lineWidth=isActive?2.5:1.5;
+    ctx.stroke();
+    ctx.fillStyle=isActive||isSrc||isVis||isRlx?border:C.nodeText;
+    ctx.font=`500 14px system-ui,sans-serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(n,pos.x,pos.y);
+    const dv=dist[n]===INF?'\u221e':dist[n];
+    ctx.fillStyle=C.edgeLabel;
+    ctx.font=`400 11px system-ui,sans-serif`;
+    ctx.fillText(dv,pos.x,pos.y+33);
+    ctx.restore();
+  });
+}
+
+switchAlgo('dijkstra');
+</script>
+</body>
+</html>

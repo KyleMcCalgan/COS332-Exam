@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ch 4 — Presentation Layer · COS332</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="breadcrumb"><a href="index.html">COS332</a><span>›</span> Chapter 4</nav>
+<h1>Chapter 4: The Presentation Layer (Layer 6)</h1>
+<p class="subtitle">Encoding, compression, encryption, and data formats.</p>
+
+<ul class="toc">
+  <li><a href="#text">4.1 Representing Text &amp; Character Sets</a></li>
+  <li class="sub"><a href="#utf8">UTF-8 Encoding (with traps)</a></li>
+  <li class="sub"><a href="#extended-ascii">Extended ASCII Trap</a></li>
+  <li class="sub"><a href="#charset-neg">Charset Negotiation</a></li>
+  <li><a href="#markup">4.2 Markup Languages</a></li>
+  <li><a href="#bnf">4.3 Grammar (BNF/ABNF/ASN.1)</a></li>
+  <li><a href="#nontextual">4.4 Non-Textual Data</a></li>
+  <li><a href="#mime">4.5 MIME (highly tested)</a></li>
+  <li><a href="#formats">4.6 Data Exchange Formats</a></li>
+  <li><a href="#compression">4.7 Compression</a></li>
+  <li class="sub"><a href="#rle">RLE</a></li>
+  <li class="sub"><a href="#lz">Lempel-Ziv</a></li>
+  <li class="sub"><a href="#huffman">Huffman Codes</a></li>
+  <li><a href="#encryption">4.8 Encryption</a></li>
+  <li><a href="#traps">⚠ Exam Traps</a></li>
+  <li><a href="#demo-utf8">Demo: UTF-8 Encoder</a></li>
+  <li><a href="#demo-base64">Demo: Base64 Calculator</a></li>
+  <li><a href="#demo-rle">Demo: RLE Compression</a></li>
+  <li><a href="#demo-huffman">Demo: Huffman Builder</a></li>
+</ul>
+
+<h2 id="text">4.1 Representing Text &amp; Character Sets</h2>
+<table>
+  <tr><th>Encoding</th><th>Bits</th><th>Notes</th></tr>
+  <tr><td>ASCII</td><td>7-bit</td><td>A=65, B=66. Standard English characters. 128 characters total.</td></tr>
+  <tr><td>EBCDIC</td><td>8-bit</td><td>Mainframe encoding; A=193. Incompatible with ASCII.</td></tr>
+  <tr><td>Fieldata</td><td>6-bit</td><td>Another legacy encoding — translated by L6.</td></tr>
+  <tr><td>ISO-8859-1 (Latin-1)</td><td>8-bit</td><td>"Extended ASCII" — adds 128 extra characters for Latin-script languages (Afrikaans, English, Nguni).</td></tr>
+  <tr><td>Unicode</td><td>variable</td><td>Covers almost every character in every language. A=65 (ASCII-compatible).</td></tr>
+</table>
+
+<h3 id="extended-ascii">Extended ASCII Trap</h3>
+<div class="warn">
+  <strong>Suppose computers A and B both use "extended ASCII" but have no character conversion mechanism. What challenges will they experience?</strong><br>
+  They will <strong>NOT</strong> misinterpret standard digits or the 26 Latin characters (identical across all extended sets).<br>
+  They will <strong>NOT</strong> misinterpret standard punctuation marks.<br>
+  They will <strong>NOT</strong> misinterpret HTML markup like <code>&amp;euml;</code> (markup relies on standard ASCII characters).<br>
+  The <strong>real challenge</strong>: they <em>will</em> misinterpret the actual extended characters (e.g. an ë might be rendered as α) because different extended ASCII sets map the upper 128 characters differently.
+</div>
+
+<h3 id="utf8">UTF-8 Encoding</h3>
+<p>Variable-length encoding of Unicode. Backwards-compatible with ASCII.</p>
+<table>
+  <tr><th>Bytes</th><th>Bit Pattern</th><th>Characters</th><th>Available bits</th></tr>
+  <tr><td>1</td><td><code>0xxxxxxx</code></td><td>0–127 (ASCII)</td><td>7 bits = 128 chars</td></tr>
+  <tr><td>2</td><td><code>110xxxxx 10xxxxxx</code></td><td></td><td>5+6 = 11 bits</td></tr>
+  <tr><td>3</td><td><code>1110xxxx 10xxxxxx 10xxxxxx</code></td><td></td><td>4+6+6 = 16 bits</td></tr>
+  <tr><td>4</td><td><code>11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</code></td><td></td><td>3+6+6+6 = 21 bits → 2²¹ characters</td></tr>
+</table>
+<p><strong>Trailing octets always start with <code>10</code>.</strong> This allows self-synchronisation: skip bytes starting with <code>10</code> to find the start of any character.</p>
+
+<div class="note">
+  <strong>Length from first octet (exam question):</strong> Suppose the first octet of a UTF-8 character is 193 in decimal. How long is the character? 193 = <code>11000001</code> in binary. Starts with <code>110</code> → the character is exactly <strong>2 octets</strong> long.
+</div>
+<div class="note">
+  <strong>Capacity calculation:</strong> How many Unicode characters can be represented in UTF-8 using exactly 4 bytes? Pattern: <code>11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</code>. Available x bits: 3+6+6+6 = 21. Therefore: <strong>2²¹ characters</strong>.
+</div>
+<div class="note">
+  <strong>Tracing a hex sequence:</strong> Consider <code>46 33 EA A7 98 20</code>. How many characters?<br>
+  <code>46</code> (01000110) → starts with 0 → <strong>1 char</strong><br>
+  <code>33</code> (00110011) → starts with 0 → <strong>1 char</strong><br>
+  <code>EA</code> (11101010) → starts with 1110 → expects 2 trailing octets → <code>A7</code> (10...) and <code>98</code> (10...) are valid trailers → <strong>1 char</strong><br>
+  <code>20</code> (00100000) → starts with 0 → <strong>1 char</strong><br>
+  Total = <strong>4 characters</strong>.
+</div>
+<div class="warn">
+  <strong>Self-synchronisation &amp; errors:</strong> Consider sequence <code>46 A7 20</code>. Why is this incorrect? <code>A7</code> = <code>10100111</code> — a trailing octet that is not preceded by a valid multi-byte leading octet. UTF-8 is self-synchronising: it simply <em>skips</em> the broken trailing octet and resyncs. Corrected sequence: <code>46 20</code> → 2 characters.
+</div>
+
+<div id="demo-utf8" class="demo">
+  <div class="demo-header">Demo — UTF-8 Encoder</div>
+  <div class="demo-body">
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;align-items:center">
+      <input type="text" id="utf8-input" value="Hello ê" style="width:16rem" oninput="encodeUtf8()" placeholder="Type any text…">
+    </div>
+    <div id="utf8-out" style="font-size:0.82rem;line-height:2;"></div>
+    <div style="font-size:0.78rem;color:#6b7280;margin-top:0.3rem">Hover over a character for binary. 🟢 1 byte (ASCII) | 🟡 2 bytes | 🟣 3+ bytes</div>
+  </div>
+</div>
+
+<h3 id="charset-neg">Character Encoding Negotiation</h3>
+<pre><code>Accept-Charset: iso-8859-1, utf-8, utf-16, *;q=0.1</code></pre>
+<ul>
+  <li>Higher <code>q</code> value = higher preference (default q=1.0).</li>
+  <li><code>*</code> is a wildcard matching <em>any</em> charset.</li>
+</ul>
+<div class="warn">
+  <strong>Wildcard trap:</strong> If the request is <code>Accept-Charset: iso-8859-1, utf-8, utf-16, *;q=0.1</code> and the server supports iso-8859-1, utf-8, and Shift_JIS — the server <em>may</em> encode using any of these, including Shift_JIS. The <code>*</code> wildcard makes Shift_JIS acceptable even though it has low preference 0.1.
+</div>
+
+<h2 id="markup">4.2 Markup Languages</h2>
+<p>Markup adds semantic meaning beyond raw character data.</p>
+<div class="note"><strong>Intent vs representation:</strong> Prefer <code>&lt;em&gt;</code> (emphasise) over <code>&lt;i&gt;</code> (italic). This separates <em>intent</em> from <em>representation</em> — an audio system can render emphasis as intonation; it cannot render italics.</div>
+<table>
+  <tr><th>Language</th><th>Use</th></tr>
+  <tr><td><strong>HTML</strong></td><td>Web pages. Tags: <code>&lt;h1&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;img&gt;</code>. CSS controls styling separately.</td></tr>
+  <tr><td><strong>XML</strong></td><td>Structured data exchange. Well-formed (syntax) and valid (against DTD/schema). Human-readable but verbose.</td></tr>
+  <tr><td><strong>SOAP</strong></td><td>Enables structured information exchange between distributed objects (Web Services). Uses XML envelopes.</td></tr>
+  <tr><td><strong>XBRL</strong></td><td>eXtensible Business Reporting Language — for financial reporting.</td></tr>
+</table>
+
+<h2 id="bnf">4.3 Grammar-Based Specification</h2>
+<ul>
+  <li><strong>BNF</strong> — Backus-Naur Form (developed for Algol by Backus and Naur).</li>
+  <li><strong>ABNF</strong> — Augmented Backus-Naur Form. The HTTP protocol is specified using <strong>ABNF</strong> (not EBNF — a common exam trap).</li>
+  <li><strong>EBNF</strong> — Extended BNF (different from ABNF; offered as a trap in exams).</li>
+</ul>
+<pre><code>Request-Line = Method SP Request-URI SP HTTP-Version CRLF
+Method       = "OPTIONS" | "GET" | "HEAD" | "POST" | "PUT" | ...
+CRLF         = CR LF</code></pre>
+
+<h3>ASN.1 — Abstract Syntax Notation One</h3>
+<p>Formal notation for structured data (like a struct). Used in SNMP and X.509. Abstract — doesn't specify encoding. Encoding rules are separate:</p>
+<table>
+  <tr><th>Encoding Rules</th><th>Used by</th></tr>
+  <tr><td>BER (Basic Encoding Rules)</td><td>SNMP</td></tr>
+  <tr><td>DER (Distinguished Encoding Rules)</td><td>X.509</td></tr>
+  <tr><td>XER (XML Encoding Rules)</td><td>Various</td></tr>
+</table>
+<pre><code>Courses ::= SET {
+  code       VisibleString,
+  courseName VisibleString,
+  mark       INTEGER
+}</code></pre>
+<p>ASN.1 is more compact than XML but not human-readable without tools.</p>
+
+<h2 id="nontextual">4.4 Non-Textual Data</h2>
+<p>The presentation layer identifies <strong>type</strong>, <strong>encoding</strong>, and <strong>structure</strong>:</p>
+<ul>
+  <li>Data type → category (text, image, audio)</li>
+  <li>Encoding → specific format (UTF-8, JPEG, MP3)</li>
+  <li>Markup → metadata (HTML tags, <strong>EXIF</strong> geo-tags — embedded metadata in photographs: shutter speed, GPS location)</li>
+  <li>Application-level format → domain-specific (SOAP envelope, XBRL)</li>
+</ul>
+
+<h2 id="mime">4.5 MIME — Multipurpose Internet Mail Extensions</h2>
+<p>Originally for email; now widely used in HTTP. Solves sending non-ASCII data over 7-bit ASCII channels.</p>
+
+<h3>Valid MIME Top-Level Types (Highly Tested!)</h3>
+<div class="note">
+  <strong>VALID top-level MIME types:</strong> <code>application</code>, <code>audio</code>, <code>example</code>, <code>image</code>, <code>message</code>, <strong><code>model</code></strong>, <code>multipart</code>, <code>text</code>, <code>video</code>.<br>
+  <strong>INVALID (exam traps):</strong> <code>data</code>, <code>binary</code>, <code>text/text</code>, <code>vnd</code>.<br>
+  Note: <strong>model</strong> is often used as the correct answer because students forget it exists.
+</div>
+
+<h3>Common Content-Types</h3>
+<table>
+  <tr><th>Type</th><th>Examples</th></tr>
+  <tr><td>text</td><td>text/plain, text/html, text/xml</td></tr>
+  <tr><td>image</td><td>image/jpeg, image/png</td></tr>
+  <tr><td>audio</td><td>audio/mpeg (MP3), audio/x-ms-wma (WMA)</td></tr>
+  <tr><td>video</td><td>video/mp4</td></tr>
+  <tr><td>application</td><td>application/msword, <strong>application/xhtml+xml</strong> (WAP)</td></tr>
+  <tr><td>multipart/mixed</td><td>Different types of parts (e.g. text + attachment). If email = HTML + JPG, the MIME type of the whole message is <strong>multipart/mixed</strong>.</td></tr>
+  <tr><td>multipart/alternative</td><td>Same content in different formats — client picks the best one (e.g. plain text + HTML of same email)</td></tr>
+</table>
+<div class="note">Multipart content uses a <strong>boundary</strong> parameter — a long, random string that marks the breaks between parts. It is critical that this string does not accidentally appear in the actual payload.</div>
+
+<h3>Content-Transfer-Encoding</h3>
+<p>Old protocols like SMTP were designed strictly for 7-bit ASCII lines. Binary data breaks them. MIME uses this header to safely encode data.</p>
+<table>
+  <tr><th>Encoding</th><th>Description</th></tr>
+  <tr><td>7bit / 8bit / binary</td><td>Identity transformations — no change to the data; just declares the format to the lower layer.</td></tr>
+  <tr><td><strong>base64</strong></td><td>Transforms 8-bit binary to safe 7-bit ASCII. Takes 3 bytes (24 bits) → 4 characters (6 bits each). Common for attachments. Use for PNG/JPEG via SMTP.</td></tr>
+  <tr><td><strong>quoted-printable</strong></td><td>Encodes but keeps text human-readable. Normal ASCII stays as-is. Special chars encoded as <code>=XX</code> (hex). <code>=</code> itself becomes <code>=3D</code>. <code>ABC</code> could be <code>=41=42=43</code>.</td></tr>
+</table>
+<div class="warn"><strong>Which encoding for a PNG via SMTP?</strong> Answer: <strong>base64</strong>.</div>
+
+<h3>Base64 Padding — The Rule of 3</h3>
+<p>Data is processed in groups of <strong>3 bytes (24 bits)</strong> → <strong>4 characters (6 bits each)</strong>.</p>
+<table>
+  <tr><th>Remaining bytes</th><th>Action</th><th>Padding</th></tr>
+  <tr><td>0 (exact multiple of 3)</td><td>No padding needed</td><td>None</td></tr>
+  <tr><td>1 byte left (8 bits)</td><td>Add 4 zero bits → 12 bits → 2 characters</td><td><code>==</code></td></tr>
+  <tr><td>2 bytes left (16 bits)</td><td>Add 2 zero bits → 18 bits → 3 characters</td><td><code>=</code></td></tr>
+</table>
+
+<div id="demo-base64" class="demo">
+  <div class="demo-header">Demo — Base64 Step-by-Step Calculator</div>
+  <div class="demo-body">
+    <p style="font-size:0.88rem;color:#6b7280;margin-bottom:0.5rem">Shows the full encoding process (binary → 6-bit groups → Base64 characters).</p>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;align-items:center">
+      <input type="text" id="b64-input" value="Man" style="width:14rem" placeholder="Enter text (ASCII only for step-by-step)">
+      <button onclick="encodeB64Step()">Show Steps</button>
+      <button class="secondary" onclick="setB64('Man')">Man</button>
+      <button class="secondary" onclick="setB64('Ma')">Ma (1 pad)</button>
+      <button class="secondary" onclick="setB64('M')">M (2 pads)</button>
+    </div>
+    <div id="b64-steps" style="font-size:0.85rem;line-height:1.8;"></div>
+  </div>
+</div>
+
+<h3>Quoted-Printable — Soft Line Breaks</h3>
+<p>Used to ensure email systems don't break long lines of text:</p>
+<ul>
+  <li>Lines are restricted to <strong>76 characters</strong>.</li>
+  <li><strong>Soft break:</strong> An <code>=</code> is placed at the very end of a line (no visible content).</li>
+  <li>When the client sees the trailing <code>=</code>, it ignores the line break and joins the text back together.</li>
+</ul>
+<pre><code>This is a very long line that needs to be =
+wrapped here for compatibility with old email systems.</code></pre>
+
+<h3>Practical Content Examples (from exam questions)</h3>
+<table>
+  <tr><th>Scenario</th><th>Content-Type</th><th>Notes</th></tr>
+  <tr><td>WAP page</td><td><code>application/xhtml+xml</code></td><td>Often compressed with <code>Content-Encoding: gzip</code> — payload looks like binary gibberish</td></tr>
+  <tr><td>WMA audio</td><td><code>audio/x-ms-wma</code></td><td>Container format: wraps music + DRM + XML-encoded metadata together</td></tr>
+  <tr><td>MP3 audio</td><td><code>audio/mpeg</code></td><td>Uses ID3 tags for metadata (artist, title, album). No DRM — allows limitless copying.</td></tr>
+  <tr><td>Email: HTML + JPG attachment</td><td><code>multipart/mixed</code></td><td>Outer = multipart/mixed; inner body = multipart/alternative (plain + HTML); attachment as base64</td></tr>
+</table>
+
+<h2 id="formats">4.6 Data Exchange Formats</h2>
+<p><strong>Container formats:</strong> Wrap multiple content pieces + metadata (e.g. WMA wraps audio + DRM + codec info). Key question: does the container support <em>streaming</em>?</p>
+<p><strong>Serialisation:</strong> Converts data structures to linear sequences for storage/transfer.</p>
+<p><strong>Interchange formats:</strong> CSV, XML, LDIF (LDAP, RFC 2849), MBX (email mailboxes), JSON, ASN.1.</p>
+<div class="note"><strong>n² converter problem:</strong> With n formats, you need n² converters for all pairs. A universal format reduces this to 2n converters (each format only converts to/from universal).</div>
+
+<h2 id="compression">4.7 Compression</h2>
+<table>
+  <tr><th>Type</th><th>Description</th><th>Examples</th></tr>
+  <tr><td><strong>Lossless</strong></td><td>Exact original recoverable</td><td>RLE, LZ, Huffman — required for text and financial data</td></tr>
+  <tr><td><strong>Lossy</strong></td><td>Some information discarded</td><td>JPEG — acceptable for multimedia</td></tr>
+</table>
+
+<h3 id="rle">Run-Length Encoding (RLE)</h3>
+<p>Replaces runs of repeated characters with count + character. Format: <code>&lt;ESC&gt;&lt;count&gt;&lt;char&gt;</code></p>
+<p>Example: 28 spaces → <code>&lt;ESC&gt;&lt;28&gt;&lt;space&gt;</code></p>
+<p><strong>Bit-based RLE:</strong> encode as sequence of run lengths (alternating 0s and 1s). First bit assumed 0 (if not, first run length = 0).</p>
+<p>Example: <code>000011100000111000000</code> → <code>4,3,5,3,6</code></p>
+<div class="warn">Efficient only for long runs. Short runs can <em>increase</em> data size.</div>
+
+<div id="demo-rle" class="demo">
+  <div class="demo-header">Demo — RLE Compression</div>
+  <div class="demo-body">
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;align-items:center">
+      <input type="text" id="rle-input" value="AAAABBBCCDAAAAA" style="width:18rem" placeholder="e.g. AAAABBBCC">
+      <button onclick="doRle()">Compress</button>
+    </div>
+    <div id="rle-out" style="font-size:0.9rem;"></div>
+  </div>
+</div>
+
+<h3 id="lz">Lempel-Ziv Compression</h3>
+<p>Finds repeated phrases/byte sequences and replaces subsequent occurrences with pointers to earlier occurrences.</p>
+<ul>
+  <li>Format: <code>&lt;ESC&gt;&lt;pointer&gt;&lt;length&gt;</code></li>
+  <li>Relative pointers (e.g. 16-bit = can reference up to 64KB back).</li>
+  <li>Minimum phrase length worth compressing = size of the pointer.</li>
+  <li>Variants: LZ77, LZ78, LZW (Welch). Basis for gzip, ZIP, PNG.</li>
+</ul>
+
+<h3 id="huffman">Huffman Codes</h3>
+<p>Variable-length codes where frequent characters get shorter codes and rare characters get longer codes.</p>
+<ol>
+  <li>Treat each character as a leaf node with its frequency as weight.</li>
+  <li>Repeatedly combine the two lowest-frequency trees into a new tree (parent = sum of children). Label branches 0 and 1.</li>
+  <li>Repeat until one tree remains.</li>
+  <li>Read code for each character by following path from root to leaf.</li>
+</ol>
+<p><strong>Example from notes (A=20%, B=10%, C=20%, D=15%, E=35%):</strong></p>
+<pre><code>Step 1: Combine B(10%) + D(15%) → BD(25%)
+Step 2: Combine A(20%) + C(20%) → AC(40%)
+Step 3: Combine BD(25%) + E(35%) → BDE(60%)
+Step 4: Combine AC(40%) + BDE(60%) → root(100%)
+
+Result: A=00, B=100, C=01, D=101, E=11
+(E = most frequent → shortest code 2 bits; B = least frequent → longest 3 bits)</code></pre>
+
+<div id="demo-huffman" class="demo">
+  <div class="demo-header">Demo — Huffman Code Builder</div>
+  <div class="demo-body">
+    <div id="huff-inputs" style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.5rem"></div>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+      <button onclick="buildHuffman()">Build Codes</button>
+      <button class="secondary" onclick="resetHuffman()">Reset to Example</button>
+    </div>
+    <div id="huff-steps" style="margin-top:0.75rem;font-size:0.85rem;line-height:1.8;"></div>
+    <div id="huff-codes" style="margin-top:0.5rem;"></div>
+  </div>
+</div>
+
+<h2 id="encryption">4.8 Encryption</h2>
+<table>
+  <tr><th>Type</th><th>Layer</th><th>What's encrypted</th><th>Notes</th></tr>
+  <tr><td>Endpoint encryption</td><td>L6 (Presentation)</td><td>Application data only</td><td>Headers (source/dest IP, port) remain visible → traffic analysis still possible</td></tr>
+  <tr><td>Link encryption</td><td>L2 (Data Link)</td><td>Everything per link</td><td>Decrypted and re-encrypted at each hop. Solves traffic analysis but complicates key management.</td></tr>
+  <tr><td>TLS/SSL</td><td>L4 (Transport)</td><td>Application payload</td><td>Used in HTTPS. IPsec handles link-layer encryption.</td></tr>
+</table>
+
+<h3>4.9 Layer 6 Utilities</h3>
+<pre><code>mimencode -b file.jpg > file.b64     # encode to base64
+mimencode -u file.b64 > file.jpg     # decode from base64
+mimencode -q file.txt > file.qp      # encode to quoted-printable</code></pre>
+
+<h2 id="traps">⚠ Exam Traps</h2>
+<div class="warn"><strong>HTTP uses ABNF — NOT EBNF.</strong> EBNF is frequently given as a trap option. HTTP is specified using Augmented Backus-Naur Form (ABNF).</div>
+<div class="warn"><strong>model is a valid MIME top-level type.</strong> Students forget it. Exam often uses it as the correct answer. Invalid types: data, binary, text/text, vnd.</div>
+<div class="warn"><strong>Base64 encoding for PNG/images:</strong> Always use base64 when transferring binary data (images, files) via SMTP. Quoted-printable is for text content that needs to stay human-readable.</div>
+<div class="warn"><strong>Extended ASCII trap:</strong> Standard ASCII chars (digits, 26 Latin letters, standard punctuation, HTML markup) remain correct between different extended ASCII sets. Only the <em>actual extended characters</em> (the upper 128) are misinterpreted.</div>
+<div class="warn"><strong>UTF-8 length from first byte:</strong> 0=1 byte, 110=2 bytes, 1110=3 bytes, 11110=4 bytes. Trailing bytes always start with 10. Four-byte UTF-8 can represent 2²¹ characters (3+6+6+6 = 21 x bits).</div>
+
+<script>
+// UTF-8 encoder
+function encodeUtf8() {
+  const text = document.getElementById('utf8-input').value;
+  const encoder = new TextEncoder();
+  let html = '';
+  for (const ch of text) {
+    const cp = ch.codePointAt(0);
+    const chBytes = encoder.encode(ch);
+    const hex = Array.from(chBytes).map(b => b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
+    const bin = Array.from(chBytes).map(b => b.toString(2).padStart(8,'0')).join(' ');
+    const nbytes = chBytes.length;
+    const color = nbytes === 1 ? '#059669' : nbytes === 2 ? '#d97706' : '#7c3aed';
+    const emoji = nbytes === 1 ? '🟢' : nbytes === 2 ? '🟡' : '🟣';
+    html += `<span style="display:inline-block;margin:2px 3px;padding:2px 6px;border:1px solid ${color};border-radius:3px;font-family:monospace;font-size:0.82rem" title="U+${cp.toString(16).toUpperCase().padStart(4,'0')} | ${bin}"><span style="color:${color};font-weight:600">${ch}</span> <span style="color:#6b7280">${hex}</span></span>`;
+  }
+  document.getElementById('utf8-out').innerHTML = html || '<span style="color:#9ca3af">Start typing above</span>';
+}
+encodeUtf8();
+
+// Base64 step calculator
+const B64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+function setB64(v) { document.getElementById('b64-input').value = v; encodeB64Step(); }
+function encodeB64Step() {
+  const text = document.getElementById('b64-input').value;
+  if (!text) return;
+  const bytes = [];
+  for (let i = 0; i < text.length; i++) bytes.push(text.charCodeAt(i));
+  let html = `<div><strong>Input:</strong> "${text}" → ASCII bytes: [${bytes.join(', ')}]</div>`;
+  html += `<div>Binary: ${bytes.map(b => b.toString(2).padStart(8,'0')).join(' ')}</div>`;
+  html += '<br>';
+  // Process in groups of 3
+  let result = '';
+  for (let i = 0; i < bytes.length; i += 3) {
+    const group = bytes.slice(i, i+3);
+    const isLast = i + 3 >= bytes.length;
+    const remaining = group.length;
+    let bits = group.map(b => b.toString(2).padStart(8,'0')).join('');
+    let padBits = 0;
+    if (remaining === 1) { bits += '0000'; padBits = 4; }
+    else if (remaining === 2) { bits += '00'; padBits = 2; }
+    const groups6 = [];
+    for (let j = 0; j < bits.length; j += 6) groups6.push(bits.slice(j, j+6));
+    const chars = groups6.map(g => B64_CHARS[parseInt(g,2)]);
+    let encoded = chars.join('');
+    let pads = '';
+    if (remaining === 1) pads = '==';
+    else if (remaining === 2) pads = '=';
+    html += `<div>Group ${Math.floor(i/3)+1}: bytes [${group.join(', ')}]${padBits?` + ${padBits} padding zero bits`:''}`;
+    html += `<br>&nbsp;&nbsp;Bits: <code>${bits}</code>`;
+    html += `<br>&nbsp;&nbsp;6-bit groups: ${groups6.map((g,i)=>`<code>${g}</code>=${parseInt(g,2)}=${B64_CHARS[parseInt(g,2)]}`).join(', ')}`;
+    html += `<br>&nbsp;&nbsp;Result: <strong style="color:#2563eb">${encoded}${pads}</strong></div>`;
+    result += encoded + pads;
+  }
+  html += `<br><div style="font-size:1rem;font-weight:600">Final Base64: <code style="color:#2563eb">${result}</code></div>`;
+  document.getElementById('b64-steps').innerHTML = html;
+}
+encodeB64Step();
+
+// RLE
+function doRle() {
+  const s = document.getElementById('rle-input').value;
+  if (!s) return;
+  let result = '';
+  let count = 1;
+  let steps = '';
+  for (let i = 1; i <= s.length; i++) {
+    if (i < s.length && s[i] === s[i-1]) {
+      count++;
+    } else {
+      if (count > 1) { result += count + s[i-1]; steps += `<span style="color:#2563eb">${count}×${s[i-1]}</span> `; }
+      else { result += s[i-1]; steps += `<span style="color:#374151">${s[i-1]}</span> `; }
+      count = 1;
+    }
+  }
+  const ratio = (result.length / s.length * 100).toFixed(0);
+  document.getElementById('rle-out').innerHTML =
+    `<div>Input: <code>${s}</code> (${s.length} chars)</div>
+     <div>Compressed: <code>${result}</code> (${result.length} chars)</div>
+     <div>Size: ${ratio}% of original ${ratio < 100 ? '✅ smaller' : '⚠️ larger — short runs increase size!'}</div>
+     <div style="margin-top:0.3rem;font-size:0.82rem;color:#6b7280">Tokens: ${steps}</div>`;
+}
+doRle();
+
+// Huffman
+let huffData = [{ch:'A',freq:20},{ch:'B',freq:10},{ch:'C',freq:20},{ch:'D',freq:15},{ch:'E',freq:35}];
+function resetHuffman() {
+  huffData = [{ch:'A',freq:20},{ch:'B',freq:10},{ch:'C',freq:20},{ch:'D',freq:15},{ch:'E',freq:35}];
+  renderHuffInputs();
+  document.getElementById('huff-steps').innerHTML = '';
+  document.getElementById('huff-codes').innerHTML = '';
+}
+function renderHuffInputs() {
+  const c = document.getElementById('huff-inputs');
+  c.innerHTML = huffData.map((d,i) =>
+    `<span style="display:inline-flex;align-items:center;gap:3px;border:1px solid #d1d5db;border-radius:4px;padding:3px 6px;background:#f9fafb">
+      <input type="text" value="${d.ch}" maxlength="3" style="width:2rem;text-align:center;border:none;background:none;font-weight:600" onchange="huffData[${i}].ch=this.value">
+      <input type="number" value="${d.freq}" min="1" style="width:3.5rem;border:none;background:none;text-align:right" onchange="huffData[${i}].freq=+this.value">%
+      <button onclick="huffData.splice(${i},1);renderHuffInputs()" style="background:none;border:none;cursor:pointer;color:#9ca3af;padding:0;font-size:0.8rem">✕</button>
+    </span>`
+  ).join('');
+  c.innerHTML += `<button class="secondary" onclick="huffData.push({ch:'?',freq:10});renderHuffInputs()" style="font-size:0.85rem">+ Add</button>`;
+}
+function buildHuffman() {
+  let queue = huffData.map(d => ({ label: d.ch, freq: d.freq, left: null, right: null }));
+  let steps = '';
+  let step = 1;
+  while (queue.length > 1) {
+    queue.sort((a,b) => a.freq - b.freq);
+    const left = queue.shift();
+    const right = queue.shift();
+    const merged = { label: `(${left.label}+${right.label})`, freq: left.freq + right.freq, left, right };
+    steps += `<div>Step ${step++}: combine <strong>${left.label}(${left.freq}%)</strong> + <strong>${right.label}(${right.freq}%)</strong> → ${merged.label}(${merged.freq}%)</div>`;
+    queue.push(merged);
+  }
+  const codes = {};
+  function traverse(node, code) {
+    if (!node.left && !node.right) { codes[node.label] = code || '0'; return; }
+    if (node.left) traverse(node.left, code + '0');
+    if (node.right) traverse(node.right, code + '1');
+  }
+  traverse(queue[0], '');
+  document.getElementById('huff-steps').innerHTML = steps;
+  let tableHtml = '<table><tr><th>Symbol</th><th>Freq</th><th>Code</th><th>Bits</th></tr>';
+  Object.keys(codes).sort((a,b) => codes[a].length - codes[b].length).forEach(ch => {
+    tableHtml += `<tr><td><strong>${ch}</strong></td><td>${huffData.find(d=>d.ch===ch)?.freq??'?'}%</td><td><code>${codes[ch]}</code></td><td>${codes[ch].length}</td></tr>`;
+  });
+  document.getElementById('huff-codes').innerHTML = tableHtml + '</table>';
+}
+resetHuffman();
+</script>
+</body>
+</html>

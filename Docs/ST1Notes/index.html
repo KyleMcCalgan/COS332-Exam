@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COS332 — Computer Networks</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>COS332 — Computer Networks</h1>
+<p class="subtitle">Study Notes · Based on <em>Computer Network Fundamentals — a Local Top-down Approach</em> (Olivier, 2025)</p>
+
+<div class="card-grid">
+  <a href="ch1-osi.html" class="card">
+    <div class="card-num">Chapter 1</div>
+    <div class="card-title">The ISO OSI Reference Model</div>
+    <div class="card-desc">Seven layers, data units, encapsulation, and standards bodies.</div>
+  </a>
+  <a href="ch2-app-user.html" class="card">
+    <div class="card-num">Chapter 2</div>
+    <div class="card-title">Application Layer — User Protocols</div>
+    <div class="card-desc">Email (SMTP/POP3/IMAP), Telnet, SSH, FTP, HTTP, and traffic sniffing.</div>
+  </a>
+  <a href="ch3-app-network.html" class="card">
+    <div class="card-num">Chapter 3</div>
+    <div class="card-title">Application Layer — Network Protocols</div>
+    <div class="card-desc">DNS, DHCP, SNMP, X.500/LDAP, routing protocols (RIP, OSPF, Dijkstra, Bellman-Ford).</div>
+  </a>
+  <a href="ch4-presentation.html" class="card">
+    <div class="card-num">Chapter 4</div>
+    <div class="card-title">The Presentation Layer</div>
+    <div class="card-desc">Character encodings, markup, MIME, compression (RLE, LZ, Huffman), and encryption.</div>
+  </a>
+  <a href="practicals.html" class="card">
+    <div class="card-num">Practicals 1–3</div>
+    <div class="card-title">Socket Programming</div>
+    <div class="card-desc">TCP/UDP clients and servers, Telnet appointment server, HTTP world clock server.</div>
+  </a>
+</div>
+
+<h2>Quick Reference</h2>
+<h3>Well-Known Ports</h3>
+<table>
+  <tr><th>Protocol</th><th>Port</th><th>Notes</th></tr>
+  <tr><td>FTP Data</td><td>20</td><td>Active mode data transfer</td></tr>
+  <tr><td>FTP Control</td><td>21</td><td>Authentication &amp; commands</td></tr>
+  <tr><td>SSH</td><td>22</td><td>Chosen between FTP(21) and Telnet(23)</td></tr>
+  <tr><td>Telnet</td><td>23</td><td>Cleartext — insecure</td></tr>
+  <tr><td>SMTP (MTA–MTA)</td><td>25</td><td>Server-to-server mail transfer</td></tr>
+  <tr><td>HTTP</td><td>80</td><td></td></tr>
+  <tr><td>POP3</td><td>110</td><td></td></tr>
+  <tr><td>IMAP4</td><td>143</td><td></td></tr>
+  <tr><td>HTTPS</td><td>443</td><td></td></tr>
+  <tr><td>SMTP (Submission)</td><td>587</td><td>MUA to MTA</td></tr>
+</table>
+
+<h3>OSI Layers at a Glance</h3>
+<div class="layer l7"><div class="layer-num">7</div><div class="layer-content"><span class="layer-name">Application</span> <span class="layer-desc">— HTTP, SMTP, FTP, DNS, SNMP</span></div></div>
+<div class="layer l6"><div class="layer-num">6</div><div class="layer-content"><span class="layer-name">Presentation</span> <span class="layer-desc">— Encoding, compression, encryption, MIME</span></div></div>
+<div class="layer l5"><div class="layer-num">5</div><div class="layer-content"><span class="layer-name">Session</span> <span class="layer-desc">— Session establishment, synchronisation</span></div></div>
+<div class="layer l4"><div class="layer-num">4</div><div class="layer-content"><span class="layer-name">Transport</span> <span class="layer-desc">— TCP (reliable) / UDP (unreliable), ports, segments</span></div></div>
+<div class="layer l3"><div class="layer-num">3</div><div class="layer-content"><span class="layer-name">Network</span> <span class="layer-desc">— Routing, IP addresses, datagrams</span></div></div>
+<div class="layer l2"><div class="layer-num">2</div><div class="layer-content"><span class="layer-name">Data Link</span> <span class="layer-desc">— Framing, MAC, error detection, Ethernet</span></div></div>
+<div class="layer l1"><div class="layer-num">1</div><div class="layer-content"><span class="layer-name">Physical</span> <span class="layer-desc">— Bits, media, signalling, topology</span></div></div>
+
+</body>
+</html>

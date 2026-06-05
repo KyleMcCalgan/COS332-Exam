@@ -1,0 +1,65 @@
+Question 1
+
+ 1 C A C E B
+
+ 6 A A E B A
+
+11 D D E C D
+
+16 E A E D A
+
+
+
+Question 2
+
+a) .edu
+
+b) Name resolution
+
+c) Delegation
+
+d) ZADNA
+
+e) ICANN or IANA
+
+
+
+Question 3
+
+a) Q, 21
+
+b) Q, 18
+
+c) P, 12
+
+d) P, 24 (This was intended as the 'hard' question in the paper)
+
+e) Z, 7
+
+
+
+Question 4
+
+(a) (i) C3 A4
+
+  (ii) CE 9E
+
+ (iii) E1 9E 9F
+
+  (iv) F0 9F A6 A7
+
+ (b) U+FEEF, U+00AA, U+0AAA, mark first three values
+
+
+
+Question 5
+
+a) Indicates success (200) and protocol version (1.1)
+
+b) Indicates MIME type of content in response body (text/html)
+
+c) Separates response header from response body
+
+d) Indicates HTML version used in response body (v5)
+
+e) Provide the response header, without the response body

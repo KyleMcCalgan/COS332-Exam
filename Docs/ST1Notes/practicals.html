@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Practicals 1–3 · COS332</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="breadcrumb"><a href="index.html">COS332</a><span>›</span> Practicals</nav>
+<h1>Practicals 1–3: Socket Programming</h1>
+<p class="subtitle">TCP/UDP clients and servers, Telnet appointment server, HTTP world clock.</p>
+
+<ul class="toc">
+  <li><a href="#sockets">Socket Programming Overview</a></li>
+  <li><a href="#client">Building a Client</a></li>
+  <li><a href="#server">Building a Server</a></li>
+  <li><a href="#prac1">Practical 1 — Protocol Basics</a></li>
+  <li><a href="#prac2">Practical 2 — Telnet Appointment Server</a></li>
+  <li><a href="#prac3">Practical 3 — HTTP World Clock</a></li>
+  <li><a href="#tips">General Notes &amp; WSL Tips</a></li>
+  <li><a href="#traps">⚠ Exam Traps</a></li>
+  <li><a href="#demo-http-format">Demo: HTTP Response Builder</a></li>
+  <li><a href="#demo-telnet">Demo: Protocol Dialogue Tester</a></li>
+</ul>
+
+<h2 id="sockets">Socket Programming Overview</h2>
+<p>The practicals require implementing TCP/IP clients and/or servers using sockets — the OS abstraction for a specific port on a specific host.</p>
+<div class="note"><strong>Socket</strong> = IP address + port number (e.g. <code>192.168.0.1:80</code>). The OS allocates a temporary <strong>ephemeral port</strong> (49152–65535) for the client side of a connection.</div>
+
+<h2 id="client">Building a Client</h2>
+<p>A client initiates the connection. The server waits.</p>
+<ol>
+  <li>Open a client socket: specify the server's IP address and port.</li>
+  <li>Write/read to/from the socket as you would a file or stream. Follow the protocol's dialogue rules — order matters.</li>
+  <li>Close the socket when done.</li>
+</ol>
+<table>
+  <tr><th>Protocol</th><th>Notes</th></tr>
+  <tr><td>TCP</td><td>All three steps are explicit: SYN (connect), communicate, FIN (close).</td></tr>
+  <tr><td>UDP</td><td>All happens in one: specify destination and send datagram. No connection.</td></tr>
+</table>
+
+<pre><code>// Java TCP client skeleton
+Socket socket = new Socket("localhost", 8080);
+BufferedReader in  = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+PrintWriter   out  = new PrintWriter(socket.getOutputStream(), true);
+
+String serverGreeting = in.readLine();  // wait for server to speak first
+out.println("EHLO client.example.com");
+String response = in.readLine();
+socket.close();</code></pre>
+
+<h2 id="server">Building a Server</h2>
+<p>When writing an application that serves as a server in client-server architecture, the application must <strong>open a socket that waits for connections</strong>.</p>
+<ol>
+  <li>Request a server socket from the OS, specifying the port to listen on.</li>
+  <li>Wait (block) for a client to connect. When a connection occurs, the OS records the client's IP+port.</li>
+  <li>Read from and write to the socket, following the protocol dialogue.</li>
+  <li>Close the socket when done.</li>
+  <li>Loop back to wait for the next client.</li>
+</ol>
+<div class="note"><strong>Improved approach:</strong> Spawn a child process/thread to handle each client, so the server can accept new connections immediately while serving existing clients.</div>
+
+<pre><code>// Java TCP server skeleton
+ServerSocket serverSocket = new ServerSocket(8080);
+while (true) {
+    Socket client = serverSocket.accept();  // blocks until connection
+    // Spawn thread to handle this client (improved approach):
+    new Thread(() -> handleClient(client)).start();
+}
+
+void handleClient(Socket client) {
+    BufferedReader in  = new BufferedReader(new InputStreamReader(client.getInputStream()));
+    PrintWriter   out  = new PrintWriter(client.getOutputStream(), true);
+    // ... protocol dialogue ...
+    client.close();
+}</code></pre>
+
+<h2 id="prac1">Practical 1 — Protocol Basics</h2>
+<p>Focus: understanding and implementing simple application-layer dialogue.</p>
+<ul>
+  <li>Distinction between client-initiated and server-initiated messages in a protocol.</li>
+  <li>How to parse protocol messages (grammar/syntax rules from the RFC).</li>
+  <li>Response codes: 2xx = success, 4xx/5xx = error.</li>
+  <li>The role of the <strong>blank line</strong> (CRLF) separating header from payload in HTTP.</li>
+  <li>Testing with Telnet: <code>telnet &lt;server&gt; &lt;port&gt;</code> then manually type protocol commands.</li>
+</ul>
+
+<h2 id="prac2">Practical 2 — Telnet Appointment Server</h2>
+<p>Build a Telnet server (on a custom port) that manages appointments.</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('prac2','design')">Design</button>
+  <button class="tab" onclick="showTab('prac2','java')">Java Tips</button>
+  <button class="tab" onclick="showTab('prac2','ansi')">ANSI Escapes</button>
+  <button class="tab" onclick="showTab('prac2','echo')">Echo Behaviour</button>
+</div>
+<div id="prac2-design" class="tab-pane active">
+  <ul>
+    <li>Server waits for TCP connection on a specified port.</li>
+    <li>When client connects (via the <code>telnet</code> program), server displays a prompt or menu.</li>
+    <li>Client sends text commands; server processes and responds.</li>
+    <li>Server must handle the Telnet protocol dialogue (CRLF line endings, etc.).</li>
+  </ul>
+  <p>The specific service offered by the Telnet protocol is a <strong>virtual terminal</strong>.</p>
+  <p>To open a Telnet connection to a web server manually: <code>telnet www.example.com 80</code></p>
+</div>
+<div id="prac2-java" class="tab-pane">
+  <ul>
+    <li>Use <code>ServerSocket</code> to listen; <code>Socket</code> to communicate.</li>
+    <li>Use <code>BufferedReader</code>/<code>PrintWriter</code> on the socket.</li>
+    <li>Line termination: Telnet uses <code>\r\n</code> (CRLF). Strip <code>\r</code> (CR, ASCII 13) when reading; append <code>\r\n</code> when writing.</li>
+    <li>Run server in WSL: <code>java -cp . YourServer &amp;</code></li>
+    <li>Test: <code>telnet localhost &lt;port&gt;</code> from WSL or Windows.</li>
+  </ul>
+  <pre><code>// Reading with CRLF
+String line = in.readLine();         // readLine strips \n but not \r
+line = line.replace("\r", "");       // strip the leftover \r (ASCII 13)
+
+// Writing with CRLF
+out.print("250 OK\r\n");
+out.flush();</code></pre>
+  <p><strong>CR = ASCII 13 (<code>\r</code>), LF = ASCII 10 (<code>\n</code>).</strong> Both must be used for Telnet/HTTP line endings.</p>
+</div>
+<div id="prac2-ansi" class="tab-pane">
+  <p>The ESC character = ASCII 27 in decimal. "Dumb" terminals and Telnet emulators use ANSI escape sequences for formatting.</p>
+  <table>
+    <tr><th>Sequence</th><th>Effect</th></tr>
+    <tr><td><code>ESC[2J</code> i.e. <code>\033[2J</code></td><td>Clear screen</td></tr>
+    <tr><td><code>ESC[H</code></td><td>Move cursor to top-left</td></tr>
+    <tr><td><code>ESC[y;xH</code></td><td>Move cursor to row y, column x</td></tr>
+    <tr><td><code>ESC[1m</code></td><td>Bold</td></tr>
+    <tr><td><code>ESC[0m</code></td><td>Reset formatting</td></tr>
+  </table>
+  <p><strong>Java example</strong> — to print "Hello" on line 5 at position 20:</p>
+  <pre><code>screen.write(27);          // ESC character (ASCII 27)
+screen.print("[20;5HHello");  // move to col 20, row 5, then print</code></pre>
+</div>
+<div id="prac2-echo" class="tab-pane">
+  <div class="note">
+    <strong>Echo behaviour (exam tested):</strong><br>
+    When writing a server for a Telnet client, the server should normally <strong>echo every character received</strong>, because the client may not be able to echo typed characters locally.<br><br>
+    <strong>Double echo trap:</strong> If you turn <code>localecho</code> ON in your Telnet client while your custom server is ALSO echoing, you will see every character <strong>twice</strong>. Be careful during testing.<br><br>
+    <strong>Fix for invisible typing:</strong> If you can see output but cannot see what you TYPE, use <code>set localecho</code> in the Telnet client shell (accessed via the escape character <code>^]</code> i.e. Ctrl+]).
+  </div>
+</div>
+
+<div id="demo-telnet" class="demo">
+  <div class="demo-header">Demo — Protocol Dialogue Tester (Telnet-style)</div>
+  <div class="demo-body">
+    <p style="font-size:0.88rem;color:#6b7280;margin-bottom:0.5rem">Simulates a text-based protocol session. Choose a protocol and type commands.</p>
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap">
+      <select id="proto-select" onchange="protoChange()">
+        <option value="smtp">SMTP (port 25)</option>
+        <option value="pop3">POP3 (port 110)</option>
+        <option value="http">HTTP (port 80)</option>
+      </select>
+      <button class="secondary" onclick="clearLog()">Clear / Reset</button>
+    </div>
+    <div id="proto-log" class="output" style="min-height:8rem;max-height:14rem;overflow-y:auto"></div>
+    <div style="display:flex;gap:0.5rem;margin-top:0.4rem">
+      <input type="text" id="proto-cmd" style="flex:1" placeholder="Type a command and press Enter…" onkeydown="if(event.key==='Enter')sendCmd()">
+      <button onclick="sendCmd()">Send</button>
+    </div>
+    <div id="proto-hint" style="font-size:0.82rem;color:#6b7280;margin-top:0.3rem"></div>
+  </div>
+</div>
+
+<h2 id="prac3">Practical 3 — HTTP World Clock</h2>
+<p>Build an HTTP server that responds to GET requests and returns HTML pages showing world times.</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('prac3','design')">Design</button>
+  <button class="tab" onclick="showTab('prac3','java')">Java Tips</button>
+  <button class="tab" onclick="showTab('prac3','format')">HTTP Format</button>
+</div>
+<div id="prac3-design" class="tab-pane active">
+  <ul>
+    <li>Listen on a TCP port (e.g. 8080).</li>
+    <li>Accept a client connection (e.g. browser or curl).</li>
+    <li>Read the HTTP request: <code>GET /path HTTP/1.1</code> + headers, terminated by blank line.</li>
+    <li>Parse the request-line to extract the path.</li>
+    <li>Generate an appropriate HTTP response with correct headers.</li>
+    <li>Send the response and close the connection.</li>
+  </ul>
+  <p>A technically compliant web server <strong>must</strong> respond to at least <strong>GET and HEAD</strong> requests.</p>
+  <p><strong>Virtual hosting:</strong> The primary reason for the <code>Host:</code> header is to enable the server to host more than one site on the same IP address.</p>
+</div>
+<div id="prac3-java" class="tab-pane">
+  <ul>
+    <li>Use <code>ZonedDateTime</code> or <code>TimeZone</code> to get current time in different zones.</li>
+    <li>Generate HTML table or list showing times in multiple cities.</li>
+    <li>The path in the GET request can select which region to display.</li>
+    <li><strong>MIME type for HTML:</strong> <code>text/html; charset=UTF-8</code></li>
+    <li><strong>Content-Length:</strong> must be the <em>byte length</em> of the body — compute before sending.</li>
+  </ul>
+  <pre><code>// Get current time in a timezone
+ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Africa/Johannesburg"));
+String time = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
+
+// HTTP POST encoding (exam detail)
+// POST data sent as key=value pairs with spaces replaced by + and URL-encoding applied</code></pre>
+  <pre><code>// Testing
+curl http://localhost:8080/
+telnet www.example.com 80   // manual HTTP test (type GET / HTTP/1.0 then blank line)</code></pre>
+</div>
+<div id="prac3-format" class="tab-pane">
+  <p>Valid HTTP/1.0 request (method MUST be uppercase):</p>
+  <pre><code>GET / HTTP/1.0\r\n
+Host: www.up.ac.za\r\n
+\r\n</code></pre>
+  <p>HTTP response format:</p>
+  <pre><code>HTTP/1.1 200 OK\r\n
+Content-Type: text/html; charset=UTF-8\r\n
+Content-Length: &lt;byte-length-of-body&gt;\r\n
+Connection: close\r\n
+\r\n
+&lt;html&gt;...body...&lt;/html&gt;</code></pre>
+  <div class="note">CR = ASCII 13, LF = ASCII 10. Each header line must end with <code>\r\n</code>. The blank line separating headers from body is also <code>\r\n</code>.</div>
+</div>
+
+<div id="demo-http-format" class="demo">
+  <div class="demo-header">Demo — HTTP Response Builder</div>
+  <div class="demo-body">
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;align-items:center">
+      <select id="resp-status" onchange="buildResp()">
+        <option value="200">200 OK</option>
+        <option value="404">404 Not Found</option>
+        <option value="400">400 Bad Request</option>
+      </select>
+      <select id="resp-ct" onchange="buildResp()">
+        <option value="text/html; charset=UTF-8">text/html</option>
+        <option value="text/plain; charset=UTF-8">text/plain</option>
+        <option value="application/json">application/json</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:0.78rem;font-weight:600;color:#6b7280;text-transform:uppercase;margin-bottom:0.25rem">Body</div>
+        <textarea id="resp-body" rows="4" onkeyup="buildResp()"><html><body><h1>World Clock</h1><p>Africa/Johannesburg: 14:32</p></body></html></textarea>
+      </div>
+      <div style="flex:1;min-width:240px">
+        <div style="font-size:0.78rem;font-weight:600;color:#6b7280;text-transform:uppercase;margin-bottom:0.25rem">Full Response (with correct Content-Length)</div>
+        <div id="resp-out" class="output" style="min-height:8rem;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="tips">General Notes &amp; WSL Tips</h2>
+<ul>
+  <li>Read the RFC for the protocol you're implementing — it defines exactly what's valid.</li>
+  <li>Use <code>telnet &lt;host&gt; &lt;port&gt;</code> as a manual testing tool for any text-based protocol server.</li>
+  <li>Use Wireshark to compare your implementation's traffic with a standard client/server.</li>
+  <li>Pay attention to line endings: HTTP and Telnet use <code>\r\n</code> (CRLF), not just <code>\n</code>.</li>
+</ul>
+<table>
+  <tr><th>Command</th><th>Purpose</th></tr>
+  <tr><td><code>java -cp . YourServer &amp;</code></td><td>Run server in background in WSL</td></tr>
+  <tr><td><code>lsof -i :&lt;port&gt;</code></td><td>Check if server is listening on a port</td></tr>
+  <tr><td><code>netstat -tlnp</code></td><td>List all listening TCP ports</td></tr>
+  <tr><td><code>curl http://localhost:8080/</code></td><td>Test HTTP server</td></tr>
+  <tr><td><code>telnet localhost &lt;port&gt;</code></td><td>Test any text-based protocol server manually</td></tr>
+  <tr><td><code>tar cvf prac.tar *.java &amp;&amp; md5sum prac.tar</code></td><td>Package &amp; checksum for submission</td></tr>
+</table>
+
+<h2 id="traps">⚠ Exam Traps</h2>
+<div class="warn"><strong>Telnet escape character:</strong> Ctrl+] opens the Telnet client console. This is called the <em>escape character</em>. To exit: type <code>quit</code>.</div>
+<div class="warn"><strong>localecho double-echo trap:</strong> If <code>localecho</code> is ON in the client AND your server is also echoing characters, you will see every character twice during testing.</div>
+<div class="warn"><strong>GET method must be uppercase.</strong> <code>GET / HTTP/1.0</code> is valid; <code>get / HTTP/1.0</code> is not.</div>
+<div class="warn"><strong>Blank line is required</strong> after HTTP headers (and after SMTP header section) — it separates the header section from the payload.</div>
+<div class="warn"><strong>CGI mechanics:</strong> CGI writes to <em>standard output</em> to send to browser; reads an <em>environment variable set by the server</em> to receive input. These exact mechanics are frequently tested.</div>
+<div class="warn"><strong>CR is ASCII 13, LF is ASCII 10.</strong> Both required for proper Telnet/HTTP line endings — not just LF alone.</div>
+<div class="warn"><strong>A server MUST support GET and HEAD</strong> to be technically compliant. Other methods (POST, PUT, etc.) are optional.</div>
+
+<script>
+function showTab(group, id) {
+  document.querySelectorAll(`[id^="${group}-"]`).forEach(el => el.classList.remove('active'));
+  document.getElementById(`${group}-${id}`).classList.add('active');
+  document.querySelectorAll('.tabs').forEach(tc => {
+    tc.querySelectorAll('.tab').forEach(b => {
+      if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(`'${group}'`))
+        b.classList.toggle('active', b.getAttribute('onclick').includes(`'${id}'`));
+    });
+  });
+}
+
+// HTTP response builder
+function buildResp() {
+  const status = document.getElementById('resp-status').value;
+  const statusText = {200:'OK',404:'Not Found',400:'Bad Request'}[status];
+  const ct = document.getElementById('resp-ct').value;
+  const body = document.getElementById('resp-body').value;
+  const len = new TextEncoder().encode(body).length;
+  document.getElementById('resp-out').textContent =
+    `HTTP/1.1 ${status} ${statusText}\r\nContent-Type: ${ct}\r\nContent-Length: ${len}\r\nConnection: close\r\n\r\n${body}`;
+}
+buildResp();
+
+// Protocol tester
+const protocols = {
+  smtp: {
+    hint: 'Try: EHLO test | MAIL FROM:<a@b.com> | RCPT TO:<u@xx.co.za> | DATA | . | QUIT',
+    init: '220 localhost ESMTP ready',
+    state: { phase: 'greeting' },
+    respond(cmd, state) {
+      const c = cmd.trim().toUpperCase();
+      if (c.startsWith('EHLO') || c.startsWith('HELO')) return '250 OK (condition code 250 after EHLO/HELO)';
+      if (c.startsWith('MAIL FROM')) { state.phase = 'mail'; return '250 OK'; }
+      if (c.startsWith('RCPT TO')) return '250 OK';
+      if (c === 'DATA') { state.phase = 'data'; return '354 End data with <CRLF>.<CRLF>'; }
+      if (c === '.' && state.phase === 'data') { state.phase = 'done'; return '250 OK: Message queued'; }
+      if (c === 'QUIT') return '221 Bye';
+      if (state.phase === 'data') return null;
+      return '500 Unknown command';
+    }
+  },
+  pop3: {
+    hint: 'Try: USER alice | PASS secret | STAT | RETR 1 | DELE 1 | QUIT',
+    init: '+OK POP3 server ready',
+    state: { auth: false },
+    respond(cmd, state) {
+      const c = cmd.trim().toUpperCase();
+      if (c.startsWith('USER')) return '+OK';
+      if (c.startsWith('PASS')) { state.auth = true; return '+OK mailbox ready (2 messages, 3240 bytes)'; }
+      if (!state.auth) return '-ERR Not authenticated';
+      if (c === 'STAT') return '+OK 2 3240';
+      if (c === 'LIST') return '+OK\r\n1 1620\r\n2 1620\r\n.';
+      if (c.startsWith('RETR')) return '+OK 1620 octets\r\nFrom: alice@example.com\r\nSubject: Test\r\n\r\nHello!\r\n.';
+      if (c.startsWith('DELE')) return '+OK message marked for deletion (executed at QUIT)';
+      if (c === 'QUIT') return '+OK farewell (deletions now executed)';
+      return '-ERR Unknown command';
+    }
+  },
+  http: {
+    hint: 'Type: GET / HTTP/1.0   then press Enter twice (blank line to end request)',
+    init: '(Server waiting — type a valid HTTP request then a blank line)',
+    state: { lines: [] },
+    respond(cmd, state) {
+      if (cmd.trim() === '') {
+        if (state.lines.length === 0) return null;
+        const req = state.lines[0];
+        state.lines = [];
+        const m = req.match(/^(GET|HEAD|POST)\s+(\S+)\s+HTTP/);
+        if (!m) return 'HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\n\r\n';
+        if (m[1] === 'HEAD') return 'HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: 42\r\nConnection: close\r\n\r\n';
+        const body = `<html><body><h1>World Clock</h1><p>Path: ${m[2]}</p></body></html>`;
+        return `HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: ${body.length}\r\nConnection: close\r\n\r\n${body}`;
+      }
+      state.lines.push(cmd);
+      return null;
+    }
+  }
+};
+
+let currentProto = 'smtp';
+function protoChange() { currentProto = document.getElementById('proto-select').value; clearLog(); }
+function clearLog() {
+  const p = protocols[currentProto];
+  if (currentProto === 'smtp') p.state = {phase:'greeting'};
+  else if (currentProto === 'pop3') p.state = {auth:false};
+  else p.state = {lines:[]};
+  document.getElementById('proto-log').innerHTML = `<span style="color:#059669">S: ${p.init}</span>\n`;
+  document.getElementById('proto-hint').textContent = p.hint;
+}
+function sendCmd() {
+  const input = document.getElementById('proto-cmd');
+  const cmd = input.value;
+  input.value = '';
+  const log = document.getElementById('proto-log');
+  log.innerHTML += `<span style="color:#2563eb">C: ${cmd || '(blank line)'}</span>\n`;
+  const resp = protocols[currentProto].respond(cmd, protocols[currentProto].state);
+  if (resp) log.innerHTML += `<span style="color:#059669">S: ${resp}</span>\n`;
+  log.scrollTop = log.scrollHeight;
+}
+clearLog();
+</script>
+</body>
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ch 2 — Application Layer (User) · COS332</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="breadcrumb"><a href="index.html">COS332</a><span>›</span> Chapter 2</nav>
+<h1>Chapter 2: Application Layer — User-Oriented Protocols</h1>
+<p class="subtitle">Email, virtual terminals, file transfer, and the web.</p>
+
+<ul class="toc">
+  <li><a href="#arch">2.2 Network Architectures</a></li>
+  <li><a href="#email">2.3 Email Protocols (X.400, SMTP, POP3, IMAP4)</a></li>
+  <li><a href="#vterm">2.4 Virtual Terminal Protocols (Telnet, SSH, FTP)</a></li>
+  <li><a href="#web">2.5 The Web (HTTP, HTTPS, CGI)</a></li>
+  <li><a href="#other">2.6 Other Application Layer Protocols</a></li>
+  <li><a href="#sniff">2.7 Sniffing Traffic</a></li>
+  <li><a href="#traps">⚠ Exam Traps</a></li>
+  <li><a href="#demo-smtp">Demo: SMTP Dialogue</a></li>
+  <li><a href="#demo-http">Demo: HTTP Request/Response Builder</a></li>
+  <li><a href="#demo-ftp">Demo: FTP Active vs Passive</a></li>
+</ul>
+
+<h2 id="arch">2.2 Network Architectures</h2>
+<p>The application layer is the <em>raison d'être</em> (reason for existence) of the network. The way services are arranged is called the <strong>network architecture</strong>.</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('arch','cs')">Client-Server</button>
+  <button class="tab" onclick="showTab('arch','p2p')">Peer-to-Peer</button>
+  <button class="tab" onclick="showTab('arch','ntier')">N-Tier</button>
+</div>
+<div id="arch-cs" class="tab-pane active">
+  <p>The most prominent architecture. Servers listen for and accept orders from clients (like a restaurant waiter). The client <strong>always</strong> initiates communication.</p>
+  <ul>
+    <li>Server software runs continuously as a <strong>dæmon</strong> (e.g. <code>ftpd</code>, <code>httpd</code>).</li>
+    <li>To serve as a server, the application must open a <strong>socket</strong> that waits for connections.</li>
+    <li>Limitation: because the client always initiates, workarounds are needed when a server must notify a client.</li>
+  </ul>
+</div>
+<div id="arch-p2p" class="tab-pane">
+  <p>Nodes are peers — equals that can both initiate communication. No fixed server role.</p>
+  <ul>
+    <li><strong>Napster:</strong> early file-sharing P2P network — the classic exam example. Failed when Napster's index server was shut down; later P2P systems made the index distributed too.</li>
+    <li><strong>MANETs</strong> (Mobile Ad-hoc Sensor Networks): used in natural disasters where battery-powered nodes must dynamically configure themselves without a central server.</li>
+  </ul>
+  <div class="warn">Do NOT confuse P2P peers with 'peer layers' in the OSI model — different concept.</div>
+</div>
+<div id="arch-ntier" class="tab-pane">
+  <p>Extends client-server into more layers. Common is <strong>3-tier</strong>: client tier → server tier → back-end (database) tier. Separates business logic from data storage.</p>
+</div>
+
+<h2 id="email">2.3 Email Protocols</h2>
+
+<h3>X.400</h3>
+<p>ITU-T/OSI standard for email (Message Handling System). Designed to integrate with postal delivery. Address format uses: C (Country), ADMD, PRMD, O (Organisation), OU, G/I/S (Given/Initials/Surname).</p>
+<p>Example: <code>I=J;S=Doe;O=acme;OU=sales;A=sapo;C=za</code></p>
+<p>Still used today in <strong>EDI</strong> (Electronic Data Interchange) for structured business documents.</p>
+
+<h3 id="smtp">SMTP — Simple Mail Transfer Protocol (RFC 5321)</h3>
+<p>The dominant email transfer protocol. Uses Mail Transfer Agents (MTAs) and Mail User Agents (MUAs).</p>
+<table>
+  <tr><th>Port</th><th>Use</th></tr>
+  <tr><td><strong>25</strong></td><td>MTA-to-MTA (server-to-server). If SMTP server X forwards to server Y, server Y uses port 25.</td></tr>
+  <tr><td><strong>587</strong></td><td>Submission port — MUA to MTA (user submitting to first MTA).</td></tr>
+</table>
+<p><strong>Key commands &amp; details:</strong></p>
+<ul>
+  <li><code>EHLO</code> / <code>HELO</code> — greeting from client. After a successful <code>EHLO</code>/<code>HELO</code>, the server returns condition code <strong>250</strong>.</li>
+  <li><code>MAIL FROM: &lt;address&gt;</code> — identify sender</li>
+  <li><code>RCPT TO: &lt;address&gt;</code> — to send to <code>u@xx.co.za</code>, the command is <code>RCPT TO: u@xx.co.za</code></li>
+  <li><code>DATA</code> — begin body. Payload ends with a line containing only a full stop (<code>.</code>)</li>
+  <li><code>QUIT</code> — end session</li>
+</ul>
+<p><strong>Header vs body:</strong> An email consists of a header and a body, separated by a <strong>blank line</strong>.</p>
+<div class="warn"><strong>Transparency / dot-stuffing:</strong> The body ends when the client sends a full stop on a line of its own. Users should technically avoid this in email body text — but modern clients use "dot-stuffing" (prefixing a lone <code>.</code> with another <code>.</code>), making it practically safe.</div>
+<div class="danger">SMTP was not designed with security in mind — no built-in authentication for sending.</div>
+
+<div id="demo-smtp" class="demo">
+  <div class="demo-header">Demo — SMTP Dialogue Simulator</div>
+  <div class="demo-body">
+    <p style="font-size:0.88rem;color:#6b7280;margin-bottom:0.75rem">Step through a full SMTP session. Each click sends the next command/response.</p>
+    <div id="smtp-log" class="output" style="min-height:8rem;max-height:14rem;overflow-y:auto"></div>
+    <div style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+      <button onclick="smtpNext()">Next step →</button>
+      <button class="secondary" onclick="smtpReset()">Reset</button>
+    </div>
+    <div id="smtp-explain" style="margin-top:0.5rem;font-size:0.88rem;color:#374151;min-height:1.5rem"></div>
+  </div>
+</div>
+
+<h3 id="pop3">POP3 — Post Office Protocol v3 (RFC 1939)</h3>
+<p>Retrieves email from a mail server to the user's local machine. Assumes users manage mailboxes locally. Port <strong>110</strong>.</p>
+<div class="tabs">
+  <button class="tab active" onclick="showTab('pop','stage1')">Authorisation</button>
+  <button class="tab" onclick="showTab('pop','stage2')">Transaction</button>
+</div>
+<div id="pop-stage1" class="tab-pane active">
+  <pre><code>S: +OK POP3 server ready
+C: USER alice
+S: +OK
+C: PASS secret
+S: +OK mailbox locked and ready</code></pre>
+  <p>Also supports APOP (challenge-response authentication).</p>
+</div>
+<div id="pop-stage2" class="tab-pane">
+  <pre><code>C: STAT          → S: +OK 3 4321  (3 messages, 4321 bytes)
+C: RETR 1        → S: +OK [message text]
+C: DELE 1        → S: +OK message 1 marked for deletion
+C: QUIT          → S: +OK (deletions now executed)</code></pre>
+  <div class="note">Deletions are only performed at QUIT. Not suitable for multiple devices — messages are downloaded and removed from the server.</div>
+</div>
+
+<h3 id="imap">IMAP4 — Internet Message Access Protocol v4</h3>
+<p>Unlike POP3, IMAP4 is primarily intended to <strong>manipulate a mailbox on the server</strong>. Users manage complex folder structures remotely, set flags, and fetch specific parts of an email. Port <strong>143</strong>.</p>
+<table>
+  <tr><th>Command</th><th>Purpose</th></tr>
+  <tr><td>LOGIN</td><td>Authenticate</td></tr>
+  <tr><td>SELECT folder</td><td>Open a folder</td></tr>
+  <tr><td>FETCH n BODY</td><td>Retrieve message or specific part (BODY.PEEK, ENVELOPE, FLAGS)</td></tr>
+  <tr><td>STORE n +FLAGS (\Seen)</td><td>Set flags</td></tr>
+  <tr><td>EXPUNGE</td><td>Permanently delete \Deleted messages</td></tr>
+  <tr><td>LOGOUT</td><td>End session</td></tr>
+</table>
+<p><strong>Flags:</strong> <code>\Answered</code>, <code>\Flagged</code>, <code>\Deleted</code> (soft-delete until EXPUNGE), <code>\Seen</code>, <code>\Draft</code>.</p>
+
+<h2 id="vterm">2.4 Virtual Terminal Protocols</h2>
+
+<h3>Telnet</h3>
+<p>One of the oldest virtual terminal protocols. The specific service offered by Telnet is a <strong>virtual terminal</strong>. Port <strong>23</strong>.</p>
+<div class="danger"><strong>Major security flaw:</strong> username and password transmitted as <strong>cleartext</strong>. Anyone who can eavesdrop sees them.</div>
+
+<table>
+  <tr><th>Concept</th><th>Detail</th></tr>
+  <tr><td>Escape character</td><td>The client displays a character combination (<code>^]</code> i.e. Ctrl+]) to open the Telnet console. This is called the <strong>escape character</strong>.</td></tr>
+  <tr><td>localecho</td><td>By default, the remote server echoes back what you type. If you can see output but cannot see what you <em>type</em>, adjust <code>localecho</code> with <code>set localecho</code> in the client shell.</td></tr>
+  <tr><td>Manual HTTP test</td><td>To interact with www.example.com using HTTP manually: <code>telnet www.example.com 80</code></td></tr>
+</table>
+
+<p><strong>ANSI escape sequences</strong> (used for terminal formatting):</p>
+<table>
+  <tr><th>Sequence</th><th>Effect</th></tr>
+  <tr><td><code>ESC[2J</code></td><td>Clear screen (ESC = ASCII 27 decimal)</td></tr>
+  <tr><td><code>ESC[H</code></td><td>Move cursor to top-left</td></tr>
+  <tr><td><code>ESC[y;xH</code></td><td>Move cursor to row y, column x</td></tr>
+</table>
+<p><strong>Java example</strong> — print "Hello" on line 5 at position 20: <code>screen.write(27); screen.print("[20;5HHello");</code></p>
+<div class="note"><strong>Non-traditional use:</strong> Because many application layer protocols exchange simple character strings, a Telnet client is an invaluable tool for manually testing any text-based server: <code>telnet www.example.com 80</code>, then type HTTP commands. Use <code>set localecho</code> to see what you type.</div>
+
+<h3>SSH — Secure Shell</h3>
+<p>The secure, encrypted alternative to Telnet. Port <strong>22</strong> — requested by creator Tatu Ylonen specifically to sit between FTP (21) and Telnet (23).</p>
+<ul>
+  <li>Multiple authentication methods: password, public key, etc.</li>
+  <li>Used as a tunnelling protocol (e.g. for X.11 window system).</li>
+  <li><code>scp</code> for secure file transfers.</li>
+</ul>
+
+<h3 id="ftp">FTP — File Transfer Protocol (RFC 959)</h3>
+<p>Used for transferring files. Anonymous FTP allows public access using username <code>anonymous</code> or <code>ftp</code>. Key feature: <strong>two separate connections</strong>.</p>
+
+<div id="demo-ftp" class="demo">
+  <div class="demo-header">Demo — FTP Active vs Passive Mode</div>
+  <div class="demo-body">
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem">
+      <button onclick="showFtp('active')">Active Mode (PORT)</button>
+      <button onclick="showFtp('passive')">Passive Mode (PASV)</button>
+    </div>
+    <div id="ftp-diagram"></div>
+    <div id="ftp-explain" style="margin-top:0.75rem;font-size:0.9rem;"></div>
+  </div>
+</div>
+
+<table>
+  <tr><th>Connection</th><th>Port</th><th>Purpose</th></tr>
+  <tr><td>Control</td><td>21</td><td>Authentication and commands (RETR, STOR)</td></tr>
+  <tr><td>Data (Active/PORT)</td><td>20</td><td>Server connects FROM port 20 back TO client. Fails behind firewalls.</td></tr>
+  <tr><td>Data (Passive/PASV)</td><td>random</td><td>Server opens random port; client connects. Bypasses client firewall issues. Modern standard.</td></tr>
+</table>
+<p>Client commands: <code>get</code>, <code>mget</code>, <code>put</code>, <code>mput</code>, <code>lcd</code>, <code>cd</code>. Protocol commands: <code>RETR</code> (retrieve), <code>STOR</code> (store).</p>
+
+<h2 id="web">2.5 The Web — HTTP, HTTPS &amp; CGI</h2>
+<p>HyperText Transfer Protocol — created by Tim Berners-Lee (1989, public 1991). Port <strong>80</strong> (HTTP), <strong>443</strong> (HTTPS). HTTP fits strictly on Layer 7.</p>
+
+<div id="demo-http" class="demo">
+  <div class="demo-header">Demo — HTTP Request &amp; Response Builder</div>
+  <div class="demo-body">
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;align-items:center">
+      <select id="http-method" onchange="buildHttp()">
+        <option>GET</option><option>POST</option><option>HEAD</option>
+      </select>
+      <input type="text" id="http-path" value="/" style="width:10rem" oninput="buildHttp()">
+      <span style="font-size:0.88rem;color:#6b7280">on example.com</span>
+    </div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">
+        <div style="font-size:0.8rem;font-weight:600;color:#6b7280;text-transform:uppercase;margin-bottom:0.3rem">Request</div>
+        <div id="http-req" class="output"></div>
+      </div>
+      <div style="flex:1;min-width:240px">
+        <div style="font-size:0.8rem;font-weight:600;color:#6b7280;text-transform:uppercase;margin-bottom:0.3rem">Response</div>
+        <select id="http-status" onchange="buildHttp()" style="margin-bottom:0.3rem">
+          <option value="200">200 OK</option>
+          <option value="301">301 Moved Permanently</option>
+          <option value="403">403 Forbidden</option>
+          <option value="404">404 Not Found</option>
+          <option value="500">500 Internal Server Error</option>
+        </select>
+        <div id="http-res" class="output"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>HTTP Status Code Classes</h3>
+<table>
+  <tr><th>Class</th><th>Meaning</th><th>Examples</th></tr>
+  <tr><td>2xx</td><td>Success — everything worked</td><td>200 OK</td></tr>
+  <tr><td>3xx</td><td>Redirection — resource is elsewhere</td><td>301 Moved Permanently</td></tr>
+  <tr><td>4xx</td><td>Client error — you messed up</td><td>404 Not Found, 403 Forbidden, 406 Not Acceptable</td></tr>
+  <tr><td>5xx</td><td>Server error — the server messed up</td><td>500 Internal Server Error</td></tr>
+</table>
+
+<h3>HTTP Details</h3>
+<ul>
+  <li>All HTTP messages have headers; many also have a payload separated from the header by a <strong>blank line</strong>.</li>
+  <li>Each header line must be followed by CR (<code>\r</code>, ASCII 13) and LF (<code>\n</code>, ASCII 10) — i.e. <code>\r\n</code>.</li>
+  <li>A server only <strong>MUST</strong> support GET and HEAD; other methods are optional.</li>
+  <li>HTTP is used by web browsers, WAP browsers, and applications downloading maps/music. It fits strictly on Layer 7.</li>
+</ul>
+
+<h3>Host Header &amp; Virtual Hosting</h3>
+<div class="note">The primary reason for the <code>Host:</code> header in HTTP is to enable <strong>virtual hosting</strong> — the server may host more than one website on the same IP address. It uses the Host header to determine which site to serve.</div>
+<p>Valid HTTP/1.0 request example: <code>GET / HTTP/1.0\r\nHost: www.up.ac.za\r\n\r\n</code> — method must be uppercase, resource and protocol version must be included.</p>
+
+<h3>HTTP Statefulness — Cookies</h3>
+<p>HTTP is naturally <strong>stateless</strong> — it forgets the client the moment a request ends. Cookies maintain session state:</p>
+<ol>
+  <li>Server → Client: sends <code>Set-Cookie: ID=123</code> in the response header.</li>
+  <li>Client → Server: sends <code>Cookie: ID=123</code> in all subsequent request headers.</li>
+</ol>
+
+<h3>Connection Persistence</h3>
+<table>
+  <tr><th>Version</th><th>Behaviour</th></tr>
+  <tr><td><strong>HTTP/1.0 (Non-persistent)</strong></td><td>Opens a new TCP connection for every single object (images, scripts, HTML). Very slow due to TCP handshake overhead for each object.</td></tr>
+  <tr><td><strong>HTTP/1.1 (Persistent)</strong></td><td>Default behaviour. Uses <code>Connection: keep-alive</code> to send multiple objects over a single TCP connection.</td></tr>
+</table>
+
+<h3>HTTPS</h3>
+<p>Identical to HTTP but uses TLS/SSL encryption at the transport layer and runs on port <strong>443</strong>. Encryption occurs just above Layer 4, not at Layer 6.</p>
+
+<h3>CGI — Common Gateway Interface</h3>
+<p>Instead of just returning a static file, a web server can extract the path from the GET request and use it to execute a CGI program.</p>
+<div class="note">
+  <strong>How a CGI program interacts with a browser (highly tested):</strong><br>
+  (i) The CGI program <strong>writes to standard output</strong> to send output to the browser.<br>
+  (ii) The CGI program <strong>reads an environment variable set by the server</strong> to receive input from the browser.
+</div>
+<p><strong>HTTP POST encoding:</strong> Information submitted via POST is sent as key-value pairs, with spaces replaced by <code>+</code> and URL-encoding applied.</p>
+
+<h2 id="other">2.6 Other Application Layer Protocols</h2>
+<table>
+  <tr><th>Protocol</th><th>Purpose &amp; Notes</th></tr>
+  <tr><td><strong>TFTP</strong> (Trivial FTP)</td><td>Very simple file retrieval protocol. Used by <strong>diskless computers</strong> to transfer an OS image from a server at boot time. Uses <strong>UDP</strong> (not TCP).</td></tr>
+  <tr><td><strong>NTP</strong></td><td>Network Time Protocol — synchronises clocks; handles propagation delay to estimate true current time.</td></tr>
+  <tr><td><strong>VoIP / SIP</strong></td><td>SIP (Session Initiation Protocol) establishes and terminates network-based telephone calls.</td></tr>
+  <tr><td><strong>SMB / Samba</strong></td><td>Server Message Block — mounts remote file systems. <strong>Samba</strong> is the server commonly used on Unix systems to share files with Windows clients.</td></tr>
+  <tr><td><strong>NFS</strong></td><td>Network File System — mount remote file systems on Unix environments.</td></tr>
+  <tr><td><strong>RTSP</strong></td><td>Real Time Streaming Protocol — stream multimedia (e.g. Internet radio).</td></tr>
+  <tr><td><strong>X.11</strong></td><td>Window system — displays graphical interfaces on a remote display. If user S is using server S from workstation W, the protocol used to transfer images is X.11. Usually tunnelled via SSH.</td></tr>
+</table>
+
+<h2 id="sniff">2.7 Sniffing Traffic</h2>
+<p>Network sniffing = capturing and inspecting raw network traffic. Best tool: <strong>Wireshark</strong>.</p>
+<ul>
+  <li>Wireshark is a popular application used to inspect traffic that flows on a network.</li>
+  <li>It captures packets at <strong>Layer 2</strong>. Viewing a Layer 2 frame lets you see the IP (L3), TCP/UDP (L4), and eventually the cleartext application payload (L7).</li>
+  <li>Ethernet switches normally only send traffic to the intended recipient — limiting what you can sniff.</li>
+  <li>Most modern traffic is encrypted (HTTPS) — use unencrypted protocols on a private test network for learning.</li>
+</ul>
+<div class="warn"><strong>Legal concern:</strong> Be careful about the legality of capturing traffic even on your own network interface.</div>
+
+<h2 id="traps">⚠ Exam Traps</h2>
+<div class="warn"><strong>SMTP 250 code:</strong> After a successful EHLO/HELO, the server returns condition code 250. Server-to-server SMTP uses port 25. Submission (user to first MTA) uses port 587.</div>
+<div class="warn"><strong>IMAP vs POP3:</strong> IMAP4 manipulates mailboxes <em>on the server</em>. POP3 downloads to the local machine. IMAP supports complex folders and flags; POP3 does not.</div>
+<div class="warn"><strong>TFTP uses UDP</strong> — not TCP. It is used for diskless boot (OS image transfer), not general file transfer (that's FTP).</div>
+<div class="warn"><strong>CGI mechanics:</strong> CGI writes to <em>stdout</em> to send to browser; reads an <em>environment variable</em> set by the server to receive input. These specific mechanics are frequently tested.</div>
+<div class="warn"><strong>Telnet escape character:</strong> Ctrl+] opens the Telnet client console. This is called the escape character.</div>
+
+<script>
+function showTab(group, id) {
+  document.querySelectorAll(`[id^="${group}-"]`).forEach(el => el.classList.remove('active'));
+  document.getElementById(`${group}-${id}`).classList.add('active');
+  document.querySelectorAll('.tabs').forEach(tc => {
+    tc.querySelectorAll('.tab').forEach(b => {
+      if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(`'${group}'`))
+        b.classList.toggle('active', b.getAttribute('onclick').includes(`'${id}'`));
+    });
+  });
+}
+
+// SMTP simulator
+const smtpSteps = [
+  { who: 'S', text: '220 mail.example.com ESMTP ready', explain: 'Server greeting — ready to accept connections.' },
+  { who: 'C', text: 'EHLO client.example.com', explain: 'EHLO: client introduces itself and requests extended SMTP. (HELO for basic servers.)' },
+  { who: 'S', text: '250-mail.example.com Hello\n250-SIZE 10240000\n250 STARTTLS', explain: '250 = success (highly tested: 250 is always returned after a successful EHLO/HELO). Server lists supported extensions.' },
+  { who: 'C', text: 'MAIL FROM:<alice@example.com>', explain: 'Identifies the envelope sender.' },
+  { who: 'S', text: '250 OK', explain: 'Sender accepted.' },
+  { who: 'C', text: 'RCPT TO:<u@xx.co.za>', explain: 'Identifies a recipient. The exact command tested: "RCPT TO: u@xx.co.za". Repeat for multiple recipients.' },
+  { who: 'S', text: '250 OK', explain: 'Recipient accepted.' },
+  { who: 'C', text: 'DATA', explain: 'Client signals it is about to send the message body.' },
+  { who: 'S', text: '354 Start mail input; end with <CRLF>.<CRLF>', explain: 'Server ready. End the body with a line containing only a period (.) — the transparency problem.' },
+  { who: 'C', text: 'Subject: Hello\n\nDear Bob,\nThis is the body.\n.', explain: 'Header and body are separated by a blank line. The lone "." on the last line signals end of DATA (dot-stuffing prevents accidental termination).' },
+  { who: 'S', text: '250 OK: queued as 12345', explain: 'Message accepted and queued.' },
+  { who: 'C', text: 'QUIT', explain: 'Client ends the session.' },
+  { who: 'S', text: '221 Bye', explain: 'Server closes the connection.' },
+];
+let smtpIdx = 0;
+function smtpNext() {
+  if (smtpIdx >= smtpSteps.length) return;
+  const log = document.getElementById('smtp-log');
+  const s = smtpSteps[smtpIdx];
+  const color = s.who === 'C' ? '#2563eb' : '#059669';
+  log.innerHTML += `<span style="color:${color}">${s.who}: ${s.text}</span>\n`;
+  log.scrollTop = log.scrollHeight;
+  document.getElementById('smtp-explain').textContent = s.explain;
+  smtpIdx++;
+}
+function smtpReset() {
+  smtpIdx = 0;
+  document.getElementById('smtp-log').innerHTML = '';
+  document.getElementById('smtp-explain').textContent = 'Click "Next step" to begin the SMTP dialogue.';
+}
+smtpReset();
+
+// FTP
+function showFtp(mode) {
+  const d = document.getElementById('ftp-diagram');
+  const e = document.getElementById('ftp-explain');
+  if (mode === 'active') {
+    d.innerHTML = `<div style="font-size:0.85rem;padding:0.5rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px">
+      <div style="display:flex;justify-content:space-between;font-weight:600;margin-bottom:0.5rem"><span>Client</span><span>Server</span></div>
+      <div style="color:#2563eb;margin:2px 0">→ Control connection (Client→Server, port 21)</div>
+      <div style="color:#6b7280;font-size:0.8rem;margin:2px 0">  C: PORT command (tells server which port client is listening on)</div>
+      <div style="color:#dc2626;margin:2px 0">← Data connection (Server:20 → Client's port)</div>
+      <div style="color:#dc2626;margin:2px 0">← File data flows back</div>
+    </div>`;
+    e.innerHTML = '<strong>Active Mode (PORT):</strong> Client opens a random port and tells the server via PORT command. The server then connects FROM port 20 back to that client port. <span style="color:#dc2626">Problem: firewalls often block incoming connections to the client — this mode often fails.</span>';
+  } else {
+    d.innerHTML = `<div style="font-size:0.85rem;padding:0.5rem;background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px">
+      <div style="display:flex;justify-content:space-between;font-weight:600;margin-bottom:0.5rem"><span>Client</span><span>Server</span></div>
+      <div style="color:#2563eb;margin:2px 0">→ Control connection (Client→Server, port 21)</div>
+      <div style="color:#6b7280;font-size:0.8rem;margin:2px 0">  C: PASV command</div>
+      <div style="color:#6b7280;font-size:0.8rem;margin:2px 0">  S: "Listen on port XXXXX"</div>
+      <div style="color:#059669;margin:2px 0">→ Data connection (Client → Server:XXXXX)</div>
+      <div style="color:#059669;margin:2px 0">← File data flows back</div>
+    </div>`;
+    e.innerHTML = '<strong>Passive Mode (PASV):</strong> Client sends PASV command. Server opens a random high port and tells the client. The client connects to it. <span style="color:#059669">Firewall-friendly — all connections are client-initiated. This is the modern standard.</span>';
+  }
+}
+showFtp('active');
+
+// HTTP builder
+function buildHttp() {
+  const method = document.getElementById('http-method').value;
+  const path = document.getElementById('http-path').value || '/';
+  const status = document.getElementById('http-status').value;
+  const statusText = {'200':'OK','301':'Moved Permanently','403':'Forbidden','404':'Not Found','500':'Internal Server Error'}[status];
+  const body = status === '200' ? '<!doctype html>\n<html><body>Hello!</body></html>' : `<html><body><h1>${status} ${statusText}</h1></body></html>`;
+  const bodyLen = body.length;
+  document.getElementById('http-req').textContent =
+    `${method} ${path} HTTP/1.1\r\nHost: example.com\r\nConnection: keep-alive\r\nAccept: text/html\r\n\r\n`;
+  document.getElementById('http-res').textContent =
+    `HTTP/1.1 ${status} ${statusText}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: ${bodyLen}\r\nConnection: close\r\n\r\n${body}`;
+}
+buildHttp();
+</script>
+</body>
+</html>
