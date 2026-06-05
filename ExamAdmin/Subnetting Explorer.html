@@ -377,6 +377,21 @@
       <div class="card">
         <div class="card-title">Line Encoding & Fiber Optics (Extra Knowledge)</div>
         <p><strong>Line Encoding Techniques</strong></p>
+        <div style="background:#fff; border:1px solid var(--line); padding:16px; border-radius:6px; margin: 12px 0; font-family:monospace; font-size:13px; line-height:1.6; overflow-x:auto; white-space:pre;">
+<b>Data Stream:</b>      [   0    ] [   1    ] [   0    ] [   0    ] [   1    ] [   1    ]
+
+<b>NRZ:</b>
+(1 = High)       High            ┌──────────┐                                ┌─────────
+(0 = Low)         Low ───────────┘          └────────────────────────────────┘
+
+<b>Manchester:</b>
+(0 = L→H)        High      ┌─────────┐         ┌────┐    ┌─────────┐    ┌────┐
+(1 = H→L)         Low ─────┘         └─────────┘    └────┘         └────┘    └─────────
+
+<b>Diff. Manchester:</b>
+(0 = Trans. start)High┌────┐         ┌────┐    ┌────┐    ┌─────────┐         ┌────
+(1 = No Trans)    Low      └─────────┘    └────┘    └────┘         └─────────┘
+</div>
         <table class="tbl" style="margin-top:8px;">
           <thead>
             <tr><th>Encoding</th><th>Description</th></tr>
@@ -389,6 +404,19 @@
         </table>
         
         <p style="margin-top:16px;"><strong>Optical Fiber</strong></p>
+        <div style="background:#fff; border:1px solid var(--line); padding:16px; border-radius:6px; margin: 12px 0; font-family:monospace; font-size:13px; line-height:1.6; overflow-x:auto; white-space:pre;">
+<b>Single-Mode Fiber (SMF):</b>
+  Fiber Core ┌────────────────────────────────────────────────────────┐
+  [ Laser ]  │ ────────────────────────────────────────────────────── │ [ Rx ]
+  (Narrow)   └────────────────────────────────────────────────────────┘
+
+<b>Multi-Mode Fiber (MMF):</b>
+  Fiber Core ┌────────────────────────────────────────────────────────┐
+  [ LED ]    │  /\    /\    /\    /\    /\    /\    /\    /\    /\    │ [ Rx ]
+  (Thicker)  │ /  \  /  \  /  \  /  \  /  \  /  \  /  \  /  \  /  \  /│
+             └────────────────────────────────────────────────────────┘
+        <i>(MMF paths bounce in modes, leading to dispersion over distance)</i>
+</div>
         <table class="tbl" style="margin-top:8px;">
           <thead>
             <tr><th>Fiber Type</th><th>Description</th></tr>
