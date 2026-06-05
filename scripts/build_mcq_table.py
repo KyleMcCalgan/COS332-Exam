@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "ExamAdmin" / "MCQ Table.md"
 
 SOURCES = [
+    ("2022", "Exam", ROOT / "Past Papers" / "2022" / "Exam.md"),
+    ("2022", "ST2",  ROOT / "Past Papers" / "2022" / "ST2.md"),
     ("2023", "ST1", ROOT / "Past Papers" / "2023" / "SemTest1.md"),
     ("2023", "ST2", ROOT / "Past Papers" / "2023" / "SemTest2.md"),
     ("2023", "Exam", ROOT / "Past Papers" / "2023" / "Exam.md"),

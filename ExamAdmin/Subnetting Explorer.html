@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>COS332 Subnetting &amp; Supernetting</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #17202a;
+      --muted: #5d6978;
+      --line: #d9dee7;
+      --accent: #0f766e;
+      --accent-soft: #d7f3ef;
+      --warn-soft: #fff7ed;
+      --warn-border: #fb923c;
+      --shadow: 0 4px 20px rgba(23,32,42,0.07);
+      --net-bg: #dbeafe;   --net-fg: #1e40af;
+      --sub-bg: #ffedd5;   --sub-fg: #c2410c;
+      --host-bg: #dcfce7;  --host-fg: #15803d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.55; }
+
+    /* ── Layout ── */
+    header { background: #fff; border-bottom: 1px solid var(--line); padding: 20px 0; }
+    .wrap  { width: min(1100px, calc(100% - 32px)); margin: 0 auto; }
+    h1 { font-size: 24px; margin-bottom: 4px; }
+    .subtitle { color: var(--muted); font-size: 13px; }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: 4px; margin: 24px 0 0; border-bottom: 2px solid var(--line); }
+    .tab-btn {
+      padding: 10px 22px; border: none; background: transparent;
+      font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer;
+      border-radius: 6px 6px 0 0; transition: all .15s;
+    }
+    .tab-btn:hover { background: var(--accent-soft); color: var(--accent); }
+    .tab-btn.active { background: var(--accent); color: #fff; }
+    .tab-pane { display: none; padding-bottom: 48px; }
+    .tab-pane.active { display: block; }
+
+    /* ── Mode toggle ── */
+    .mode-switch { display: flex; align-items: center; gap: 10px; margin: 22px 0 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+    .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; inset: 0; background: var(--line); border-radius: 24px; cursor: pointer; transition: .2s; }
+    .slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+    .toggle input:checked + .slider { background: var(--accent); }
+    .toggle input:checked + .slider::before { transform: translateX(20px); }
+
+    /* ── Cards ── */
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 24px; margin: 16px 0; box-shadow: var(--shadow); }
+    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+
+    /* ── Forms ── */
+    .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+    input[type=text], input[type=number] {
+      padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;
+      font-size: 14px; font-family: 'Courier New', monospace; color: var(--text); background: var(--bg);
+      outline: none; transition: border-color .15s;
+    }
+    input:focus { border-color: var(--accent); }
+    .btn {
+      padding: 9px 20px; background: var(--accent); color: #fff; border: none;
+      border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn.sec { background: var(--bg); color: var(--text); border: 1px solid var(--line); }
+    .err { color: #dc2626; font-size: 13px; margin-top: 6px; display: none; }
+
+    /* ── Steps ── */
+    .step { border-left: 3px solid var(--accent); padding: 16px 18px; margin: 14px 0; background: #f9fafb; border-radius: 0 8px 8px 0; }
+    .step-num { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--accent); margin-bottom: 5px; }
+    .step-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+    .step p { font-size: 14px; margin-bottom: 8px; }
+    .formula {
+      background: #1e293b; color: #e2e8f0; font-family: 'Courier New', monospace;
+      font-size: 13px; padding: 10px 14px; border-radius: 6px; margin: 8px 0;
+      white-space: pre-wrap; word-break: break-all;
+    }
+    .hl { background: var(--accent-soft); color: var(--accent); font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+    .info { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 6px; padding: 10px 14px; font-size: 13px; color: var(--accent); margin: 10px 0; }
+    .warn { background: var(--warn-soft); border: 1px solid var(--warn-border); border-radius: 6px; padding: 10px 14px; font-size: 13px; color: #9a3412; margin: 10px 0; }
+
+    /* ── Binary display ── */
+    .bin-block { margin: 12px 0; }
+    .bin-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+    .bin-lbl { width: 140px; flex-shrink: 0; text-align: right; font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; }
+    .bin-octets { display: flex; gap: 3px; align-items: center; }
+    .bin-oct { display: flex; gap: 2px; }
+    .bin-sep { color: var(--muted); font-size: 13px; padding: 0 2px; font-family: monospace; }
+    .bit { width: 18px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 3px; font-size: 12px; font-weight: 700; font-family: 'Courier New', monospace; }
+    .bit.n  { background: var(--net-bg);  color: var(--net-fg); }
+    .bit.s  { background: var(--sub-bg);  color: var(--sub-fg); }
+    .bit.h  { background: var(--host-bg); color: var(--host-fg); }
+    .bit.p  { background: #f1f5f9;        color: #64748b; }
+    .bin-dec { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; margin-left: 6px; }
+    .bin-divider { border: none; border-top: 1px dashed var(--line); margin: 2px 0 2px 148px; }
+
+    /* ── Legend ── */
+    .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; margin: 10px 0 16px; }
+    .leg { display: flex; align-items: center; gap: 6px; }
+    .leg-dot { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+
+    /* ── Tables ── */
+    .tbl { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+    .tbl th { text-align: left; padding: 8px 12px; background: var(--bg); border-bottom: 2px solid var(--line); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+    .tbl td { padding: 8px 12px; border-bottom: 1px solid var(--line); font-family: 'Courier New', monospace; font-size: 13px; }
+    .tbl tr:last-child td { border-bottom: none; }
+    .tbl tr:hover td { background: var(--accent-soft); }
+    .tbl-placeholder { text-align: center; color: var(--muted); font-size: 12px; font-family: inherit; }
+
+    /* ── Network list rows ── */
+    .net-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .net-row { display: flex; gap: 8px; align-items: center; }
+
+    /* ── Quiz ── */
+    .quiz-ctx { background: var(--warn-soft); border: 1px solid var(--warn-border); border-radius: 8px; padding: 14px 16px; font-family: 'Courier New', monospace; font-size: 13px; margin-bottom: 14px; white-space: pre-wrap; }
+    .quiz-q { font-size: 15px; font-weight: 600; margin-bottom: 14px; line-height: 1.5; }
+    .quiz-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .quiz-score { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .quiz-result { border: 2px solid var(--line); border-radius: 8px; padding: 12px 16px; margin-top: 14px; font-size: 14px; display: none; }
+    .quiz-result.ok  { border-color: #22c55e; background: #f0fdf4; }
+    .quiz-result.bad { border-color: #ef4444; background: #fef2f2; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 640px) {
+      .bin-lbl  { width: 80px; font-size: 10px; }
+      .bit      { width: 14px; height: 18px; font-size: 10px; }
+      .bin-sep  { font-size: 11px; padding: 0 1px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>COS332 Subnetting &amp; Supernetting</h1>
+    <p class="subtitle">Interactive step-by-step with binary breakdown · Teaching + Practice · All past-paper question types</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab-btn active"  onclick="switchTab('subnet',   this)">Subnetting</button>
+    <button class="tab-btn"         onclick="switchTab('supernet', this)">Supernetting</button>
+    <button class="tab-btn"         onclick="switchTab('design',   this)">Subnet Design</button>
+    <button class="tab-btn"         onclick="switchTab('vlsm',     this)">VLSM</button>
+    <button class="tab-btn"         onclick="switchTab('layer1',   this)">Layer 1</button>
+    <button class="tab-btn"         onclick="switchTab('layer2',   this)">Layer 2</button>
+    <button class="tab-btn"         onclick="switchTab('tcp',      this)">TCP</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TAB 1 — SUBNETTING
+  ══════════════════════════════════════════════ -->
+  <div id="tab-subnet" class="tab-pane active">
+    <div class="mode-switch">
+      Teaching
+      <label class="toggle"><input type="checkbox" onchange="toggleMode('sn',this.checked)"><span class="slider"></span></label>
+      Practice
+    </div>
+
+    <!-- Teaching -->
+    <div id="sn-teach">
+      <div class="card">
+        <div class="card-title">Subnetting Calculator</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Enter a CIDR address and (optionally) your subnet requirements. The tool will walk through every step including binary breakdown.</p>
+        <div class="form-row">
+          <div class="field">
+            <label>IP / Prefix (CIDR)</label>
+            <input type="text" id="sn-ip" placeholder="e.g. 204.204.204.204/18" style="width:240px;">
+          </div>
+          <div class="field">
+            <label>Min Subnets</label>
+            <input type="number" id="sn-ms" placeholder="e.g. 250" style="width:130px;" min="1">
+          </div>
+          <div class="field">
+            <label>Min Hosts/Subnet</label>
+            <input type="number" id="sn-mh" placeholder="e.g. 50" style="width:130px;" min="1">
+          </div>
+          <div class="field" style="margin-top:auto;">
+            <button class="btn" onclick="calcSubnet()">Solve</button>
+          </div>
+        </div>
+        <div id="sn-err" class="err"></div>
+      </div>
+      <div id="sn-out"></div>
+    </div>
+
+    <!-- Practice -->
+    <div id="sn-practice" class="hidden">
+      <div class="card">
+        <div class="card-title">Practice — Subnetting</div>
+        <div id="sn-score" class="quiz-score">Score: 0 / 0</div>
+        <div id="sn-qarea"></div>
+        <button class="btn sec" onclick="genSnQuiz()" style="margin-top:14px;">New Question</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TAB 2 — SUPERNETTING
+  ══════════════════════════════════════════════ -->
+  <div id="tab-supernet" class="tab-pane">
+    <div class="mode-switch">
+      Teaching
+      <label class="toggle"><input type="checkbox" onchange="toggleMode('sp',this.checked)"><span class="slider"></span></label>
+      Practice
+    </div>
+
+    <div id="sp-teach">
+      <div class="card">
+        <div class="card-title">Supernetting Calculator</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Enter the adjacent networks you want to combine. All must share the same prefix length.</p>
+        <div id="sp-list" class="net-list"></div>
+        <button class="btn sec" onclick="addSpRow()" style="margin-bottom:14px;">+ Add Network</button><br>
+        <button class="btn" onclick="calcSupernet()">Find Supernet</button>
+        <div id="sp-err" class="err"></div>
+      </div>
+      <div id="sp-out"></div>
+    </div>
+
+    <div id="sp-practice" class="hidden">
+      <div class="card">
+        <div class="card-title">Practice — Supernetting</div>
+        <div id="sp-score" class="quiz-score">Score: 0 / 0</div>
+        <div id="sp-qarea"></div>
+        <button class="btn sec" onclick="genSpQuiz()" style="margin-top:14px;">New Question</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TAB 3 — SUBNET DESIGN
+  ══════════════════════════════════════════════ -->
+  <div id="tab-design" class="tab-pane">
+    <div class="mode-switch">
+      Teaching
+      <label class="toggle"><input type="checkbox" onchange="toggleMode('sd',this.checked)"><span class="slider"></span></label>
+      Practice
+    </div>
+
+    <div id="sd-teach">
+      <div class="card">
+        <div class="card-title">Subnet Mask Design</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Given a base network and requirements, find the tightest subnet mask that satisfies both constraints.</p>
+        <div class="form-row">
+          <div class="field">
+            <label>Base Network (CIDR)</label>
+            <input type="text" id="sd-base" placeholder="e.g. 41.1.16.0/20" style="width:220px;">
+          </div>
+          <div class="field">
+            <label>Min Subnets</label>
+            <input type="number" id="sd-ms" placeholder="e.g. 20" style="width:130px;" min="1">
+          </div>
+          <div class="field">
+            <label>Min Hosts/Subnet</label>
+            <input type="number" id="sd-mh" placeholder="e.g. 100" style="width:130px;" min="1">
+          </div>
+          <div class="field" style="margin-top:auto;">
+            <button class="btn" onclick="calcDesign()">Design</button>
+          </div>
+        </div>
+        <div id="sd-err" class="err"></div>
+      </div>
+      <div id="sd-out"></div>
+    </div>
+
+    <div id="sd-practice" class="hidden">
+      <div class="card">
+        <div class="card-title">Practice — Subnet Design</div>
+        <div id="sd-score" class="quiz-score">Score: 0 / 0</div>
+        <div id="sd-qarea"></div>
+        <button class="btn sec" onclick="genSdQuiz()" style="margin-top:14px;">New Question</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TAB 4 — VLSM
+  ══════════════════════════════════════════════ -->
+  <div id="tab-vlsm" class="tab-pane">
+    <div class="mode-switch">
+      Teaching
+      <label class="toggle"><input type="checkbox" onchange="toggleMode('vl',this.checked)"><span class="slider"></span></label>
+      Practice
+    </div>
+
+    <div id="vl-teach">
+      <div class="card">
+        <div class="card-title">VLSM — Variable-Length Subnet Masking</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Allocate subnets of different sizes from one block, satisfying each department's host requirements with minimum waste.</p>
+        <div class="form-row">
+          <div class="field">
+            <label>Base Block (CIDR)</label>
+            <input type="text" id="vl-base" placeholder="e.g. 192.168.10.0/24" style="width:220px;">
+          </div>
+        </div>
+        <div id="vl-list" class="net-list"></div>
+        <button class="btn sec" onclick="addVlRow()" style="margin-bottom:14px;">+ Add Subnet</button><br>
+        <button class="btn" onclick="calcVlsm()">Allocate</button>
+        <div id="vl-err" class="err"></div>
+      </div>
+      <div id="vl-out"></div>
+    </div>
+
+    <div id="vl-practice" class="hidden">
+      <div class="card">
+        <div class="card-title">Practice — VLSM</div>
+        <div id="vl-score" class="quiz-score">Score: 0 / 0</div>
+        <div id="vl-qarea"></div>
+        <button class="btn sec" onclick="genVlQuiz()" style="margin-top:14px;">New Question</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-layer1" class="tab-pane">
+    <div class="mode-switch">
+      Teaching <label class="toggle"><input type="checkbox" onchange="toggleMode('l1', this.checked)"><span class="slider"></span></label> Practice
+    </div>
+
+    <div id="l1-teach">
+      <div class="card">
+        <div class="card-title">Twisted Pair Cable (STP vs UTP)</div>
+        <p>Twisted pair cabling is extensively used for computer networks. Wires are twisted together to cancel out electromagnetic interference (EMI).</p>
+        <table class="tbl" style="margin-top:16px;">
+          <thead>
+            <tr><th>Feature</th><th>Unshielded Twisted Pair (UTP)</th><th>Shielded Twisted Pair (STP)</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Description</td>
+              <td>Pairs of wires twisted together without shielding.</td>
+              <td>Enclosed in a metallic shield or foil to reduce EMI.</td>
+            </tr>
+            <tr>
+              <td>Cost & Installation</td>
+              <td>Cheaper, flexible, highly widely used.</td>
+              <td>More expensive, bulkier, requires grounding.</td>
+            </tr>
+            <tr>
+              <td>Environments</td>
+              <td>Offices, homes, standard networks.</td>
+              <td>Industrial environments with high electrical noise.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">RJ45 Connector & Wiring (T568A / T568B)</div>
+        <p>Used to terminate twisted pair cables in Ethernet networks. The two main wiring standards are T568A and T568B.</p>
+        <table class="tbl" style="margin-top:16px;">
+          <thead>
+            <tr><th>Pin</th><th>T568A</th><th>T568B (Most Common)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1 (Tx+)</td><td>White/Green</td><td>White/Orange</td></tr>
+            <tr><td>2 (Tx-)</td><td>Green</td><td>Orange</td></tr>
+            <tr><td>3 (Rx+)</td><td>White/Orange</td><td>White/Green</td></tr>
+            <tr><td>4</td><td>Blue</td><td>Blue</td></tr>
+            <tr><td>5</td><td>White/Blue</td><td>White/Blue</td></tr>
+            <tr><td>6 (Rx-)</td><td>Orange</td><td>Green</td></tr>
+            <tr><td>7</td><td>White/Brown</td><td>White/Brown</td></tr>
+            <tr><td>8</td><td>Brown</td><td>Brown</td></tr>
+          </tbody>
+        </table>
+        <div class="info" style="margin-top:12px;"><strong>Crossover Cable:</strong> One end uses T568A and the other T568B. Used to connect like devices (e.g. Switch to Switch).<br><strong>Straight-through Cable:</strong> Uses the same standard on both ends. Used to connect different devices (e.g. PC to Switch).</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Line Encoding & Fiber Optics (Extra Knowledge)</div>
+        <p><strong>Line Encoding Techniques</strong></p>
+        <table class="tbl" style="margin-top:8px;">
+          <thead>
+            <tr><th>Encoding</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>NRZ (Non-Return to Zero)</td><td>Voltage indicates bit value (e.g., high = 1, low = 0). No neutral/rest state. Simple but lacks self-clocking, leading to baseline wander over long runs of 0s or 1s.</td></tr>
+            <tr><td>Manchester</td><td>A voltage transition happens in the middle of each bit period (e.g., high-to-low for 1, low-to-high for 0). This transition provides self-synchronizing clocking. Traditionally used in 10Base-T Ethernet.</td></tr>
+            <tr><td>Differential Manchester</td><td>A mid-bit transition exists for clocking. Data is encoded by the presence or absence of a transition at the <em>beginning</em> of the bit period. More complex but robust against signal inversions.</td></tr>
+          </tbody>
+        </table>
+        
+        <p style="margin-top:16px;"><strong>Optical Fiber</strong></p>
+        <table class="tbl" style="margin-top:8px;">
+          <thead>
+            <tr><th>Fiber Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Single-mode Fiber (SMF)</td><td>Features a very narrow core (approx. 8–10 microns). Light travels in a nearly single straight path, eliminating modal dispersion. Ideal for high-bandwidth, long-distance WANs. Typically propelled by lasers.</td></tr>
+            <tr><td>Multimode Fiber (MMF)</td><td>Has a wider core (approx. 50–62.5 microns). Light can bounce through the core in multiple angles (modes). Subject to modal dispersion over long distances. Suitable for shorter links (LANs, data centers) and often uses LED or VCSEL light sources.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="l1-practice" class="hidden">
+      <div class="card">
+        <div class="card-title">Practice — Layer 1</div>
+        <div id="l1-score" class="quiz-score">Score: 0 / 0</div>
+        <div id="l1-qarea"></div>
+        <button class="btn sec" onclick="genL1Quiz()" style="margin-top:14px;">Next Question</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-layer2" class="tab-pane">
+    <div class="mode-switch">
+      Teaching <label class="toggle"><input type="checkbox" onchange="toggleMode('l2', this.checked)"><span class="slider"></span></label> Practice
+    </div>
+
+    <div id="l2-teach">
+      <div class="card">
+        <div class="card-title">MAC Frame Structures</div>
+        
+        <div class="step">
+          <div class="step-num">IEEE 802.3</div>
+          <div class="step-title">Ethernet Frame</div>
+          <p>Uses CSMAC/CD. The typical frame contains:</p>
+          <div class="formula">Preamble (7) | SFD (1) | Dest MAC (6) | Src MAC (6) | Length/Type (2) | Data (46-1500) | FCS (4)</div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">IEEE 802.5</div>
+          <div class="step-title">Token Ring / FDDI Frame</div>
+          <p>Token ring networks use token passing to control access.</p>
+          <div class="formula">SD (1) | AC (1) | FC (1) | Dest MAC (6) | Src MAC (6) | Data | FCS (4) | ED (1) | FS (1)</div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">SDLC / HDLC</div>
+          <div class="step-title">Synchronous Data Link Control</div>
+          <p>Uses start/end flags for frame delineation and bit-stuffing.</p>
+          <div class="formula">Flag (01111110) | Address (1-2) | Control (1-2) | Info | FCS (2-4) | Flag (01111110)</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Frame Delineation & Bit Stuffing</div>
+        <p>In HDLC/SDLC, the flag `01111110` indicates the start and end of a frame. To prevent this pattern appearing in the data payload, <strong>bit stuffing</strong> is used:</p>
+        <p style="margin-top:8px;"><em>Sender adds a 0 bit after every five consecutive 1 bits in the data stream. The receiver reverses this by removing the 0 bit after five 1s.</em></p>
+        
+        <div style="margin-top:16px;">
+          <label>Data String to Send (binary)</label>
+          <div class="form-row">
+            <input type="text" id="l2-data-in" value="0111111011111000" style="width:250px;">
+            <button class="btn" onclick="calcBitStuff()">Stuff Bits</button>
+          </div>
+          <div id="l2-stuff-out"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Error Detection vs Correction</div>
+        <p><strong>Error Detection</strong> adds redundancy (e.g. Parity bit, Checksum, CRC) to determine if a frame was corrupted. If an error is detected, the frame is discarded and retransmission is requested.</p>
+        <p><strong>Error Correction</strong> (Forward Error Correction - FEC) adds more redundancy (e.g. Hamming Code) so the receiver can locate and correct the error without requesting retransmission.</p>
+        <div class="info" style="margin-top:12px;"><strong>Why do wireless networks favour Error Correction?</strong><br>Wireless links are highly prone to noise, interference, and fading, leading to high bit error rates. If they used detection-only, continuous retransmissions would cripple throughput. Error correction allows the receiver to recover lost data on the fly.</div>
+      </div>
+    </div>
+
+    <div id="l2-practice" class="hidden">
+      <div class="card">
+        <div class="card-title">Practice — Layer 2</div>
+        <div id="l2-score" class="quiz-score">Score: 0 / 0</div>
+        <div id="l2-qarea"></div>
+        <button class="btn sec" onclick="genL2Quiz()" style="margin-top:14px;">Next Question</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-tcp" class="tab-pane">
+    <div class="mode-switch">
+      Teaching <label class="toggle"><input type="checkbox" onchange="toggleMode('tcp', this.checked)"><span class="slider"></span></label> Practice
+    </div>
+
+    <div id="tcp-teach">
+      <div class="card">
+        <div class="card-title">TCP Sequences & Window Flow Control</div>
+        <p>TCP provides reliable, ordered data delivery. A critical mechanism is sliding window flow control.</p>
+        <ul style="margin-left: 24px; margin-top: 10px; font-size: 14px;">
+          <li><strong>SEQ (Sequence Number)</strong>: Identifies the first byte of data in this segment's payload.</li>
+          <li><strong>ACK (Acknowledgment Number)</strong>: The next byte the sender of this segment expects to receive (cumulative ACK).</li>
+          <li><strong>WIN (Window Size)</strong>: The amount of free buffer space the sender of this segment has available. It tells the other side "you can send me up to this many bytes".</li>
+          <li><strong>LEN (Payload Length)</strong>: The number of application bytes in the TCP segment.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Interactive TCP Connection Simulator</div>
+        <p style="margin-bottom: 14px;">Set initial states, then simulate message events between Host A and Host B.</p>
+        
+        <div style="background:var(--bg); padding:16px; border-radius:8px; border:1px solid var(--line);">
+          <strong>Initial State</strong>
+          <div style="display:flex; gap:30px; margin-top:12px; flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:700; color:var(--accent); margin-bottom:6px;">Host A</div>
+              <div class="form-row"><label style="width:70px;">SEQ</label><input type="number" id="tcp-a-seq" value="100" style="width:100px;"></div>
+              <div class="form-row"><label style="width:70px;">WIN Adv</label><input type="number" id="tcp-a-win" value="2000" style="width:100px;"></div>
+            </div>
+            <div>
+              <div style="font-weight:700; color:var(--accent); margin-bottom:6px;">Host B</div>
+              <div class="form-row"><label style="width:70px;">SEQ</label><input type="number" id="tcp-b-seq" value="300" style="width:100px;"></div>
+              <div class="form-row"><label style="width:70px;">WIN Adv</label><input type="number" id="tcp-b-win" value="1000" style="width:100px;"></div>
+            </div>
+          </div>
+          <button class="btn" style="margin-top:10px;" onclick="initTcpState()">Set Initial State</button>
+        </div>
+
+        <div id="tcp-events" style="margin-top:20px; display:none;">
+          <div class="card-title" style="border-bottom:none; margin-bottom:10px;">Event Actions</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:10px;">
+              <span style="font-weight:600; font-size:14px; margin-right:8px;">A Sends Data</span>
+              <input type="number" id="tcp-a-sendlen" placeholder="Bytes to send" style="width:110px;">
+              <button class="btn sec" style="padding:6px 12px;" onclick="tcpEvent('A', 'send')">Send</button>
+            </div>
+            <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:10px;">
+              <span style="font-weight:600; font-size:14px; margin-right:8px;">B Sends Data</span>
+              <input type="number" id="tcp-b-sendlen" placeholder="Bytes to send" style="width:110px;">
+              <button class="btn sec" style="padding:6px 12px;" onclick="tcpEvent('B', 'send')">Send</button>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+            <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:10px;">
+              <span style="font-weight:600; font-size:14px; margin-right:8px;">A App Consumes</span>
+              <input type="number" id="tcp-a-conslen" placeholder="Bytes to consume" style="width:110px;">
+              <button class="btn" style="padding:6px 12px; background:#475569;" onclick="tcpEvent('A', 'consume')">Consume</button>
+            </div>
+            <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:10px;">
+              <span style="font-weight:600; font-size:14px; margin-right:8px;">B App Consumes</span>
+              <input type="number" id="tcp-b-conslen" placeholder="Bytes to consume" style="width:110px;">
+              <button class="btn" style="padding:6px 12px; background:#475569;" onclick="tcpEvent('B', 'consume')">Consume</button>
+            </div>
+            <div style="background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:10px; display:flex; align-items:center;">
+              <button class="btn sec" style="padding:6px 12px;" onclick="tcpEvent('A', 'ack')">A Empty ACK</button>
+              <button class="btn sec" style="padding:6px 12px; margin-left:8px;" onclick="tcpEvent('B', 'ack')">B Empty ACK</button>
+            </div>
+          </div>
+
+          <div style="margin-top:24px;">
+            <div class="card-title">Message Trace</div>
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Event</th>
+                  <th>Dir</th>
+                  <th>SEQ</th>
+                  <th>LEN</th>
+                  <th>ACK</th>
+                  <th>WIN</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="tcp-trace-body"></tbody>
+            </table>
+          </div>
+          
+          <div style="margin-top:24px; padding:14px; background:var(--warn-soft); border:1px solid var(--warn-border); border-radius:8px;">
+            <div style="font-weight:700; margin-bottom:8px; font-size:14px;">Current Internal State</div>
+            <div style="display:flex; gap:40px; font-family:'Courier New', monospace; font-size:13px;">
+              <div id="tcp-state-a"></div>
+              <div id="tcp-state-b"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+
+    <div id="tcp-practice" class="hidden">
+      <div class="card">
+        <div class="card-title">Practice — TCP Sliding Window</div>
+        <div id="tcp-score" class="quiz-score">Score: 0 / 0</div>
+        <div id="tcp-qarea"></div>
+        <button class="btn sec" onclick="genTcpQuiz()" style="margin-top:14px;">Next Question</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════
+   CORE UTILITIES
+═══════════════════════════════════════════════════ */
+
+function ipToInt(ip) {
+  const p = ip.trim().split('.').map(Number);
+  if (p.length !== 4 || p.some(x => isNaN(x) || x < 0 || x > 255)) return null;
+  return ((p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3]) >>> 0;
+}
+
+function intToIp(n) {
+  return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join('.');
+}
+
+function prefixToMask(p) {
+  if (p === 0) return 0;
+  return (0xFFFFFFFF << (32-p)) >>> 0;
+}
+
+function intToBits(n) {
+  const b = [];
+  for (let i = 31; i >= 0; i--) b.push((n>>>i)&1);
+  return b;
+}
+
+function parseCIDR(s) {
+  const m = s.trim().match(/^(\d+\.\d+\.\d+\.\d+)\/(\d+)$/);
+  if (!m) return null;
+  const ip = ipToInt(m[1]);
+  const pfx = parseInt(m[2]);
+  if (ip === null || pfx < 0 || pfx > 32) return null;
+  return { ip, pfx, ipStr: m[1] };
+}
+
+function netAddr(ip, pfx) { return (ip & prefixToMask(pfx)) >>> 0; }
+function bcAddr(net, pfx)  { const hb = 32-pfx; return (net | ((1<<hb)-1)) >>> 0; }
+function ceilLog2(n)       { return n <= 1 ? 0 : Math.ceil(Math.log2(n)); }
+function randInt(a,b)      { return Math.floor(Math.random()*(b-a+1))+a; }
+
+/* ═══════════════════════════════════════════════════
+   BINARY RENDERING
+═══════════════════════════════════════════════════
+   bitTypes: array[32] of 'n','s','h','p'
+*/
+
+function buildBitTypes(netPfx, subPfx) {
+  return Array.from({length:32},(_,i) => i < netPfx ? 'n' : i < subPfx ? 's' : 'h');
+}
+
+function renderBin(label, bits, types, dec) {
+  let h = `<div class="bin-row"><span class="bin-lbl">${label}</span><div class="bin-octets">`;
+  for (let o = 0; o < 4; o++) {
+    if (o) h += `<span class="bin-sep">.</span>`;
+    h += `<div class="bin-oct">`;
+    for (let b = 0; b < 8; b++) {
+      const i = o*8+b, t = types ? (types[i]||'p') : 'p';
+      h += `<div class="bit ${t}">${bits[i]}</div>`;
+    }
+    h += `</div>`;
+  }
+  h += `</div>`;
+  if (dec) h += `<span class="bin-dec">${dec}</span>`;
+  return h + `</div>`;
+}
+
+function renderBinDiv() {
+  return `<hr class="bin-divider">`;
+}
+
+function renderLegend(hasSub) {
+  let h = `<div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--net-bg);border:1px solid var(--net-fg)"></div>Network bits (fixed)</div>`;
+  if (hasSub) h += `<div class="leg"><div class="leg-dot" style="background:var(--sub-bg);border:1px solid var(--sub-fg)"></div>Subnet bits (borrowed)</div>`;
+  h += `<div class="leg"><div class="leg-dot" style="background:var(--host-bg);border:1px solid var(--host-fg)"></div>Host bits</div></div>`;
+  return h;
+}
+
+/* ═══════════════════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════════════════ */
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function toggleMode(prefix, practice) {
+  document.getElementById(prefix+'-teach').classList.toggle('hidden', practice);
+  document.getElementById(prefix+'-practice').classList.toggle('hidden', !practice);
+  if (practice) {
+    const qarea = document.getElementById(prefix+'-qarea');
+    if (!qarea.innerHTML.trim()) {
+      if (prefix==='sn') genSnQuiz();
+      if (prefix==='sp') genSpQuiz();
+      if (prefix==='sd') genSdQuiz();
+      if (prefix==='vl') genVlQuiz();
+    }
+  }
+}
+
+function showErr(id, msg) { const e=document.getElementById(id); e.textContent=msg; e.style.display='block'; }
+function hideErr(id)      { document.getElementById(id).style.display='none'; }
+function setOut(id, html) { const el=document.getElementById(id); el.innerHTML=html; }
+
+/* ═══════════════════════════════════════════════════
+   TAB 1 — SUBNETTING (TEACHING)
+═══════════════════════════════════════════════════ */
+
+function calcSubnet() {
+  hideErr('sn-err');
+  const parsed = parseCIDR(document.getElementById('sn-ip').value);
+  if (!parsed) return showErr('sn-err','Invalid CIDR. Use format like 204.204.204.204/18');
+  const { ip, pfx: basePfx, ipStr } = parsed;
+  const baseNet = netAddr(ip, basePfx);
+  const baseNetStr = intToIp(baseNet);
+  const minSub = parseInt(document.getElementById('sn-ms').value)||0;
+  const minHst = parseInt(document.getElementById('sn-mh').value)||0;
+  const doSubnet = minSub > 0 || minHst > 0;
+
+  let newPfx = basePfx, subBits = 0, hostBits = 32 - basePfx;
+
+  if (doSubnet) {
+    let found = false;
+    for (let np = basePfx+1; np <= 30; np++) {
+      const sb = np - basePfx, hb = 32 - np;
+      if ((1<<sb) >= minSub && (1<<hb)-2 >= minHst) {
+        newPfx = np; subBits = sb; hostBits = hb; found = true; break;
+      }
+    }
+    if (!found) return showErr('sn-err','Cannot satisfy both constraints within 32-bit space. Try smaller numbers.');
+  }
+
+  const newMask = prefixToMask(newPfx);
+  const hostsPerSub = (1<<hostBits)-2;
+  const totalSubs = 1<<subBits;
+  const subnetSize = 1<<hostBits;
+  const types = buildBitTypes(basePfx, newPfx);
+
+  let html = `<div class="card"><div class="card-title">Step-by-Step Solution</div>`;
+  html += renderLegend(subBits > 0);
+
+  /* ── Step 1: Parse ── */
+  html += `<div class="step">
+    <div class="step-num">Step 1</div>
+    <div class="step-title">Identify the Base Network</div>
+    <p>IP address <span class="hl">${ipStr}</span> with prefix <span class="hl">/${basePfx}</span>. To find the network address perform bitwise AND with the mask — set all host bits to 0.</p>
+    <div class="bin-block">
+      ${renderBin('IP address:', intToBits(ip), types, ipStr)}
+      ${renderBin('Mask (/'+basePfx+'):', intToBits(prefixToMask(basePfx)), types, intToIp(prefixToMask(basePfx)))}
+      ${renderBinDiv()}
+      ${renderBin('Network addr:', intToBits(baseNet), types, baseNetStr+'/'+basePfx)}
+    </div>
+    <p>The first <strong>${basePfx} bits</strong> are the network part (all the coloured-blue bits). The remaining <strong>${32-basePfx} bits</strong> are the host part.</p>
+  </div>`;
+
+  if (doSubnet) {
+    /* ── Step 2: Borrow bits ── */
+    html += `<div class="step">
+      <div class="step-num">Step 2</div>
+      <div class="step-title">Borrow Bits for Subnets</div>
+      <p>Requirements: ≥ <strong>${minSub}</strong> subnets AND ≥ <strong>${minHst}</strong> hosts per subnet.</p>
+      <p>We <em>borrow</em> bits from the host portion (orange bits). Each borrowed bit doubles the number of subnets but halves the hosts per subnet.</p>
+      <div class="formula">Bits for subnets : ⌈log₂(${minSub})⌉ = ${subBits} bits  →  2^${subBits} = ${totalSubs} subnets
+Bits for hosts  : ⌈log₂(${minHst} + 2)⌉ = ${hostBits} bits  →  2^${hostBits} − 2 = ${hostsPerSub} usable hosts
+(The +2 reserves one address for the network ID and one for broadcast.)
+
+Base prefix /${basePfx} + ${subBits} borrowed bits = new prefix /${newPfx}</div>
+      <p>Verify: ${subBits} + ${hostBits} = ${subBits+hostBits} ≤ ${32-basePfx} available bits ✓</p>
+      <div class="bin-block">
+        ${renderBin('Old mask (/'+basePfx+'):', intToBits(prefixToMask(basePfx)), types, intToIp(prefixToMask(basePfx)))}
+        ${renderBin('New mask (/'+newPfx+'):', intToBits(newMask), types, intToIp(newMask)+' (/'+newPfx+')')}
+      </div>
+    </div>`;
+
+    /* ── Step 3: Subnet numbering ── */
+    html += `<div class="step">
+      <div class="step-num">Step 3</div>
+      <div class="step-title">How to Number and Find Subnets</div>
+      <p>Subnets are numbered <strong>0, 1, 2, …</strong> The subnet size (block size) is:</p>
+      <div class="formula">Block size = 2^(host bits) = 2^${hostBits} = ${subnetSize} addresses per subnet</div>
+      <p>To find subnet <em>N</em>:</p>
+      <div class="formula">Network address of subnet N = base_network + N × ${subnetSize}
+Broadcast address of subnet N  = network_address + ${subnetSize-1}  (all host bits set to 1)
+First usable host               = network_address + 1
+Last usable host                = broadcast_address − 1</div>
+    </div>`;
+
+    /* ── Step 4: Subnet table ── */
+    const show = [0,1,2,3,4];
+    if (totalSubs > 6) show.push(null);
+    show.push(totalSubs-1);
+
+    html += `<div class="step">
+      <div class="step-num">Step 4</div>
+      <div class="step-title">Subnet Table (first 5 and last)</div>
+      <table class="tbl">
+        <thead><tr><th>Subnet #</th><th>Network Addr</th><th>First Host</th><th>Last Host</th><th>Broadcast</th></tr></thead>
+        <tbody>`;
+    for (const n of show) {
+      if (n === null) { html += `<tr><td colspan="5" class="tbl-placeholder">··· ${totalSubs-6} more subnets ···</td></tr>`; continue; }
+      const ni = (baseNet + n*subnetSize) >>> 0;
+      const bi = (ni|(subnetSize-1)) >>> 0;
+      html += `<tr><td>${n}</td><td>${intToIp(ni)}/${newPfx}</td><td>${intToIp((ni+1)>>>0)}</td><td>${intToIp((bi-1)>>>0)}</td><td>${intToIp(bi)}</td></tr>`;
+    }
+    html += `</tbody></table></div>`;
+
+    /* ── Step 5: Which subnet is the original IP on? ── */
+    const snNum = Math.floor(((ip>>>0) - baseNet) / subnetSize);
+    const snNet = (baseNet + snNum*subnetSize) >>> 0;
+    const snBc  = (snNet|(subnetSize-1)) >>> 0;
+
+    html += `<div class="step">
+      <div class="step-num">Step 5</div>
+      <div class="step-title">Which Subnet is ${ipStr} On?</div>
+      <div class="formula">Subnet # = floor((IP − base_network) ÷ block_size)
+           = floor((${ipStr} − ${baseNetStr}) ÷ ${subnetSize})
+           = floor(${(ip>>>0) - baseNet} ÷ ${subnetSize})
+           = ${snNum}</div>
+      <p>The host <span class="hl">${ipStr}</span> is on <strong>subnet ${snNum}</strong>.</p>
+      <div class="bin-block">
+        ${renderBin('Host IP:', intToBits(ip), types, ipStr)}
+        ${renderBin('Subnet mask:', intToBits(newMask), types, intToIp(newMask))}
+        ${renderBinDiv()}
+        ${renderBin('Subnet network:', intToBits(snNet), types, intToIp(snNet)+'/'+newPfx)}
+      </div>
+      <p>Network: <span class="hl">${intToIp(snNet)}/${newPfx}</span> &nbsp;·&nbsp; Broadcast: <span class="hl">${intToIp(snBc)}</span> &nbsp;·&nbsp; Hosts: ${intToIp((snNet+1)>>>0)}–${intToIp((snBc-1)>>>0)}</p>
+    </div>`;
+  } else {
+    /* ── No constraints: just show base info ── */
+    const bc = bcAddr(baseNet, basePfx);
+    html += `<div class="step">
+      <div class="step-num">Step 2</div>
+      <div class="step-title">Base Network Details</div>
+      <p>No subnetting constraints provided — showing details of the base block.</p>
+      <div class="formula">Network address : ${baseNetStr}/${basePfx}
+Subnet mask     : ${intToIp(prefixToMask(basePfx))}
+Broadcast addr  : ${intToIp(bc)}
+First host      : ${intToIp((baseNet+1)>>>0)}
+Last host       : ${intToIp((bc-1)>>>0)}
+Usable hosts    : ${(1<<(32-basePfx))-2}</div>
+    </div>`;
+  }
+
+  html += `</div>`;
+  setOut('sn-out', html);
+}
+
+/* ═══════════════════════════════════════════════════
+   TAB 1 — SUBNETTING (PRACTICE)
+═══════════════════════════════════════════════════ */
+
+const snScore = {c:0,t:0};
+let snQ = {};
+
+const SN_BASES = [
+  {net:'192.168.0.0',pfx:16},{net:'10.0.0.0',pfx:8},
+  {net:'172.16.0.0',pfx:12},{net:'41.1.16.0',pfx:20},
+  {net:'204.204.0.0',pfx:18},{net:'150.100.0.0',pfx:16},
+];
+
+function pickSnBase() {
+  const base = SN_BASES[randInt(0,SN_BASES.length-1)];
+  const avail = 32-base.pfx;
+  const sb = randInt(2, Math.min(6,avail-2));
+  const hb = avail-sb;
+  const sz = 1<<hb;
+  const tot = 1<<sb;
+  const ni = ipToInt(base.net);
+  return { ...base, sb, hb, sz, tot, ni, newPfx: base.pfx+sb, hostsPerSub: sz-2 };
+}
+
+function genSnQ_findMask() {
+  const d = pickSnBase();
+  const ms = randInt((1<<(d.sb-1))+1, d.tot);
+  const mh = randInt(1, d.hostsPerSub);
+  return {
+    q: `Network <code>${d.net}/${d.pfx}</code> must be subnetted into at least <strong>${ms}</strong> subnets each with at least <strong>${mh}</strong> usable hosts. What subnet mask (CIDR prefix) should be used?`,
+    ans: '/'+d.newPfx, ans2: intToIp(prefixToMask(d.newPfx)), ph: 'e.g. /26',
+    hint: `Need ⌈log₂(${ms})⌉ = ${d.sb} subnet bits. New prefix = /${d.pfx}+${d.sb} = /${d.newPfx} → mask ${intToIp(prefixToMask(d.newPfx))}. Gives ${d.tot} subnets × ${d.hostsPerSub} hosts. ✓`,
+    type:'mask'
+  };
+}
+function genSnQ_subnetAddr() {
+  const d = pickSnBase(); const n = randInt(0,d.tot-1);
+  const ni = (d.ni+n*d.sz)>>>0;
+  return {
+    q: `Network <code>${d.net}/${d.pfx}</code>, new mask <code>/${d.newPfx}</code> (block size ${d.sz}). What is the <strong>network address of subnet ${n}</strong>? (CIDR)`,
+    ans: intToIp(ni)+'/'+d.newPfx, ph:'e.g. 192.168.0.0/26',
+    hint: `network_addr = base + N × block_size = ${d.net} + ${n}×${d.sz} = ${intToIp(ni)}/${d.newPfx}`,
+    type:'addr'
+  };
+}
+function genSnQ_broadcast() {
+  const d = pickSnBase(); const n = randInt(0,d.tot-1);
+  const ni = (d.ni+n*d.sz)>>>0; const bi = (ni|(d.sz-1))>>>0;
+  return {
+    q: `Network <code>${d.net}/${d.pfx}</code>, mask <code>/${d.newPfx}</code> (block size ${d.sz}). What is the <strong>broadcast address of subnet ${n}</strong>?`,
+    ans: intToIp(bi), ph:'e.g. 192.168.0.63',
+    hint: `network(${n}) = ${intToIp(ni)}. Broadcast = ${intToIp(ni)} + ${d.sz-1} = ${intToIp(bi)} (set all ${d.hb} host bits to 1)`,
+    type:'addr'
+  };
+}
+function genSnQ_which() {
+  const d = pickSnBase(); const n = randInt(0,d.tot-1);
+  const ni = (d.ni+n*d.sz)>>>0;
+  const host = (ni+randInt(1,d.sz-2))>>>0;
+  return {
+    q: `Network <code>${d.net}/${d.pfx}</code> subnetted with mask <code>/${d.newPfx}</code> (block size ${d.sz}). On which subnet number is host <strong>${intToIp(host)}</strong>?`,
+    ans: String(n), ph:'e.g. 3',
+    hint: `subnet# = floor((${intToIp(host)} − ${d.net}) ÷ ${d.sz}) = floor(${(host>>>0)-d.ni} ÷ ${d.sz}) = ${n}`,
+    type:'num'
+  };
+}
+function genSnQ_lastHost() {
+  const d = pickSnBase(); const n = randInt(0,d.tot-1);
+  const ni = (d.ni+n*d.sz)>>>0; const bi = (ni|(d.sz-1))>>>0;
+  return {
+    q: `Network <code>${d.net}/${d.pfx}</code>, mask <code>/${d.newPfx}</code>. What is the <strong>last usable host address on subnet ${n}</strong>?`,
+    ans: intToIp((bi-1)>>>0), ph:'e.g. 192.168.0.62',
+    hint: `network(${n})=${intToIp(ni)}, broadcast=${intToIp(bi)}, last host = broadcast − 1 = ${intToIp((bi-1)>>>0)}`,
+    type:'addr'
+  };
+}
+
+function genSnQuiz() {
+  const fns = [genSnQ_findMask, genSnQ_subnetAddr, genSnQ_broadcast, genSnQ_which, genSnQ_lastHost];
+  snQ = fns[randInt(0,fns.length-1)]();
+  document.getElementById('sn-qarea').innerHTML = quizHtml('sn', snQ.q, snQ.ph, 'checkSnQuiz()', snQ.hint);
+  document.getElementById('sn-qarea').querySelector('input').focus();
+}
+
+function checkSnQuiz() { checkQuiz('sn', snScore, snQ, snQ.ans, snQ.ans2); }
+
+/* ═══════════════════════════════════════════════════
+   TAB 2 — SUPERNETTING (TEACHING)
+═══════════════════════════════════════════════════ */
+
+let spRowId = 0;
+function addSpRow(val) {
+  const id = ++spRowId;
+  const div = document.createElement('div');
+  div.className = 'net-row'; div.id = 'sp-row-'+id;
+  div.innerHTML = `<input type="text" placeholder="e.g. 192.168.0.0/26" style="width:230px;" value="${val||''}">
+    <button class="btn sec" style="padding:6px 10px" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('sp-list').appendChild(div);
+}
+
+function calcSupernet() {
+  hideErr('sp-err');
+  const inputs = document.querySelectorAll('#sp-list input');
+  const nets = [];
+  for (const inp of inputs) {
+    const p = parseCIDR(inp.value);
+    if (!p) return showErr('sp-err', `Invalid CIDR: "${inp.value}"`);
+    nets.push({ net: netAddr(p.ip, p.pfx), pfx: p.pfx, str: intToIp(netAddr(p.ip,p.pfx))+'/'+p.pfx });
+  }
+  if (nets.length < 2) return showErr('sp-err','Add at least 2 networks');
+  if (!nets.every(n => n.pfx === nets[0].pfx)) return showErr('sp-err','All networks must have the same prefix length');
+
+  nets.sort((a,b) => a.net - b.net);
+  const pfx0 = nets[0].pfx;
+  const sz = 1<<(32-pfx0);
+
+  for (let i = 1; i < nets.length; i++) {
+    const exp = (nets[0].net + i*sz) >>> 0;
+    if (nets[i].net !== exp) return showErr('sp-err', `Networks are not contiguous. Expected ${intToIp(exp)}/${pfx0} at position ${i}.`);
+  }
+
+  const n = nets.length;
+  const freed = Math.ceil(Math.log2(n));
+  const superPfx = pfx0 - freed;
+  if (superPfx < 0) return showErr('sp-err','Supernet would require prefix < /0');
+
+  const superNet = netAddr(nets[0].net, superPfx);
+  const superBc  = bcAddr(superNet, superPfx);
+  const superMask = prefixToMask(superPfx);
+  const superStr = intToIp(superNet)+'/'+superPfx;
+
+  // Build bit types: n=supernet bits, s=bits freed by supernetting, h=host bits
+  const types = buildBitTypes(superPfx, pfx0);
+
+  let html = `<div class="card"><div class="card-title">Supernet Solution</div>`;
+  html += renderLegend(true);
+
+  html += `<div class="step">
+    <div class="step-num">Step 1</div>
+    <div class="step-title">Sort and Verify Adjacency</div>
+    <p>Sort all networks numerically. Verify each is exactly one block (${sz} addresses) from the previous.</p>
+    <table class="tbl"><thead><tr><th>#</th><th>Network CIDR</th><th>Network integer</th></tr></thead><tbody>`;
+  nets.forEach((net,i) => {
+    html += `<tr><td>${i}</td><td>${net.str}</td><td>${net.net}</td></tr>`;
+  });
+  html += `</tbody></table>
+    <p style="margin-top:8px;">Gap between adjacent networks = ${sz} = 2^${32-pfx0} ✓ — they are contiguous.</p>
+  </div>`;
+
+  html += `<div class="step">
+    <div class="step-num">Step 2</div>
+    <div class="step-title">Find the Supernet Prefix</div>
+    <p>To cover <strong>${n}</strong> /${pfx0} networks in one block we must <em>free</em> ⌈log₂(${n})⌉ = <strong>${freed}</strong> bits from the prefix.</p>
+    <div class="formula">Supernet prefix = /${pfx0} − ${freed} freed bits = /${superPfx}
+Supernet size   = 2^${32-superPfx} = ${1<<(32-superPfx)} addresses
+                  covers ${1<<freed} of the /${pfx0} blocks</div>
+    <p>Apply the new mask to the <em>first</em> network's address to get the supernet address:</p>
+    <div class="bin-block">
+      ${renderBin('First network:', intToBits(nets[0].net), types, nets[0].str)}
+      ${renderBin('Supernet mask:', intToBits(superMask), types, intToIp(superMask)+' (/'+superPfx+')')}
+      ${renderBinDiv()}
+      ${renderBin('Supernet addr:', intToBits(superNet), types, superStr)}
+    </div>
+    ${(1<<freed) > n ? `<div class="warn">Note: ${n} is not a power of 2. The /${superPfx} supernet covers ${1<<freed} /${pfx0} blocks. The extra ${(1<<freed)-n} block(s) are also covered — be aware of this address overlap.</div>` : ''}
+  </div>`;
+
+  html += `<div class="step">
+    <div class="step-num">Step 3</div>
+    <div class="step-title">Supernet Summary</div>
+    <div class="formula">Supernet  : ${superStr}
+Mask      : ${intToIp(superMask)}
+Broadcast : ${intToIp(superBc)}
+Total IPs : ${1<<(32-superPfx)} (usable hosts: ${(1<<(32-superPfx))-2})
+Covers    : ${nets[0].str} through ${nets[nets.length-1].str}</div>
+  </div></div>`;
+
+  setOut('sp-out', html);
+}
+
+/* ═══════════════════════════════════════════════════
+   TAB 2 — SUPERNETTING (PRACTICE)
+═══════════════════════════════════════════════════ */
+
+const spScore = {c:0,t:0};
+let spQ = {};
+
+function genSpQuiz() {
+  const bases = [
+    {net:'192.168.0.0',pfx:24},{net:'10.0.0.0',pfx:22},
+    {net:'172.16.0.0',pfx:20},{net:'41.1.16.0',pfx:23},
+    {net:'200.100.0.0',pfx:24},{net:'10.10.0.0',pfx:23},
+  ];
+  const base = bases[randInt(0,bases.length-1)];
+  const freed = randInt(1,3);
+  const n = 1<<freed;
+  const sz = 1<<(32-base.pfx);
+  const ni = ipToInt(base.net);
+  const subnets = Array.from({length:n},(_,i)=>intToIp((ni+i*sz)>>>0)+'/'+base.pfx);
+  const superPfx = base.pfx - freed;
+  const superNet = netAddr(ni, superPfx);
+  const superBc  = bcAddr(superNet, superPfx);
+
+  const qt = ['network','broadcast','mask'][randInt(0,2)];
+  let ans, hint;
+  if (qt==='network') {
+    ans = intToIp(superNet)+'/'+superPfx;
+    hint = `Free ${freed} bits: /${base.pfx}−${freed} = /${superPfx}. AND first network with new mask → ${ans}`;
+  } else if (qt==='broadcast') {
+    ans = intToIp(superBc);
+    hint = `Supernet is ${intToIp(superNet)}/${superPfx}. Set all ${32-superPfx} host bits to 1 → ${ans}`;
+  } else {
+    ans = '/'+superPfx;
+    hint = `Free ${freed} bits from /${base.pfx}: /${base.pfx}−${freed} = /${superPfx} = ${intToIp(prefixToMask(superPfx))}`;
+  }
+
+  const ctx = `The following ${n} adjacent networks must be combined into a supernet:\n${subnets.join('\n')}`;
+  const q = qt==='network' ? 'What is the supernet network address? (CIDR notation)'
+          : qt==='broadcast' ? 'What is the supernet broadcast address?'
+          : 'What prefix / subnet mask does the supernet use? (CIDR or dotted decimal)';
+
+  spQ = { ans, hint, qt };
+  document.getElementById('sp-qarea').innerHTML = quizHtml('sp', `<div class="quiz-ctx">${ctx}</div>${q}`, 'e.g. 192.168.0.0/23', 'checkSpQuiz()', hint);
+  document.getElementById('sp-qarea').querySelector('input').focus();
+}
+
+function checkSpQuiz() {
+  const ans2 = spQ.qt==='mask' ? intToIp(prefixToMask(parseInt(spQ.ans.replace('/',''))))||'' : '';
+  checkQuiz('sp', spScore, spQ, spQ.ans, ans2);
+}
+
+/* ═══════════════════════════════════════════════════
+   TAB 3 — SUBNET DESIGN (TEACHING)
+═══════════════════════════════════════════════════ */
+
+function calcDesign() {
+  hideErr('sd-err');
+  const parsed = parseCIDR(document.getElementById('sd-base').value);
+  if (!parsed) return showErr('sd-err','Invalid CIDR. Use format like 41.1.16.0/20');
+  const { ip, pfx: basePfx } = parsed;
+  const baseNet = netAddr(ip, basePfx);
+  const ms = parseInt(document.getElementById('sd-ms').value)||0;
+  const mh = parseInt(document.getElementById('sd-mh').value)||0;
+  if (!ms && !mh) return showErr('sd-err','Enter at least one constraint');
+
+  let newPfx=-1, subBits=0, hostBits=0;
+  for (let np = basePfx+1; np <= 30; np++) {
+    const sb=np-basePfx, hb=32-np;
+    if ((1<<sb)>=ms && (1<<hb)-2>=mh) { newPfx=np; subBits=sb; hostBits=hb; break; }
+  }
+  if (newPfx===-1) return showErr('sd-err','Cannot satisfy constraints. Try fewer subnets or fewer hosts.');
+
+  const newMask = prefixToMask(newPfx);
+  const totalSubs = 1<<subBits;
+  const hostsPerSub = (1<<hostBits)-2;
+  const sz = 1<<hostBits;
+  const types = buildBitTypes(basePfx, newPfx);
+
+  let html = `<div class="card"><div class="card-title">Subnet Design Solution</div>`;
+  html += renderLegend(true);
+
+  html += `<div class="step">
+    <div class="step-num">Step 1</div>
+    <div class="step-title">Calculate Bits Required</div>
+    <p>Base network: <span class="hl">${intToIp(baseNet)}/${basePfx}</span> — available host bits: <strong>${32-basePfx}</strong></p>
+    <div class="formula">Subnets required : ≥ ${ms} → ⌈log₂(${ms})⌉ = ${subBits} bits → 2^${subBits} = ${totalSubs} subnets
+Hosts required   : ≥ ${mh} → ⌈log₂(${mh}+2)⌉ = ${hostBits} bits → 2^${hostBits}−2 = ${hostsPerSub} hosts
+Total bits used  : ${subBits} + ${hostBits} = ${subBits+hostBits} ≤ ${32-basePfx} available ✓</div>
+  </div>`;
+
+  html += `<div class="step">
+    <div class="step-num">Step 2</div>
+    <div class="step-title">The New Mask</div>
+    <p>Borrow <strong>${subBits}</strong> host bits → new prefix <span class="hl">/${newPfx}</span> = <span class="hl">${intToIp(newMask)}</span></p>
+    <div class="bin-block">
+      ${renderBin('Base mask (/'+basePfx+'):', intToBits(prefixToMask(basePfx)), types, intToIp(prefixToMask(basePfx)))}
+      ${renderBin('New mask (/'+newPfx+'):', intToBits(newMask), types, intToIp(newMask))}
+    </div>
+    <p>Blue = original network bits · Orange = borrowed subnet bits · Green = host bits</p>
+  </div>`;
+
+  html += `<div class="step">
+    <div class="step-num">Step 3</div>
+    <div class="step-title">Resulting Subnet Layout (first 4)</div>
+    <table class="tbl">
+      <thead><tr><th>Subnet #</th><th>Network Address</th><th>Broadcast</th><th>Usable Range</th></tr></thead>
+      <tbody>`;
+  for (let n=0; n<Math.min(4,totalSubs); n++) {
+    const ni=(baseNet+n*sz)>>>0, bi=(ni|(sz-1))>>>0;
+    html+=`<tr><td>${n}</td><td>${intToIp(ni)}/${newPfx}</td><td>${intToIp(bi)}</td><td>${intToIp((ni+1)>>>0)} – ${intToIp((bi-1)>>>0)}</td></tr>`;
+  }
+  if (totalSubs>4) html+=`<tr><td colspan="4" class="tbl-placeholder">··· ${totalSubs-4} more ···</td></tr>`;
+  html+=`</tbody></table></div></div>`;
+
+  setOut('sd-out', html);
+}
+
+/* ═══════════════════════════════════════════════════
+   TAB 3 — SUBNET DESIGN (PRACTICE)
+═══════════════════════════════════════════════════ */
+
+const sdScore = {c:0,t:0};
+let sdQ = {};
+
+function genSdQuiz() {
+  const bases = [
+    {net:'192.168.0.0',pfx:16},{net:'10.0.0.0',pfx:8},
+    {net:'41.1.16.0',pfx:20},{net:'150.100.0.0',pfx:16},
+  ];
+  const base = bases[randInt(0,bases.length-1)];
+  const avail = 32-base.pfx;
+  const sb = randInt(2, Math.min(7,avail-2));
+  const hb = avail-sb;
+  const ms = randInt((1<<(sb-1))+1, 1<<sb);
+  const mh = randInt(1, (1<<hb)-2);
+  const np = base.pfx+sb;
+  sdQ = {
+    q:`Network <code>${base.net}/${base.pfx}</code>. Subnet it into at least <strong>${ms}</strong> subnets each supporting at least <strong>${mh}</strong> hosts. What subnet mask should you use?`,
+    ans:'/'+np, ans2:intToIp(prefixToMask(np)), ph:'e.g. /26 or 255.255.255.192',
+    hint:`Need ${sb} subnet bits (2^${sb}=${1<<sb}≥${ms}) + ${hb} host bits (2^${hb}−2=${(1<<hb)-2}≥${mh}). Prefix: /${base.pfx}+${sb}=/${np}. Mask: ${intToIp(prefixToMask(np))}`,
+    type:'mask'
+  };
+  document.getElementById('sd-qarea').innerHTML = quizHtml('sd', sdQ.q, sdQ.ph, 'checkSdQuiz()', sdQ.hint);
+  document.getElementById('sd-qarea').querySelector('input').focus();
+}
+
+function checkSdQuiz() { checkQuiz('sd', sdScore, sdQ, sdQ.ans, sdQ.ans2); }
+
+/* ═══════════════════════════════════════════════════
+   TAB 4 — VLSM (TEACHING)
+═══════════════════════════════════════════════════ */
+
+let vlRowId = 0;
+function addVlRow(name, hosts) {
+  const id = ++vlRowId;
+  const div = document.createElement('div');
+  div.className = 'net-row'; div.id = 'vl-row-'+id;
+  div.innerHTML = `
+    <input type="text" placeholder="Name (optional)" style="width:150px;" value="${name||''}">
+    <input type="number" placeholder="Hosts needed" style="width:140px;" min="1" value="${hosts||''}">
+    <button class="btn sec" style="padding:6px 10px" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('vl-list').appendChild(div);
+}
+
+function calcVlsm() {
+  hideErr('vl-err');
+  const parsed = parseCIDR(document.getElementById('vl-base').value);
+  if (!parsed) return showErr('vl-err','Invalid base block. Use CIDR like 192.168.10.0/24');
+  const { ip, pfx: basePfx } = parsed;
+  const baseNet = netAddr(ip, basePfx);
+  const maxAddr = bcAddr(baseNet, basePfx);
+
+  const rows = document.querySelectorAll('#vl-list .net-row');
+  const depts = [];
+  for (const row of rows) {
+    const ins = row.querySelectorAll('input');
+    const name = ins[0].value.trim() || ('Subnet '+(depts.length+1));
+    const h = parseInt(ins[1].value);
+    if (isNaN(h)||h<1) return showErr('vl-err',`Invalid host count for "${name}"`);
+    depts.push({name, hosts: h});
+  }
+  if (!depts.length) return showErr('vl-err','Add at least one subnet requirement');
+
+  // Sort largest first
+  depts.sort((a,b) => b.hosts-a.hosts);
+
+  let cur = baseNet;
+  const allocs = [];
+  for (const dept of depts) {
+    const hb = Math.ceil(Math.log2(dept.hosts+2));
+    const sz = 1<<hb;
+    const subPfx = 32-hb;
+    // Align to block boundary
+    const aligned = (Math.ceil(cur/sz)*sz) >>> 0;
+    const bi = (aligned+sz-1) >>> 0;
+    if (bi > maxAddr) return showErr('vl-err',`Address space exhausted at "${dept.name}". Not enough space in the base block.`);
+    allocs.push({name:dept.name, hosts:dept.hosts, ni:aligned, bi, pfx:subPfx, sz, hb, waste:sz-2-dept.hosts});
+    cur = (bi+1) >>> 0;
+  }
+
+  const totalAddrs = 1<<(32-basePfx);
+  const used = cur - baseNet;
+
+  let html = `<div class="card"><div class="card-title">VLSM Allocation Plan</div>`;
+
+  html += `<div class="step">
+    <div class="step-num">Key Principle</div>
+    <div class="step-title">Why Allocate Largest First?</div>
+    <p>Each subnet must start at an address that is a multiple of its block size (alignment). By allocating largest subnets first, we guarantee all subnets fit naturally without gaps or overlaps. Allocating small then large can create alignment waste.</p>
+    <div class="formula">Block size for N hosts = 2^⌈log₂(N+2)⌉
+(+2 reserves the network address and broadcast address)</div>
+  </div>`;
+
+  html += `<div class="step">
+    <div class="step-num">Allocation</div>
+    <div class="step-title">Per-Subnet Breakdown</div>`;
+  for (let i=0; i<allocs.length; i++) {
+    const a = allocs[i];
+    const types = buildBitTypes(basePfx, a.pfx);
+    html += `<div style="margin:12px 0;padding:10px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--line);">
+      <strong>${i+1}. ${a.name}</strong> — ${a.hosts} hosts needed → block size 2^${a.hb} = ${a.sz} → prefix /${a.pfx}
+      <div class="bin-block" style="margin-top:8px;">
+        ${renderBin('Network addr:', intToBits(a.ni), types, intToIp(a.ni)+'/'+a.pfx)}
+        ${renderBin('Broadcast:', intToBits(a.bi), types, intToIp(a.bi))}
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">First host: ${intToIp((a.ni+1)>>>0)} &nbsp;·&nbsp; Last host: ${intToIp((a.bi-1)>>>0)} &nbsp;·&nbsp; Wasted: ${a.waste} addresses</p>
+    </div>`;
+  }
+  html += `</div>`;
+
+  html += `<div class="step">
+    <div class="step-num">Summary Table</div>
+    <div class="step-title">Complete VLSM Plan</div>
+    <table class="tbl">
+      <thead><tr><th>Dept</th><th>Hosts</th><th>Prefix</th><th>Network Addr</th><th>First Host</th><th>Last Host</th><th>Broadcast</th><th>Waste</th></tr></thead>
+      <tbody>`;
+  for (const a of allocs) {
+    html+=`<tr>
+      <td>${a.name}</td><td>${a.hosts}</td><td>/${a.pfx}</td>
+      <td>${intToIp(a.ni)}</td><td>${intToIp((a.ni+1)>>>0)}</td><td>${intToIp((a.bi-1)>>>0)}</td><td>${intToIp(a.bi)}</td><td>${a.waste}</td>
+    </tr>`;
+  }
+  html+=`</tbody></table></div>`;
+
+  html+=`<div class="step">
+    <div class="step-num">Space Usage</div>
+    <div class="step-title">Address Consumption</div>
+    <div class="formula">Total block  : ${totalAddrs} addresses (${intToIp(baseNet)} – ${intToIp(maxAddr)})
+Addresses used : ${used}
+Remaining      : ${totalAddrs-used} (next free: ${intToIp(cur)})</div>
+  </div></div>`;
+
+  setOut('vl-out', html);
+}
+
+/* ═══════════════════════════════════════════════════
+   TAB 4 — VLSM (PRACTICE)
+═══════════════════════════════════════════════════ */
+
+const vlScore = {c:0,t:0};
+let vlQ = {};
+
+function genVlQuiz() {
+  const oct3 = randInt(0,50);
+  const base = { net:`192.168.${oct3}.0`, pfx:24 };
+  const ni = ipToInt(base.net);
+  const depts = [
+    {name:'Engineering', hosts: randInt(50,120)},
+    {name:'Marketing',   hosts: randInt(20,49)},
+    {name:'HR',          hosts: randInt(5,19)},
+    {name:'Exec',        hosts: randInt(2,4)},
+  ].sort((a,b)=>b.hosts-a.hosts);
+
+  let cur = ni;
+  const allocs = [];
+  for (const d of depts) {
+    const hb = Math.ceil(Math.log2(d.hosts+2));
+    const sz = 1<<hb;
+    const aligned = (Math.ceil(cur/sz)*sz)>>>0;
+    const bi = (aligned+sz-1)>>>0;
+    allocs.push({name:d.name, hosts:d.hosts, ni:aligned, bi, pfx:32-hb, sz});
+    cur = (bi+1)>>>0;
+  }
+
+  const target = allocs[randInt(0,allocs.length-1)];
+  const qt = ['network','broadcast','prefix'][randInt(0,2)];
+
+  let ans, hint, q;
+  if (qt==='network') {
+    ans = intToIp(target.ni)+'/'+target.pfx;
+    q   = `What is the network address (CIDR) assigned to <strong>${target.name}</strong>?`;
+    hint= `Largest-first: allocate in order ${allocs.map(a=>a.name+'('+a.hosts+' hosts)').join(' → ')}. ${target.name} block size=2^${32-target.pfx}=${target.sz} → ${intToIp(target.ni)}/${target.pfx}`;
+  } else if (qt==='broadcast') {
+    ans = intToIp(target.bi);
+    q   = `What is the broadcast address for the <strong>${target.name}</strong> subnet?`;
+    hint= `${target.name}: network ${intToIp(target.ni)}/${target.pfx}, block size ${target.sz}. Broadcast = ${intToIp(target.ni)} + ${target.sz-1} = ${intToIp(target.bi)}`;
+  } else {
+    ans = '/'+target.pfx;
+    q   = `What prefix length should be used for <strong>${target.name}</strong> (${target.hosts} hosts needed)?`;
+    hint= `⌈log₂(${target.hosts}+2)⌉ = ${32-target.pfx} host bits → prefix /${target.pfx}`;
+  }
+
+  const ctx = `Base block: ${base.net}/${base.pfx}\n\nDepartments (given — you must sort largest-first):\n`
+    + depts.map(d=>`  ${d.name}: ${d.hosts} hosts`).join('\n');
+
+  vlQ = { ans, hint, qt };
+  document.getElementById('vl-qarea').innerHTML = quizHtml('vl',
+    `<div class="quiz-ctx">${ctx}</div>${q}`, 'Your answer', 'checkVlQuiz()', hint);
+  document.getElementById('vl-qarea').querySelector('input').focus();
+}
+
+function checkVlQuiz() {
+  const ans2 = vlQ.qt==='prefix' ? intToIp(prefixToMask(parseInt(vlQ.ans.replace('/',''))))||'' : '';
+  checkQuiz('vl', vlScore, vlQ, vlQ.ans, ans2);
+}
+
+/* ═══════════════════════════════════════════════════
+   SHARED QUIZ HELPERS
+═══════════════════════════════════════════════════ */
+
+function quizHtml(id, qHtml, ph, checkFn, hint) {
+  return `
+    <div class="quiz-q">${qHtml}</div>
+    <div class="quiz-row">
+      <input type="text" id="${id}-qa" placeholder="${ph}" style="width:240px;"
+             onkeydown="if(event.key==='Enter') ${checkFn}">
+      <button class="btn" onclick="${checkFn}">Check</button>
+      <button class="btn sec" onclick="document.getElementById('${id}-hint').classList.toggle('hidden')">Hint</button>
+    </div>
+    <div id="${id}-hint" class="info hidden">${hint}</div>
+    <div id="${id}-result" class="quiz-result"></div>`;
+}
+
+function normalise(s) { return (s||'').toLowerCase().trim().replace(/\s+/g,'').replace(/^\/*/,''); }
+
+function checkQuiz(id, score, q, correctAns, correctAns2) {
+  const user = document.getElementById(id+'-qa').value.trim();
+  const norm = normalise;
+
+  let ok = norm(user) === norm(correctAns);
+  if (!ok && correctAns2) ok = norm(user) === norm(correctAns2);
+  // Also accept prefix without slash for mask-type questions
+  if (!ok) {
+    try {
+      const stripped = norm(correctAns);
+      if (norm(user) === stripped) ok = true;
+      // Try matching dotted decimal to prefix
+      const ui = ipToInt(user);
+      if (ui !== null) {
+        let cnt=0, bits=ui;
+        while(bits & 0x80000000){cnt++;bits=(bits<<1)>>>0;}
+        if (norm('/'+cnt) === norm(correctAns)) ok = true;
+      }
+    } catch(e){}
+  }
+
+  score.t++; if (ok) score.c++;
+  document.getElementById(id+'-score').textContent = `Score: ${score.c} / ${score.t}`;
+
+  const res = document.getElementById(id+'-result');
+  res.style.display = 'block';
+  if (ok) {
+    res.className = 'quiz-result ok';
+    res.innerHTML = `Correct! Answer: <strong>${correctAns}</strong>${correctAns2?' ('+correctAns2+')':''}`;
+  } else {
+    res.className = 'quiz-result bad';
+    res.innerHTML = `Not quite. Correct answer: <strong>${correctAns}</strong>${correctAns2?' ('+correctAns2+')':''}
+      <br><em style="font-size:13px;">${q.hint}</em>`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   TAB LAYER 1, 2, TCP SCRIPTING
+═══════════════════════════════════════════════════ */
+
+/* Layer 1 Quiz */
+const l1Score = {c:0,t:0};
+let l1Q = {};
+
+function genL1Quiz() {
+  const qs = [
+    {q: "Which twisted pair standard encloses pairs in a metallic shield?", ans: "STP", ans2: "Shielded Twisted Pair", hint: "STP uses a shield."},
+    {q: "Which RJ45 pin uses the Solid Orange wire in T568B?", ans: "2", hint: "T568B pin 2 is Orange."},
+    {q: "Which RJ45 pin is White/Green in T568B?", ans: "3", hint: "T568B pin 3 is White/Green."},
+    {q: "To connect a switch to a switch, what cable type should you use?", ans: "Crossover", ans2: "Crossover Cable", hint: "Like devices use Crossover."}
+  ];
+  l1Q = qs[randInt(0, qs.length-1)];
+  document.getElementById('l1-qarea').innerHTML = quizHtml('l1', l1Q.q, 'Your answer', 'checkL1Quiz()', l1Q.hint);
+  document.getElementById('l1-qarea').querySelector('input').focus();
+}
+function checkL1Quiz() { checkQuiz('l1', l1Score, l1Q, l1Q.ans, l1Q.ans2); }
+
+/* Layer 2 Scripting */
+function calcBitStuff() {
+  const din = document.getElementById('l2-data-in').value.trim();
+  if(!/^[01]+$/.test(din)) return setOut('l2-stuff-out', '<div class="err" style="display:block">Enter only 0s and 1s</div>');
+  
+  let out = '', ones = 0;
+  for(let i=0; i<din.length; i++) {
+    out += din[i];
+    if(din[i] === '1') {
+      ones++;
+      if(ones === 5) {
+        out += '<span class="hl">0</span>';
+        ones = 0;
+      }
+    } else {
+      ones = 0;
+    }
+  }
+  setOut('l2-stuff-out', `<div style="font-family:monospace; margin-top:8px;"><strong>Stuffed:</strong> ${out}</div>`);
+}
+
+const l2Score = {c:0,t:0};
+let l2Q = {};
+
+function genL2Quiz() {
+  const qs = [
+    {q: "What is the start/end flag pattern in HDLC?", ans: "01111110", hint: "Six 1s enclosed by 0s."},
+    {q: "If the data is 01111111, what is the output after bit stuffing?", ans: "011111011", hint: "Insert a 0 after five 1s."},
+    {q: "Which error method is preferred for wireless - detection or correction?", ans: "Correction", ans2: "Error Correction", hint: "Correction avoids high retransmission overhead in noisy channels."},
+    {q: "What field in the IEEE 802.3 Ethernet frame is used for error detection?", ans: "FCS", ans2: "Frame Check Sequence", hint: "FCS (4 bytes) at the end."}
+  ];
+  l2Q = qs[randInt(0, qs.length-1)];
+  document.getElementById('l2-qarea').innerHTML = quizHtml('l2', l2Q.q, 'Your answer', 'checkL2Quiz()', l2Q.hint);
+  document.getElementById('l2-qarea').querySelector('input').focus();
+}
+function checkL2Quiz() { checkQuiz('l2', l2Score, l2Q, l2Q.ans, l2Q.ans2); }
+
+
+/* TCP Scripting */
+let tcpA = { seq:0, win:0, unacked:0 };
+let tcpB = { seq:0, win:0, unacked:0 };
+
+function initTcpState() {
+  tcpA.seq = parseInt(document.getElementById('tcp-a-seq').value)||0;
+  tcpA.win = parseInt(document.getElementById('tcp-a-win').value)||0;
+  tcpA.unacked = 0;
+  
+  tcpB.seq = parseInt(document.getElementById('tcp-b-seq').value)||0;
+  tcpB.win = parseInt(document.getElementById('tcp-b-win').value)||0;
+  tcpB.unacked = 0;
+  
+  document.getElementById('tcp-trace-body').innerHTML = '';
+  document.getElementById('tcp-events').style.display = 'block';
+  updateTcpStateDisplay();
+}
+
+function updateTcpStateDisplay() {
+  document.getElementById('tcp-state-a').innerHTML = `A.seq = ${tcpA.seq}<br>A.win(adv) = ${tcpA.win}<br>A.unacked = ${tcpA.unacked}`;
+  document.getElementById('tcp-state-b').innerHTML = `B.seq = ${tcpB.seq}<br>B.win(adv) = ${tcpB.win}<br>B.unacked = ${tcpB.unacked}`;
+}
+
+function tcpEvent(actor, action) {
+  let sender = actor === 'A' ? tcpA : tcpB;
+  let peer = actor === 'A' ? tcpB : tcpA;
+  
+  let seq = sender.seq;
+  let ack = peer.seq; // the next byte we expect from peer
+  let win = sender.win;
+  let len = 0;
+  let notes = "";
+  
+  if (action === 'send') {
+    let desired = parseInt(document.getElementById('tcp-' + actor.toLowerCase() + '-sendlen').value)||0;
+    // max we can send is peer's advertised window - what's already unacked
+    let effectiveWin = Math.max(0, peer.win - sender.unacked);
+    len = Math.min(desired, effectiveWin);
+    
+    sender.seq += len;
+    sender.unacked += len;
+    peer.win = Math.max(0, peer.win - len); // peer's actual buffer usage (simplified)
+    
+    notes = `Tried ${desired}, Sent ${len}`;
+    
+    // An ACK is piggybacked, so sender clears peer unacked
+    peer.unacked = 0; 
+
+  } else if (action === 'consume') {
+    let cons = parseInt(document.getElementById('tcp-' + actor.toLowerCase() + '-conslen').value)||0;
+    sender.win += cons; // consuming frees up our receive buffer
+    updateTcpStateDisplay();
+    return; // Don't output a trace for internal consume
+  } else if (action === 'ack') {
+    notes = "Empty ACK";
+    peer.unacked = 0;
+  }
+  
+  let row = `<tr>
+    <td>Event</td>
+    <td>${actor} &rarr; ${actor==='A'?'B':'A'}</td>
+    <td>${seq}</td>
+    <td>${len}</td>
+    <td>${ack}</td>
+    <td>${win}</td>
+    <td>${notes}</td>
+  </tr>`;
+  
+  document.getElementById('tcp-trace-body').innerHTML += row;
+  updateTcpStateDisplay();
+}
+
+const tcpScore = {c:0,t:0};
+let tcpQ = {};
+
+function genTcpQuiz() {
+  const qs = [
+    {q: "Host A receives a segment with SEQ=500, LEN=150. If received successfully, what will be the ACK number in A's next response?", ans: "650", hint: "ACK = SEQ + LEN = 500 + 150 = 650"},
+    {q: "Host A advertises WIN=1000. It receives 300 bytes of data which are NOT consumed by the application. What is A's new advertised WIN?", ans: "700", hint: "1000 - 300 = 700 bytes remaining."},
+    {q: "If B advertises WIN=500, and A has already sent 200 unacknowledged bytes, how much new data can A send?", ans: "300", hint: "Effective Window = Advertised - Unacked = 500 - 200 = 300."}
+  ];
+  tcpQ = qs[randInt(0, qs.length-1)];
+  document.getElementById('tcp-qarea').innerHTML = quizHtml('tcp', tcpQ.q, 'Your answer', 'checkTcpQuiz()', tcpQ.hint);
+  document.getElementById('tcp-qarea').querySelector('input').focus();
+}
+function checkTcpQuiz() { checkQuiz('tcp', tcpScore, tcpQ, tcpQ.ans); }
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+
+addSpRow(''); addSpRow('');
+addVlRow('Engineering', 50);
+addVlRow('Marketing', 25);
+addVlRow('HR', 10);
+</script>
+</body>
+</html>

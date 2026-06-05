@@ -8,6 +8,40 @@ from build_mcq_table import CURRENT_TEST_SOURCES, SOURCES, dedupe, parse_source,
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "ExamAdmin" / "MCQ Explorer.html"
+ANSWER_KEYS_PATH = ROOT / "ExamAdmin" / "answer_keys.json"
+LLM_ANSWERS_PATH = ROOT / "ExamAdmin" / "llm_answers.json"
+
+
+def load_answer_keys() -> dict:
+    if not ANSWER_KEYS_PATH.exists():
+        return {}
+    return json.loads(ANSWER_KEYS_PATH.read_text(encoding="utf-8"))
+
+
+def load_llm_answers() -> dict:
+    if not LLM_ANSWERS_PATH.exists():
+        return {}
+    return json.loads(LLM_ANSWERS_PATH.read_text(encoding="utf-8"))
+
+
+def resolve_answer(occurrences: list[str], answer_keys: dict, llm_answers: dict) -> tuple[str | None, str | None]:
+    for occ in occurrences:
+        try:
+            source, q_num = occ.split(" Q1.", 1)
+            answer = answer_keys.get(source, {}).get(q_num)
+            if answer:
+                return answer, "memo"
+        except ValueError:
+            pass
+    for occ in occurrences:
+        try:
+            source, q_num = occ.split(" Q1.", 1)
+            answer = llm_answers.get(source, {}).get(q_num)
+            if answer:
+                return answer, "llm"
+        except ValueError:
+            pass
+    return None, None
 
 
 def source_from_occurrence(occurrence: str) -> str:
@@ -17,6 +51,8 @@ def source_from_occurrence(occurrence: str) -> str:
 def make_rows():
     all_mcqs = []
     source_counts = {}
+    answer_keys = load_answer_keys()
+    llm_answers = load_llm_answers()
 
     for year, paper, path in SOURCES:
         label = f"{year} {paper}"
@@ -37,6 +73,8 @@ def make_rows():
         years = sorted({label.split()[0] for label in source_labels})
         papers = sorted({label.split()[1] for label in source_labels}, key=lambda paper: {"ST1": 0, "ST2": 1, "Exam": 2}.get(paper, 9))
 
+        answer, answer_source = resolve_answer(item.occurrences, answer_keys, llm_answers)
+
         rows.append(
             {
                 "id": index,
@@ -53,6 +91,8 @@ def make_rows():
                 "askedCurrent": bool(current_hits),
                 "askedCurrentSources": sorted(set(current_hits)),
                 "studyStatus": "Skip for exam review" if current_hits else "Learn / review",
+                "correctAnswer": answer,
+                "answerSource": answer_source,
             }
         )
 
@@ -348,13 +388,81 @@ def build_html(rows, source_counts):
     }}
 
     .options li {{
+      padding: 0;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      font-size: 14px;
+      line-height: 1.35;
+    }}
+
+    .option-btn {{
+      display: block;
+      width: 100%;
+      text-align: left;
       padding: 8px 10px;
       background: #f8fafc;
       border: 1px solid #e6ebf2;
       border-radius: 8px;
       font-size: 14px;
       line-height: 1.35;
+      cursor: pointer;
+      color: var(--text);
+      font-family: inherit;
+      transition: background 0.12s, border-color 0.12s;
     }}
+
+    .option-btn:hover:not(:disabled) {{
+      background: #eef2f7;
+      border-color: #c5cdd9;
+    }}
+
+    .option-btn.correct {{
+      background: #d1fae5;
+      border-color: #34d399;
+      color: #065f46;
+      font-weight: 700;
+    }}
+
+    .option-btn.incorrect {{
+      background: #fee2e2;
+      border-color: #f87171;
+      color: #991b1b;
+    }}
+
+    .option-btn:disabled {{
+      cursor: default;
+    }}
+
+    .quiz-footer {{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }}
+
+    .quiz-result {{
+      font-size: 13px;
+      font-weight: 700;
+    }}
+
+    .quiz-result.correct {{ color: #065f46; }}
+    .quiz-result.incorrect {{ color: #991b1b; }}
+    .quiz-result.unknown {{ color: var(--muted); }}
+
+    .reset-btn {{
+      height: 28px;
+      font-size: 12px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+      color: var(--muted);
+      font-family: inherit;
+    }}
+
+    .reset-btn:hover {{ background: #f1f5f9; }}
 
     .detail {{
       display: grid;
@@ -636,21 +744,35 @@ def build_html(rows, source_counts):
       els.results.innerHTML = rows.map(row => {{
         const statusClass = row.askedCurrent ? "seen" : "review";
         const statusText = row.askedCurrent ? `Seen: ${{row.askedCurrentSources.join(", ")}}` : "Learn / review";
-        const optionItems = row.options.map(option => `<li>${{escapeHtml(option)}}</li>`).join("");
+        const correctAttr = row.correctAnswer ? ` data-correct="${{escapeHtml(row.correctAnswer)}}"` : "";
+        const sourceAttr = row.answerSource ? ` data-source="${{escapeHtml(row.answerSource)}}"` : "";
+        const optionItems = row.options.map(option => {{
+          const letter = option.split(".")[0].trim();
+          return `<li><button class="option-btn" data-letter="${{escapeHtml(letter)}}" type="button">${{escapeHtml(option)}}</button></li>`;
+        }}).join("");
         const occurrenceText = row.occurrences.join("; ");
         const sourceText = row.sourceLabels.join(", ");
+        const llmBadge = row.answerSource === 'llm' ? `<span class="badge" style="background:#fef08a;color:#c2410c">LLM Answered</span>` : "";
+        
         return `
-          <article class="mcq">
+          <article class="mcq" data-id="${{row.id}}"${{correctAttr}}${{sourceAttr}}>
             <div class="mcq-head">
               <div class="mcq-id">#${{row.id}}</div>
               <p class="question">${{escapeHtml(row.question)}}</p>
               <div class="badges">
+                ${{llmBadge}}
                 <span class="badge ${{statusClass}}">${{escapeHtml(statusText)}}</span>
                 <span class="badge">${{row.occurrenceCount}}x</span>
               </div>
             </div>
             <div class="mcq-body">
-              <ol class="options">${{optionItems}}</ol>
+              <div>
+                <ol class="options">${{optionItems}}</ol>
+                <div class="quiz-footer">
+                  <span class="quiz-result"></span>
+                  <button class="reset-btn" type="button" style="display:none">Try again</button>
+                </div>
+              </div>
               <div class="detail">
                 <div class="detail-block">
                   <div class="detail-title">Occurrences</div>
@@ -703,6 +825,61 @@ def build_html(rows, source_counts):
     [els.yearChecks, els.paperChecks].forEach(el => el.addEventListener("change", applyFilters));
     els.reset.addEventListener("click", resetFilters);
     els.copyVisible.addEventListener("click", copyVisible);
+
+    function handleOptionClick(btn) {{
+      const article = btn.closest("article.mcq");
+      const correct = article.dataset.correct || null;
+      const source = article.dataset.source || null;
+      const chosen = btn.dataset.letter;
+      const resultEl = article.querySelector(".quiz-result");
+      const resetBtn = article.querySelector(".reset-btn");
+      const allBtns = article.querySelectorAll(".option-btn");
+
+      allBtns.forEach(b => b.disabled = true);
+      
+      const sourceLabel = source === "llm" ? " (LLM)" : "";
+
+      if (!correct) {{
+        btn.style.background = "#e0e7ff";
+        btn.style.borderColor = "#818cf8";
+        resultEl.textContent = "Answer not in memo";
+        resultEl.className = "quiz-result unknown";
+      }} else if (chosen === correct) {{
+        btn.classList.add("correct");
+        resultEl.textContent = "Correct!" + sourceLabel;
+        resultEl.className = "quiz-result correct";
+      }} else {{
+        btn.classList.add("incorrect");
+        allBtns.forEach(b => {{ if (b.dataset.letter === correct) b.classList.add("correct"); }});
+        resultEl.textContent = `Incorrect — answer is ${{correct}}${{sourceLabel}}`;
+        resultEl.className = "quiz-result incorrect";
+      }}
+
+      resetBtn.style.display = "inline-block";
+    }}
+
+    function handleResetClick(resetBtn) {{
+      const article = resetBtn.closest("article.mcq");
+      const allBtns = article.querySelectorAll(".option-btn");
+      const resultEl = article.querySelector(".quiz-result");
+
+      allBtns.forEach(b => {{
+        b.disabled = false;
+        b.classList.remove("correct", "incorrect");
+        b.style.background = "";
+        b.style.borderColor = "";
+      }});
+      resultEl.textContent = "";
+      resultEl.className = "quiz-result";
+      resetBtn.style.display = "none";
+    }}
+
+    els.results.addEventListener("click", e => {{
+      const btn = e.target.closest(".option-btn");
+      if (btn && !btn.disabled) {{ handleOptionClick(btn); return; }}
+      const reset = e.target.closest(".reset-btn");
+      if (reset) {{ handleResetClick(reset); }}
+    }});
 
     applyFilters();
   </script>
