@@ -26,6 +26,9 @@
     /* ── Layout ── */
     header { background: #fff; border-bottom: 1px solid var(--line); padding: 20px 0; }
     .wrap  { width: min(1100px, calc(100% - 32px)); margin: 0 auto; }
+    .breadcrumb { display: flex; gap: 7px; align-items: center; margin-bottom: 10px; color: var(--muted); font-size: 12px; }
+    .breadcrumb a { color: var(--accent); font-weight: 700; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
     h1 { font-size: 24px; margin-bottom: 4px; }
     .subtitle { color: var(--muted); font-size: 13px; }
 
@@ -140,6 +143,13 @@
 
 <header>
   <div class="wrap">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../index.html">Exam Hub</a>
+      <span>/</span>
+      <a href="Practical%20Work/index.html">Practical Work</a>
+      <span>/</span>
+      <span>Networking</span>
+    </nav>
     <h1>COS332 Subnetting &amp; Supernetting</h1>
     <p class="subtitle">Interactive step-by-step with binary breakdown · Teaching + Practice · All past-paper question types</p>
   </div>

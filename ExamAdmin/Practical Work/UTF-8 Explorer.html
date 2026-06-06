@@ -1,0 +1,1319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>COS332 UTF-8 Explorer</title>
+  <style>
+    :root {
+      --bg: #f4f7f6;
+      --surface: #ffffff;
+      --surface-alt: #edf3f1;
+      --text: #172321;
+      --muted: #60706d;
+      --line: #d4dfdc;
+      --accent: #0f766e;
+      --accent-dark: #095c56;
+      --accent-soft: #d8eeea;
+      --code: #1c2927;
+      --code-text: #e7f3f0;
+      --valid: #166534;
+      --valid-bg: #ecfdf3;
+      --invalid: #b42318;
+      --invalid-bg: #fff1f0;
+      --warning: #9a5412;
+      --warning-bg: #fff7e8;
+      --shadow: 0 16px 42px rgba(23, 35, 33, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      color: var(--text);
+      background:
+        linear-gradient(120deg, rgba(15, 118, 110, 0.1), transparent 30%),
+        var(--bg);
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.55;
+    }
+
+    button, input, textarea { font: inherit; }
+
+    .shell {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 68px;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 34px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .breadcrumb a {
+      color: var(--accent-dark);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+      gap: 54px;
+      align-items: end;
+      margin-bottom: 34px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 720px;
+      margin: 0;
+      font-size: clamp(39px, 6vw, 67px);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+
+    .lead {
+      max-width: 65ch;
+      margin: 19px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .reference {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+      padding: 20px;
+    }
+
+    .reference-title {
+      margin-bottom: 12px;
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .reference-row {
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+      padding: 10px 0;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+    }
+
+    .reference-row:first-of-type { border-top: 0; }
+    .reference-row strong { color: var(--accent-dark); }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 22px;
+      padding-bottom: 8px;
+      scrollbar-width: thin;
+    }
+
+    .tab {
+      flex: 0 0 auto;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: transparent;
+      padding: 9px 14px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: color 180ms ease, background 180ms ease, transform 180ms ease;
+    }
+
+    .tab:hover { color: var(--accent-dark); background: var(--accent-soft); }
+    .tab:active { transform: translateY(1px); }
+    .tab.active { color: #ffffff; background: var(--accent); }
+    .tab:focus-visible { outline: 3px solid rgba(15, 118, 110, 0.25); outline-offset: 2px; }
+
+    .pane { display: none; animation: pane-in 280ms ease both; }
+    .pane.active { display: block; }
+
+    .workbench {
+      display: grid;
+      grid-template-columns: minmax(300px, 0.68fr) minmax(0, 1.32fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+    }
+
+    .panel-intro {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 15px;
+    }
+
+    label {
+      color: #43534f;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      outline: none;
+      background: var(--bg);
+      color: var(--text);
+      padding: 11px 12px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    textarea {
+      min-height: 118px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+    }
+
+    .helper {
+      margin: -1px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 17px;
+    }
+
+    .button {
+      border: 1px solid var(--accent);
+      border-radius: 9px;
+      background: var(--accent);
+      color: #ffffff;
+      padding: 10px 15px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .button:hover { opacity: 0.88; }
+    .button:active { transform: translateY(1px) scale(0.99); }
+    .button.secondary { border-color: var(--line); background: var(--surface); color: var(--text); }
+    .button:focus-visible { outline: 3px solid rgba(15, 118, 110, 0.25); outline-offset: 2px; }
+
+    .example-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 20px;
+      border-top: 1px solid var(--line);
+      padding-top: 17px;
+    }
+
+    .example {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-alt);
+      padding: 6px 9px;
+      color: #42524e;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .example:hover { border-color: var(--accent); color: var(--accent-dark); }
+
+    .error {
+      display: none;
+      margin-top: 12px;
+      border: 1px solid #f0b8b4;
+      border-radius: 9px;
+      background: var(--invalid-bg);
+      padding: 10px 12px;
+      color: var(--invalid);
+      font-size: 13px;
+    }
+
+    .error.visible { display: block; }
+
+    .empty {
+      display: grid;
+      min-height: 330px;
+      place-items: center;
+      border: 1px dashed #bdcbc7;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #ffffff, #f2f6f5);
+      padding: 32px;
+      text-align: center;
+    }
+
+    .empty strong { display: block; margin-bottom: 6px; font-size: 17px; }
+    .empty span { max-width: 44ch; color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+    .result { display: none; }
+    .result.visible { display: block; }
+
+    .result-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 18px;
+      margin-bottom: 18px;
+    }
+
+    .result-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .result-value {
+      margin-top: 3px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: clamp(23px, 4vw, 34px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      word-break: break-word;
+    }
+
+    .character {
+      display: grid;
+      min-width: 62px;
+      height: 62px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .steps {
+      display: grid;
+      gap: 11px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr);
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 13px;
+    }
+
+    .step:first-child { border-top: 0; padding-top: 0; }
+
+    .step-number {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .step-title { margin-bottom: 5px; font-size: 14px; font-weight: 800; }
+    .step p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .code {
+      overflow-x: auto;
+      margin-top: 8px;
+      border-radius: 8px;
+      background: var(--code);
+      padding: 10px 12px;
+      color: var(--code-text);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .byte-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .byte {
+      border: 1px solid #b8ccc7;
+      border-radius: 8px;
+      background: var(--surface-alt);
+      padding: 8px 10px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+    }
+
+    .byte strong { display: block; color: var(--accent-dark); font-size: 15px; }
+
+    .stream-layout { display: grid; gap: 18px; }
+
+    .stream-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--surface-alt);
+      padding: 14px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 23px;
+    }
+
+    .stream-table-wrap { overflow-x: auto; }
+
+    .stream-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .stream-table th {
+      border-bottom: 2px solid var(--line);
+      padding: 9px 10px;
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.07em;
+      text-align: left;
+      text-transform: uppercase;
+    }
+
+    .stream-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 11px 10px;
+      vertical-align: top;
+    }
+
+    .stream-table td:first-child,
+    .stream-table td:nth-child(2) {
+      font-family: Consolas, "Courier New", monospace;
+      white-space: nowrap;
+    }
+
+    .status {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .status.valid { color: var(--valid); background: var(--valid-bg); }
+    .status.invalid { color: var(--invalid); background: var(--invalid-bg); }
+    .status.warning { color: var(--warning); background: var(--warning-bg); }
+
+    .lesson {
+      margin-top: 16px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 9px 9px 0;
+      background: var(--accent-soft);
+      padding: 13px 15px;
+      color: #294b46;
+      font-size: 13px;
+    }
+
+    .practice-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(250px, 0.85fr);
+      gap: 18px;
+    }
+
+    .question-type {
+      display: inline-block;
+      margin-bottom: 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      padding: 5px 9px;
+      color: var(--accent-dark);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .question {
+      min-height: 100px;
+      margin: 0 0 20px;
+      font-size: 21px;
+      font-weight: 750;
+      line-height: 1.4;
+      letter-spacing: -0.02em;
+    }
+
+    .feedback {
+      display: none;
+      margin-top: 15px;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .feedback.visible { display: block; }
+    .feedback.correct { border: 1px solid #a7d8b7; color: var(--valid); background: var(--valid-bg); }
+    .feedback.incorrect { border: 1px solid #efb5b0; color: var(--invalid); background: var(--invalid-bg); }
+
+    .score {
+      display: grid;
+      align-content: space-between;
+      min-height: 100%;
+      border-radius: 14px;
+      background: var(--code);
+      padding: 22px;
+      color: var(--code-text);
+    }
+
+    .score-label {
+      color: #adc3be;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .score-value {
+      margin-top: 7px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+    }
+
+    .score p { margin: 28px 0 0; color: #b8cbc7; font-size: 13px; }
+
+    @keyframes pane-in {
+      from { opacity: 0; transform: translateY(7px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .shell { width: min(100% - 24px, 1180px); padding-top: 20px; }
+      .hero, .workbench, .practice-grid { grid-template-columns: 1fr; }
+      .hero { gap: 26px; }
+      .panel { padding: 19px; }
+      .stream-summary { grid-template-columns: 1fr; }
+      .result-head { gap: 10px; }
+      .question { min-height: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../../index.html">Exam Hub</a>
+      <span>/</span>
+      <a href="index.html">Practical Work</a>
+      <span>/</span>
+      <span>UTF-8</span>
+    </nav>
+
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Character encoding practical</p>
+        <h1>See how a code point becomes UTF-8.</h1>
+        <p class="lead">
+          Work in both directions, inspect every prefix and payload bit, then
+          practise recovering valid characters from damaged byte streams.
+        </p>
+      </div>
+
+      <aside class="reference" aria-label="UTF-8 byte templates">
+        <div class="reference-title">Byte templates</div>
+        <div class="reference-row"><strong>1 byte</strong><span>0xxxxxxx</span></div>
+        <div class="reference-row"><strong>2 bytes</strong><span>110xxxxx 10xxxxxx</span></div>
+        <div class="reference-row"><strong>3 bytes</strong><span>1110xxxx 10xxxxxx 10xxxxxx</span></div>
+        <div class="reference-row"><strong>4 bytes</strong><span>11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</span></div>
+      </aside>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="UTF-8 practical sections">
+      <button class="tab active" type="button" role="tab" aria-selected="true" data-pane="encode">Encode</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-pane="decode">Decode</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-pane="stream">Damaged Stream</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-pane="practice">Practice</button>
+    </div>
+
+    <section class="pane active" id="pane-encode" role="tabpanel">
+      <div class="workbench">
+        <div class="panel">
+          <h2>Encode a code point</h2>
+          <p class="panel-intro">
+            Enter Unicode notation, hexadecimal, or one character. The explorer
+            selects the template and fills its payload slots.
+          </p>
+          <div class="field">
+            <label for="encode-input">Code point or character</label>
+            <input id="encode-input" type="text" value="U+039E" autocomplete="off" spellcheck="false">
+            <p class="helper">Accepted examples: U+039E, 0x179F, 00C6, or a single character.</p>
+          </div>
+          <div class="actions">
+            <button class="button" type="button" id="encode-button">Encode</button>
+            <button class="button secondary" type="button" id="encode-clear">Clear</button>
+          </div>
+          <div class="error" id="encode-error" role="alert"></div>
+          <div class="example-list" aria-label="Encoding examples">
+            <button class="example" type="button" data-encode="U+0041">U+0041</button>
+            <button class="example" type="button" data-encode="U+00C6">U+00C6</button>
+            <button class="example" type="button" data-encode="U+039E">U+039E</button>
+            <button class="example" type="button" data-encode="U+179F">U+179F</button>
+            <button class="example" type="button" data-encode="U+10348">U+10348</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="empty" id="encode-empty">
+            <div>
+              <strong>No encoding calculated yet</strong>
+              <span>Choose an example or enter a code point to reveal its binary payload and final UTF-8 bytes.</span>
+            </div>
+          </div>
+          <div class="result" id="encode-result" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane" id="pane-decode" role="tabpanel">
+      <div class="workbench">
+        <div class="panel">
+          <h2>Decode one character</h2>
+          <p class="panel-intro">
+            Enter the bytes for one UTF-8 character. The first-byte prefix
+            determines how many continuation bytes must follow.
+          </p>
+          <div class="field">
+            <label for="decode-input">UTF-8 hexadecimal bytes</label>
+            <input id="decode-input" type="text" value="C3 86" autocomplete="off" spellcheck="false">
+            <p class="helper">Use two hexadecimal digits per byte, separated by spaces or commas.</p>
+          </div>
+          <div class="actions">
+            <button class="button" type="button" id="decode-button">Decode</button>
+            <button class="button secondary" type="button" id="decode-clear">Clear</button>
+          </div>
+          <div class="error" id="decode-error" role="alert"></div>
+          <div class="example-list" aria-label="Decoding examples">
+            <button class="example" type="button" data-decode="41">41</button>
+            <button class="example" type="button" data-decode="C3 86">C3 86</button>
+            <button class="example" type="button" data-decode="CE 9E">CE 9E</button>
+            <button class="example" type="button" data-decode="E1 9E 9F">E1 9E 9F</button>
+            <button class="example" type="button" data-decode="F0 90 8D 88">F0 90 8D 88</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="empty" id="decode-empty">
+            <div>
+              <strong>No sequence decoded yet</strong>
+              <span>Enter a complete UTF-8 sequence to inspect its leader, continuation bytes, and reconstructed code point.</span>
+            </div>
+          </div>
+          <div class="result" id="decode-result" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane" id="pane-stream" role="tabpanel">
+      <div class="stream-layout">
+        <div class="panel">
+          <h2>Recover a damaged stream</h2>
+          <p class="panel-intro">
+            The scanner keeps complete UTF-8 sequences, skips orphaned
+            continuation bytes, and resumes when it finds the next leader.
+          </p>
+          <div class="field">
+            <label for="stream-input">Byte stream</label>
+            <textarea id="stream-input" spellcheck="false">EF BB AF BC C2 AA F1 83 E0 AA AA F0 90 AB C3 D5</textarea>
+            <p class="helper">The default is the worked corrupted-stream example from the practical notes.</p>
+          </div>
+          <div class="actions">
+            <button class="button" type="button" id="stream-button">Analyse Stream</button>
+            <button class="button secondary" type="button" id="stream-clear">Clear</button>
+          </div>
+          <div class="error" id="stream-error" role="alert"></div>
+        </div>
+
+        <div class="panel">
+          <div class="empty" id="stream-empty">
+            <div>
+              <strong>No stream analysed yet</strong>
+              <span>Run the scanner to see which byte groups remain recoverable after structural errors.</span>
+            </div>
+          </div>
+          <div class="result" id="stream-result" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane" id="pane-practice" role="tabpanel">
+      <div class="practice-grid">
+        <div class="panel">
+          <span class="question-type" id="practice-type">Encode</span>
+          <p class="question" id="practice-question"></p>
+          <div class="field">
+            <label for="practice-answer">Your answer</label>
+            <input id="practice-answer" type="text" autocomplete="off" spellcheck="false">
+            <p class="helper" id="practice-helper">Enter hexadecimal bytes separated by spaces.</p>
+          </div>
+          <div class="actions">
+            <button class="button" type="button" id="practice-check">Check Answer</button>
+            <button class="button secondary" type="button" id="practice-next">New Question</button>
+          </div>
+          <div class="feedback" id="practice-feedback" role="status"></div>
+        </div>
+
+        <aside class="score">
+          <div>
+            <div class="score-label">Current score</div>
+            <div class="score-value" id="practice-score">0 / 0</div>
+          </div>
+          <p>
+            Questions rotate between encoding, decoding, and identifying the
+            required number of bytes.
+          </p>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const templates = {
+      1: "0xxxxxxx",
+      2: "110xxxxx 10xxxxxx",
+      3: "1110xxxx 10xxxxxx 10xxxxxx",
+      4: "11110xxx 10xxxxxx 10xxxxxx 10xxxxxx"
+    };
+
+    const payloadSlots = { 1: 7, 2: 11, 3: 16, 4: 21 };
+    const minimumCodePoint = { 1: 0x0, 2: 0x80, 3: 0x800, 4: 0x10000 };
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatCodePoint(codePoint) {
+      return "U+" + codePoint.toString(16).toUpperCase().padStart(4, "0");
+    }
+
+    function formatByte(byte) {
+      return byte.toString(16).toUpperCase().padStart(2, "0");
+    }
+
+    function formatBytes(bytes) {
+      return bytes.map(formatByte).join(" ");
+    }
+
+    function byteCountForCodePoint(codePoint) {
+      if (codePoint <= 0x7F) return 1;
+      if (codePoint <= 0x7FF) return 2;
+      if (codePoint <= 0xFFFF) return 3;
+      return 4;
+    }
+
+    function isValidCodePoint(codePoint) {
+      return Number.isInteger(codePoint)
+        && codePoint >= 0
+        && codePoint <= 0x10FFFF
+        && !(codePoint >= 0xD800 && codePoint <= 0xDFFF);
+    }
+
+    function parseCodePoint(raw) {
+      const value = raw.trim();
+      if (!value) throw new Error("Enter a code point or one character.");
+
+      let codePoint;
+      if (/^U\+[0-9a-f]+$/i.test(value)) {
+        codePoint = parseInt(value.slice(2), 16);
+      } else if (/^0x[0-9a-f]+$/i.test(value)) {
+        codePoint = parseInt(value.slice(2), 16);
+      } else if (/^[0-9a-f]{2,6}$/i.test(value)) {
+        codePoint = parseInt(value, 16);
+      } else if ([...value].length === 1) {
+        codePoint = value.codePointAt(0);
+      } else {
+        throw new Error("Use U+039E, 0x039E, plain hexadecimal, or one character.");
+      }
+
+      if (!isValidCodePoint(codePoint)) {
+        throw new Error("That value is not a valid Unicode scalar value.");
+      }
+      return codePoint;
+    }
+
+    function encodeCodePoint(codePoint) {
+      if (codePoint <= 0x7F) return [codePoint];
+      if (codePoint <= 0x7FF) {
+        return [
+          0xC0 | (codePoint >> 6),
+          0x80 | (codePoint & 0x3F)
+        ];
+      }
+      if (codePoint <= 0xFFFF) {
+        return [
+          0xE0 | (codePoint >> 12),
+          0x80 | ((codePoint >> 6) & 0x3F),
+          0x80 | (codePoint & 0x3F)
+        ];
+      }
+      return [
+        0xF0 | (codePoint >> 18),
+        0x80 | ((codePoint >> 12) & 0x3F),
+        0x80 | ((codePoint >> 6) & 0x3F),
+        0x80 | (codePoint & 0x3F)
+      ];
+    }
+
+    function parseHexBytes(raw) {
+      const tokens = raw.trim().split(/[\s,]+/).filter(Boolean);
+      if (!tokens.length) throw new Error("Enter at least one hexadecimal byte.");
+      if (tokens.some(token => !/^[0-9a-f]{2}$/i.test(token))) {
+        throw new Error("Every byte must contain exactly two hexadecimal digits.");
+      }
+      return tokens.map(token => parseInt(token, 16));
+    }
+
+    function expectedLength(firstByte) {
+      if (firstByte <= 0x7F) return 1;
+      if (firstByte >= 0xC2 && firstByte <= 0xDF) return 2;
+      if (firstByte >= 0xE0 && firstByte <= 0xEF) return 3;
+      if (firstByte >= 0xF0 && firstByte <= 0xF4) return 4;
+      return 0;
+    }
+
+    function isContinuation(byte) {
+      return (byte & 0xC0) === 0x80;
+    }
+
+    function decodeSequence(bytes) {
+      const length = expectedLength(bytes[0]);
+      if (!length) {
+        throw new Error(isContinuation(bytes[0])
+          ? "The first byte is a continuation byte with no leader."
+          : "The first byte is not a valid UTF-8 leader.");
+      }
+      if (bytes.length !== length) {
+        throw new Error("This leader requires " + length + " byte" + (length === 1 ? "" : "s") + ".");
+      }
+      for (let index = 1; index < bytes.length; index += 1) {
+        if (!isContinuation(bytes[index])) {
+          throw new Error(formatByte(bytes[index]) + " is not a continuation byte.");
+        }
+      }
+
+      let codePoint;
+      if (length === 1) codePoint = bytes[0];
+      if (length === 2) codePoint = ((bytes[0] & 0x1F) << 6) | (bytes[1] & 0x3F);
+      if (length === 3) codePoint = ((bytes[0] & 0x0F) << 12) | ((bytes[1] & 0x3F) << 6) | (bytes[2] & 0x3F);
+      if (length === 4) {
+        codePoint = ((bytes[0] & 0x07) << 18)
+          | ((bytes[1] & 0x3F) << 12)
+          | ((bytes[2] & 0x3F) << 6)
+          | (bytes[3] & 0x3F);
+      }
+
+      if (codePoint < minimumCodePoint[length]) throw new Error("The sequence is overlong and therefore invalid UTF-8.");
+      if (!isValidCodePoint(codePoint)) throw new Error("The sequence resolves to an invalid Unicode scalar value.");
+      return { codePoint, length };
+    }
+
+    function showError(id, message) {
+      const element = document.getElementById(id);
+      element.textContent = message;
+      element.classList.add("visible");
+    }
+
+    function clearError(id) {
+      const element = document.getElementById(id);
+      element.textContent = "";
+      element.classList.remove("visible");
+    }
+
+    function showResult(name) {
+      document.getElementById(name + "-empty").style.display = "none";
+      document.getElementById(name + "-result").classList.add("visible");
+    }
+
+    function clearResult(name) {
+      document.getElementById(name + "-result").innerHTML = "";
+      document.getElementById(name + "-result").classList.remove("visible");
+      document.getElementById(name + "-empty").style.display = "grid";
+    }
+
+    function payloadGroups(bytes, length) {
+      if (length === 1) return [bytes[0].toString(2).padStart(8, "0").slice(1)];
+      return bytes.map((byte, index) => {
+        const binary = byte.toString(2).padStart(8, "0");
+        if (index === 0) return binary.slice(length + 1);
+        return binary.slice(2);
+      });
+    }
+
+    function renderBytes(bytes) {
+      return '<div class="byte-row">' + bytes.map((byte, index) => {
+        const role = index === 0 ? "Leader" : "Continuation";
+        return '<div class="byte"><strong>' + formatByte(byte) + '</strong>'
+          + byte.toString(2).padStart(8, "0") + '<br>' + role + '</div>';
+      }).join("") + "</div>";
+    }
+
+    function renderEncode() {
+      clearError("encode-error");
+      try {
+        const codePoint = parseCodePoint(document.getElementById("encode-input").value);
+        const bytes = encodeCodePoint(codePoint);
+        const length = bytes.length;
+        const binary = codePoint.toString(2);
+        const padded = binary.padStart(payloadSlots[length], "0");
+        const groups = payloadGroups(bytes, length);
+        const character = String.fromCodePoint(codePoint);
+
+        document.getElementById("encode-result").innerHTML =
+          '<div class="result-head">'
+          + '<div><div class="result-label">UTF-8 result</div>'
+          + '<div class="result-value">' + formatBytes(bytes) + '</div></div>'
+          + '<div class="character" aria-label="Encoded character">' + escapeHtml(character) + '</div>'
+          + '</div>'
+          + '<div class="steps">'
+          + '<div class="step"><div class="step-number">1</div><div>'
+          + '<div class="step-title">Convert the code point to binary</div>'
+          + '<p>' + formatCodePoint(codePoint) + ' needs ' + binary.length + ' significant bit'
+          + (binary.length === 1 ? "" : "s") + '.</p>'
+          + '<div class="code">' + binary + '</div></div></div>'
+          + '<div class="step"><div class="step-number">2</div><div>'
+          + '<div class="step-title">Choose the ' + length + '-byte template</div>'
+          + '<p>' + binary.length + ' bits fit into ' + payloadSlots[length] + ' available payload slots.</p>'
+          + '<div class="code">' + templates[length] + '</div></div></div>'
+          + '<div class="step"><div class="step-number">3</div><div>'
+          + '<div class="step-title">Pad and distribute the payload</div>'
+          + '<p>Pad on the left, then pour the payload bits into each x position.</p>'
+          + '<div class="code">Padded payload: ' + padded + '\nPayload groups: ' + groups.join(" ") + '</div></div></div>'
+          + '<div class="step"><div class="step-number">4</div><div>'
+          + '<div class="step-title">Restore prefixes and convert each byte to hex</div>'
+          + renderBytes(bytes) + '</div></div>'
+          + '</div>';
+        showResult("encode");
+      } catch (error) {
+        clearResult("encode");
+        showError("encode-error", error.message);
+      }
+    }
+
+    function renderDecode() {
+      clearError("decode-error");
+      try {
+        const bytes = parseHexBytes(document.getElementById("decode-input").value);
+        const decoded = decodeSequence(bytes);
+        const groups = payloadGroups(bytes, decoded.length);
+        const combined = groups.join("");
+        const significant = decoded.codePoint.toString(2);
+        const character = String.fromCodePoint(decoded.codePoint);
+
+        document.getElementById("decode-result").innerHTML =
+          '<div class="result-head">'
+          + '<div><div class="result-label">Unicode result</div>'
+          + '<div class="result-value">' + formatCodePoint(decoded.codePoint) + '</div></div>'
+          + '<div class="character" aria-label="Decoded character">' + escapeHtml(character) + '</div>'
+          + '</div>'
+          + '<div class="steps">'
+          + '<div class="step"><div class="step-number">1</div><div>'
+          + '<div class="step-title">Read the leader</div>'
+          + '<p>' + formatByte(bytes[0]) + ' announces a ' + decoded.length + '-byte character.</p>'
+          + '<div class="code">' + bytes[0].toString(2).padStart(8, "0") + ' matches ' + templates[decoded.length].split(" ")[0] + '</div></div></div>'
+          + '<div class="step"><div class="step-number">2</div><div>'
+          + '<div class="step-title">Verify continuation bytes</div>'
+          + '<p>Every remaining byte starts with the reserved 10 prefix.</p>'
+          + renderBytes(bytes) + '</div></div>'
+          + '<div class="step"><div class="step-number">3</div><div>'
+          + '<div class="step-title">Strip prefixes and join payload bits</div>'
+          + '<div class="code">' + groups.join(" + ") + '\n= ' + combined + '\n= ' + significant + ' without left padding</div></div></div>'
+          + '<div class="step"><div class="step-number">4</div><div>'
+          + '<div class="step-title">Convert the payload to hexadecimal</div>'
+          + '<p>The binary payload equals ' + formatCodePoint(decoded.codePoint) + '.</p></div></div>'
+          + '</div>';
+        showResult("decode");
+      } catch (error) {
+        clearResult("decode");
+        showError("decode-error", error.message);
+      }
+    }
+
+    function scanStream(bytes) {
+      const rows = [];
+      let index = 0;
+
+      while (index < bytes.length) {
+        const byte = bytes[index];
+        if (isContinuation(byte)) {
+          rows.push({
+            offset: index,
+            bytes: [byte],
+            state: "invalid",
+            result: "Skipped",
+            explanation: "Orphaned continuation byte with no valid leader."
+          });
+          index += 1;
+          continue;
+        }
+
+        const length = expectedLength(byte);
+        if (!length) {
+          rows.push({
+            offset: index,
+            bytes: [byte],
+            state: "invalid",
+            result: "Skipped",
+            explanation: "Not a valid UTF-8 leader."
+          });
+          index += 1;
+          continue;
+        }
+
+        const candidate = [byte];
+        let cursor = index + 1;
+        while (candidate.length < length && cursor < bytes.length && isContinuation(bytes[cursor])) {
+          candidate.push(bytes[cursor]);
+          cursor += 1;
+        }
+
+        if (candidate.length < length) {
+          rows.push({
+            offset: index,
+            bytes: candidate,
+            state: "warning",
+            result: "Discarded",
+            explanation: "The leader requires " + length + " bytes, but the sequence ends or a new leader appears early."
+          });
+          index += candidate.length;
+          continue;
+        }
+
+        try {
+          const decoded = decodeSequence(candidate);
+          rows.push({
+            offset: index,
+            bytes: candidate,
+            state: "valid",
+            result: formatCodePoint(decoded.codePoint),
+            character: String.fromCodePoint(decoded.codePoint),
+            explanation: "Structurally complete sequence."
+          });
+        } catch (error) {
+          rows.push({
+            offset: index,
+            bytes: candidate,
+            state: "invalid",
+            result: "Discarded",
+            explanation: error.message
+          });
+        }
+        index += candidate.length;
+      }
+
+      return rows;
+    }
+
+    function renderStream() {
+      clearError("stream-error");
+      try {
+        const bytes = parseHexBytes(document.getElementById("stream-input").value);
+        const rows = scanStream(bytes);
+        const validRows = rows.filter(row => row.state === "valid");
+        const discardedBytes = rows
+          .filter(row => row.state !== "valid")
+          .reduce((total, row) => total + row.bytes.length, 0);
+        const recovered = validRows.length
+          ? validRows.map(row => row.result).join(", ")
+          : "None";
+
+        const tableRows = rows.map(row => {
+          const result = row.character
+            ? row.result + ' <span aria-label="Recovered character">(' + escapeHtml(row.character) + ')</span>'
+            : row.result;
+          return '<tr>'
+            + '<td>' + row.offset + '</td>'
+            + '<td>' + formatBytes(row.bytes) + '</td>'
+            + '<td><span class="status ' + row.state + '">' + row.state + '</span></td>'
+            + '<td>' + result + '</td>'
+            + '<td>' + escapeHtml(row.explanation) + '</td>'
+            + '</tr>';
+        }).join("");
+
+        document.getElementById("stream-result").innerHTML =
+          '<div class="stream-summary">'
+          + '<div class="metric"><span>Input bytes</span><strong>' + bytes.length + '</strong></div>'
+          + '<div class="metric"><span>Recovered</span><strong>' + validRows.length + '</strong></div>'
+          + '<div class="metric"><span>Discarded bytes</span><strong>' + discardedBytes + '</strong></div>'
+          + '</div>'
+          + '<div class="lesson"><strong>Recovered code points:</strong> ' + recovered
+          + '<br>Continuation bytes begin with 10, so they cannot be confused with the next leader. That is the basis of UTF-8 self-synchronisation.</div>'
+          + '<div class="stream-table-wrap"><table class="stream-table">'
+          + '<thead><tr><th>Offset</th><th>Bytes</th><th>Status</th><th>Result</th><th>Analysis</th></tr></thead>'
+          + '<tbody>' + tableRows + '</tbody></table></div>';
+        showResult("stream");
+      } catch (error) {
+        clearResult("stream");
+        showError("stream-error", error.message);
+      }
+    }
+
+    const practicePoints = [
+      0x41, 0xA9, 0xC6, 0x391, 0x39E, 0x410, 0x7FF,
+      0x800, 0x179F, 0x20AC, 0x4E2D, 0x10348, 0x10437
+    ];
+    let currentQuestion = null;
+    let scoreCorrect = 0;
+    let scoreTotal = 0;
+    let questionAnswered = false;
+
+    function normaliseBytes(value) {
+      return value.trim().toUpperCase().replaceAll(",", " ").replace(/\s+/g, " ");
+    }
+
+    function normaliseCodePoint(value) {
+      return value.trim().toUpperCase().replace(/^0X/, "U+").replace(/^U\+0+/, "U+");
+    }
+
+    function newQuestion() {
+      const codePoint = practicePoints[Math.floor(Math.random() * practicePoints.length)];
+      const bytes = encodeCodePoint(codePoint);
+      const mode = ["encode", "decode", "count"][Math.floor(Math.random() * 3)];
+      const type = document.getElementById("practice-type");
+      const prompt = document.getElementById("practice-question");
+      const helper = document.getElementById("practice-helper");
+      const answer = document.getElementById("practice-answer");
+      const feedback = document.getElementById("practice-feedback");
+
+      if (mode === "encode") {
+        type.textContent = "Encode";
+        prompt.textContent = "Encode " + formatCodePoint(codePoint) + " as UTF-8 hexadecimal bytes.";
+        helper.textContent = "Enter hexadecimal bytes separated by spaces.";
+        answer.placeholder = "Example: CE 9E";
+        currentQuestion = {
+          mode,
+          answer: formatBytes(bytes),
+          explanation: codePoint.toString(2).length + " significant bits use the " + bytes.length + "-byte template."
+        };
+      } else if (mode === "decode") {
+        type.textContent = "Decode";
+        prompt.textContent = "Which Unicode code point is represented by " + formatBytes(bytes) + "?";
+        helper.textContent = "Answer in U+ notation.";
+        answer.placeholder = "Example: U+039E";
+        currentQuestion = {
+          mode,
+          answer: formatCodePoint(codePoint),
+          explanation: "Remove the leader and continuation prefixes, then convert the joined payload to hexadecimal."
+        };
+      } else {
+        type.textContent = "Choose a template";
+        prompt.textContent = "How many UTF-8 bytes are required for " + formatCodePoint(codePoint) + "?";
+        helper.textContent = "Enter only the number of bytes.";
+        answer.placeholder = "Example: 3";
+        currentQuestion = {
+          mode,
+          answer: String(bytes.length),
+          explanation: codePoint.toString(2).length + " significant bits fit into the " + payloadSlots[bytes.length] + " payload slots of a " + bytes.length + "-byte sequence."
+        };
+      }
+
+      answer.value = "";
+      feedback.textContent = "";
+      feedback.className = "feedback";
+      questionAnswered = false;
+      answer.focus();
+    }
+
+    function checkPractice() {
+      if (!currentQuestion || questionAnswered) return;
+      const raw = document.getElementById("practice-answer").value;
+      const feedback = document.getElementById("practice-feedback");
+      let actual = raw.trim();
+      let expected = currentQuestion.answer;
+
+      if (currentQuestion.mode === "encode") {
+        actual = normaliseBytes(actual);
+        expected = normaliseBytes(expected);
+      } else if (currentQuestion.mode === "decode") {
+        actual = normaliseCodePoint(actual);
+        expected = normaliseCodePoint(expected);
+      }
+
+      const correct = actual === expected;
+      scoreTotal += 1;
+      if (correct) scoreCorrect += 1;
+      questionAnswered = true;
+
+      feedback.className = "feedback visible " + (correct ? "correct" : "incorrect");
+      feedback.innerHTML = correct
+        ? "<strong>Correct.</strong> " + escapeHtml(currentQuestion.explanation)
+        : "<strong>Not quite.</strong> The answer is <code>" + escapeHtml(currentQuestion.answer)
+          + "</code>. " + escapeHtml(currentQuestion.explanation);
+      document.getElementById("practice-score").textContent = scoreCorrect + " / " + scoreTotal;
+    }
+
+    document.querySelectorAll(".tab").forEach(button => {
+      button.addEventListener("click", () => {
+        const target = button.dataset.pane;
+        document.querySelectorAll(".tab").forEach(tab => {
+          const active = tab === button;
+          tab.classList.toggle("active", active);
+          tab.setAttribute("aria-selected", String(active));
+        });
+        document.querySelectorAll(".pane").forEach(pane => {
+          pane.classList.toggle("active", pane.id === "pane-" + target);
+        });
+      });
+    });
+
+    document.getElementById("encode-button").addEventListener("click", renderEncode);
+    document.getElementById("encode-input").addEventListener("keydown", event => {
+      if (event.key === "Enter") renderEncode();
+    });
+    document.getElementById("encode-clear").addEventListener("click", () => {
+      document.getElementById("encode-input").value = "";
+      clearError("encode-error");
+      clearResult("encode");
+      document.getElementById("encode-input").focus();
+    });
+    document.querySelectorAll("[data-encode]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.getElementById("encode-input").value = button.dataset.encode;
+        renderEncode();
+      });
+    });
+
+    document.getElementById("decode-button").addEventListener("click", renderDecode);
+    document.getElementById("decode-input").addEventListener("keydown", event => {
+      if (event.key === "Enter") renderDecode();
+    });
+    document.getElementById("decode-clear").addEventListener("click", () => {
+      document.getElementById("decode-input").value = "";
+      clearError("decode-error");
+      clearResult("decode");
+      document.getElementById("decode-input").focus();
+    });
+    document.querySelectorAll("[data-decode]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.getElementById("decode-input").value = button.dataset.decode;
+        renderDecode();
+      });
+    });
+
+    document.getElementById("stream-button").addEventListener("click", renderStream);
+    document.getElementById("stream-clear").addEventListener("click", () => {
+      document.getElementById("stream-input").value = "";
+      clearError("stream-error");
+      clearResult("stream");
+      document.getElementById("stream-input").focus();
+    });
+
+    document.getElementById("practice-check").addEventListener("click", checkPractice);
+    document.getElementById("practice-next").addEventListener("click", newQuestion);
+    document.getElementById("practice-answer").addEventListener("keydown", event => {
+      if (event.key === "Enter") checkPractice();
+    });
+
+    renderEncode();
+    newQuestion();
+  </script>
+</body>
+</html>
