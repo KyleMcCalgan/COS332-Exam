@@ -109,14 +109,46 @@
 
     .catalogue {
       display: grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
-      gap: 18px;
+      gap: 38px;
+    }
+
+    .topic-group {
+      display: grid;
+      grid-template-columns: minmax(190px, 0.42fr) minmax(0, 1.58fr);
+      gap: 26px;
+      align-items: start;
+    }
+
+    .group-heading {
+      position: sticky;
+      top: 24px;
+      border-top: 3px solid var(--accent);
+      padding-top: 15px;
+    }
+
+    .group-heading h2 {
+      margin: 0 0 9px;
+      font-size: 22px;
+      letter-spacing: -0.03em;
+    }
+
+    .group-heading p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
     }
 
     .module {
       position: relative;
       display: grid;
-      min-height: 330px;
+      min-height: 260px;
       overflow: hidden;
       border: 1px solid var(--line);
       border-radius: 18px;
@@ -129,15 +161,9 @@
       transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms ease;
     }
 
-    .module:nth-child(2) { animation-delay: 90ms; }
-    .module:nth-child(3) { animation-delay: 180ms; }
-
-    .module.featured {
-      grid-row: span 2;
-      min-height: 578px;
-    }
-
-    .module:not(.featured) { min-height: 280px; }
+    .module-grid .module:nth-child(2) { animation-delay: 70ms; }
+    .module-grid .module:nth-child(3) { animation-delay: 140ms; }
+    .module-grid .module:nth-child(4) { animation-delay: 210ms; }
 
     .module:hover {
       border-color: rgba(15, 118, 110, 0.55);
@@ -158,8 +184,6 @@
       padding: 30px;
     }
 
-    .module.featured .module-body { padding: 36px; }
-
     .module-kicker {
       color: var(--accent-dark);
       font-size: 12px;
@@ -171,12 +195,10 @@
     .module h2 {
       max-width: 14ch;
       margin: 11px 0 12px;
-      font-size: clamp(27px, 4vw, 42px);
+      font-size: 29px;
       line-height: 1.04;
       letter-spacing: -0.04em;
     }
-
-    .module:not(.featured) h2 { font-size: 30px; }
 
     .module p {
       max-width: 55ch;
@@ -302,14 +324,14 @@
       }
 
       .breadcrumb { margin-bottom: 28px; }
-      .hero, .catalogue, .extension { grid-template-columns: 1fr; }
+      .hero, .extension { grid-template-columns: 1fr; }
       .hero { gap: 26px; }
       .catalogue { gap: 14px; }
-      .module, .module.featured {
-        grid-row: auto;
-        min-height: 290px;
-      }
-      .module-body, .module.featured .module-body { padding: 24px; }
+      .topic-group, .module-grid { grid-template-columns: 1fr; }
+      .topic-group { gap: 15px; }
+      .group-heading { position: static; }
+      .module { min-height: 250px; }
+      .module-body { padding: 24px; }
       .extension ol { grid-template-columns: 1fr; }
     }
   </style>
@@ -342,76 +364,149 @@
 
     <p class="section-label">Available modules</p>
     <section class="catalogue" aria-label="Practical modules">
-      <a class="module featured" href="../Subnetting%20Explorer.html">
-        <span class="pattern" aria-hidden="true"></span>
-        <div class="module-body">
-          <div>
-            <span class="module-kicker">Networking calculations</span>
-            <h2>Addressing and protocol practicals</h2>
-            <p>
-              Step through subnetting, supernetting, subnet design, VLSM,
-              physical and data-link concepts, and TCP sequence calculations.
-            </p>
-            <div class="topics" aria-label="Topics">
-              <span class="topic">Subnetting</span>
-              <span class="topic">VLSM</span>
-              <span class="topic">Layer 1</span>
-              <span class="topic">Layer 2</span>
-              <span class="topic">TCP</span>
-            </div>
-          </div>
-          <div class="module-footer">
-            <span>Open networking practicals</span>
-            <span class="arrow" aria-hidden="true">&rarr;</span>
-          </div>
+      <section class="topic-group" aria-labelledby="addressing-title">
+        <div class="group-heading">
+          <p class="section-label">Address planning</p>
+          <h2 id="addressing-title">IP addressing</h2>
+          <p>Calculate, combine, and allocate IPv4 address blocks.</p>
         </div>
-      </a>
+        <div class="module-grid">
+          <a class="module" href="../Subnetting%20Explorer.html?topic=subnet">
+            <span class="pattern" aria-hidden="true"></span>
+            <div class="module-body">
+              <div>
+                <span class="module-kicker">IPv4 calculation</span>
+                <h2>Subnetting</h2>
+                <p>Find network addresses, broadcasts, masks, host ranges, and equal-sized subnets.</p>
+                <div class="topics"><span class="topic">CIDR</span><span class="topic">Binary</span></div>
+              </div>
+              <div class="module-footer"><span>Open subnetting</span><span class="arrow">&rarr;</span></div>
+            </div>
+          </a>
 
-      <a class="module" href="UTF-8%20Explorer.html">
-        <span class="pattern" aria-hidden="true"></span>
-        <div class="module-body">
-          <div>
-            <span class="module-kicker">Character encoding</span>
-            <h2>UTF-8 explorer</h2>
-            <p>
-              Encode code points, decode byte sequences, recover characters
-              from damaged streams, and practise the byte templates.
-            </p>
-            <div class="topics" aria-label="Topics">
-              <span class="topic">Code points</span>
-              <span class="topic">Byte templates</span>
-              <span class="topic">Recovery</span>
+          <a class="module" href="../Subnetting%20Explorer.html?topic=supernet">
+            <span class="pattern" aria-hidden="true"></span>
+            <div class="module-body">
+              <div>
+                <span class="module-kicker">Route aggregation</span>
+                <h2>Supernetting</h2>
+                <p>Combine adjacent address blocks using their longest shared binary prefix.</p>
+                <div class="topics"><span class="topic">Aggregation</span><span class="topic">Prefixes</span></div>
+              </div>
+              <div class="module-footer"><span>Open supernetting</span><span class="arrow">&rarr;</span></div>
             </div>
-          </div>
-          <div class="module-footer">
-            <span>Open UTF-8 practical</span>
-            <span class="arrow" aria-hidden="true">&rarr;</span>
-          </div>
-        </div>
-      </a>
+          </a>
 
-      <a class="module" href="../../Docs/ST1Notes/practicals.html">
-        <span class="pattern" aria-hidden="true"></span>
-        <div class="module-body">
-          <div>
-            <span class="module-kicker">Application protocols</span>
-            <h2>Socket and server practicals</h2>
-            <p>
-              Review TCP and UDP socket structure, Telnet dialogue, HTTP
-              responses, line endings, and server implementation patterns.
-            </p>
-            <div class="topics" aria-label="Topics">
-              <span class="topic">Sockets</span>
-              <span class="topic">Telnet</span>
-              <span class="topic">HTTP</span>
+          <a class="module" href="../Subnetting%20Explorer.html?topic=design">
+            <span class="pattern" aria-hidden="true"></span>
+            <div class="module-body">
+              <div>
+                <span class="module-kicker">Capacity planning</span>
+                <h2>Subnet design</h2>
+                <p>Select a mask that satisfies both subnet-count and host-count requirements.</p>
+                <div class="topics"><span class="topic">Masks</span><span class="topic">Constraints</span></div>
+              </div>
+              <div class="module-footer"><span>Open subnet design</span><span class="arrow">&rarr;</span></div>
             </div>
-          </div>
-          <div class="module-footer">
-            <span>Open socket practicals</span>
-            <span class="arrow" aria-hidden="true">&rarr;</span>
-          </div>
+          </a>
+
+          <a class="module" href="../Subnetting%20Explorer.html?topic=vlsm">
+            <span class="pattern" aria-hidden="true"></span>
+            <div class="module-body">
+              <div>
+                <span class="module-kicker">Variable allocation</span>
+                <h2>VLSM</h2>
+                <p>Allocate differently sized subnets from one block with minimal address waste.</p>
+                <div class="topics"><span class="topic">Largest first</span><span class="topic">Alignment</span></div>
+              </div>
+              <div class="module-footer"><span>Open VLSM</span><span class="arrow">&rarr;</span></div>
+            </div>
+          </a>
         </div>
-      </a>
+      </section>
+
+      <section class="topic-group" aria-labelledby="network-title">
+        <div class="group-heading">
+          <p class="section-label">Network mechanics</p>
+          <h2 id="network-title">Layers and transport</h2>
+          <p>Inspect transmission media, frames, and TCP state changes.</p>
+        </div>
+        <div class="module-grid">
+          <a class="module" href="../Subnetting%20Explorer.html?topic=layer1">
+            <span class="pattern" aria-hidden="true"></span>
+            <div class="module-body">
+              <div>
+                <span class="module-kicker">Physical layer</span>
+                <h2>Layer 1</h2>
+                <p>Review twisted pair, RJ45 wiring, line encoding, and fibre transmission.</p>
+                <div class="topics"><span class="topic">T568B</span><span class="topic">Fibre</span></div>
+              </div>
+              <div class="module-footer"><span>Open Layer 1</span><span class="arrow">&rarr;</span></div>
+            </div>
+          </a>
+
+          <a class="module" href="../Subnetting%20Explorer.html?topic=layer2">
+            <span class="pattern" aria-hidden="true"></span>
+            <div class="module-body">
+              <div>
+                <span class="module-kicker">Data-link layer</span>
+                <h2>Layer 2</h2>
+                <p>Work with MAC frames, HDLC flags, bit stuffing, and error handling.</p>
+                <div class="topics"><span class="topic">Frames</span><span class="topic">Bit stuffing</span></div>
+              </div>
+              <div class="module-footer"><span>Open Layer 2</span><span class="arrow">&rarr;</span></div>
+            </div>
+          </a>
+
+          <a class="module" href="../Subnetting%20Explorer.html?topic=tcp">
+            <span class="pattern" aria-hidden="true"></span>
+            <div class="module-body">
+              <div>
+                <span class="module-kicker">Transport layer</span>
+                <h2>TCP sequences</h2>
+                <p>Simulate sequence numbers, acknowledgements, payloads, and receive windows.</p>
+                <div class="topics"><span class="topic">SEQ / ACK</span><span class="topic">WIN</span></div>
+              </div>
+              <div class="module-footer"><span>Open TCP practical</span><span class="arrow">&rarr;</span></div>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <section class="topic-group" aria-labelledby="application-title">
+        <div class="group-heading">
+          <p class="section-label">Encoding and software</p>
+          <h2 id="application-title">Application practicals</h2>
+          <p>Explore character representation and protocol implementation.</p>
+        </div>
+        <div class="module-grid">
+          <a class="module" href="UTF-8%20Explorer.html">
+            <span class="pattern" aria-hidden="true"></span>
+            <div class="module-body">
+              <div>
+                <span class="module-kicker">Character encoding</span>
+                <h2>UTF-8</h2>
+                <p>Encode code points, decode byte sequences, and recover damaged streams.</p>
+                <div class="topics"><span class="topic">Code points</span><span class="topic">Recovery</span></div>
+              </div>
+              <div class="module-footer"><span>Open UTF-8</span><span class="arrow">&rarr;</span></div>
+            </div>
+          </a>
+
+          <a class="module" href="../../Docs/ST1Notes/practicals.html">
+            <span class="pattern" aria-hidden="true"></span>
+            <div class="module-body">
+              <div>
+                <span class="module-kicker">Application protocols</span>
+                <h2>Sockets and servers</h2>
+                <p>Review TCP and UDP sockets, Telnet dialogue, HTTP responses, and line endings.</p>
+                <div class="topics"><span class="topic">Telnet</span><span class="topic">HTTP</span></div>
+              </div>
+              <div class="module-footer"><span>Open socket practicals</span><span class="arrow">&rarr;</span></div>
+            </div>
+          </a>
+        </div>
+      </section>
     </section>
 
     <section class="extension" aria-labelledby="extension-title">

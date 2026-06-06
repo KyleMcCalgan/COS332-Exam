@@ -111,7 +111,8 @@ Contains the main revision artifacts:
 - `Practical Work/index.html`: card-based index for interactive practical modules;
 - `Practical Work/UTF-8 Explorer.html`: UTF-8 encoding, decoding, stream recovery,
   and generated practice;
-- `Subnetting Explorer.html`: networking calculations and protocol practicals;
+- `Subnetting Explorer.html`: shared engine for focused Subnetting,
+  Supernetting, Subnet Design, VLSM, Layer 1, Layer 2, and TCP practical pages;
 - `answer_keys.json`: memo-backed MCQ answers;
 - `llm_answers.json`: fallback generated MCQ answers;
 - `long_question_memos.json`: supplemental long-question answer data; and

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>COS332 Subnetting &amp; Supernetting</title>
+  <title>COS332 Networking Practicals</title>
   <style>
     :root {
       --bg: #f6f7f9;
@@ -34,6 +34,8 @@
 
     /* ── Tabs ── */
     .tabs { display: flex; gap: 4px; margin: 24px 0 0; border-bottom: 2px solid var(--line); }
+    body.focused-topic .tabs { display: none; }
+    body.focused-topic .tab-pane.active { padding-top: 22px; }
     .tab-btn {
       padding: 10px 22px; border: none; background: transparent;
       font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer;
@@ -133,6 +135,21 @@
     .hidden { display: none !important; }
 
     @media (max-width: 640px) {
+      html, body { max-width: 100%; overflow-x: hidden; }
+      header .wrap, body > .wrap {
+        width: auto;
+        max-width: none;
+        min-width: 0;
+        margin-left: 12px;
+        margin-right: 12px;
+      }
+      .tab-pane { width: 100%; max-width: 100%; min-width: 0; overflow: hidden; }
+      .card { width: 100%; max-width: 100%; min-width: 0; overflow: hidden; padding: 16px; }
+      .form-row > * { max-width: 100%; }
+      input[type=text], input[type=number] { max-width: 100%; }
+      .tbl { display: block; overflow-x: auto; white-space: nowrap; }
+      .formula, .quiz-ctx, .subtitle { overflow-wrap: anywhere; }
+      .bin-row { align-items: flex-start; overflow-x: auto; padding-bottom: 4px; }
       .bin-lbl  { width: 80px; font-size: 10px; }
       .bit      { width: 14px; height: 18px; font-size: 10px; }
       .bin-sep  { font-size: 11px; padding: 0 1px; }
@@ -148,22 +165,22 @@
       <span>/</span>
       <a href="Practical%20Work/index.html">Practical Work</a>
       <span>/</span>
-      <span>Networking</span>
+      <span id="topic-breadcrumb">Networking</span>
     </nav>
-    <h1>COS332 Subnetting &amp; Supernetting</h1>
+    <h1 id="page-title">COS332 Networking Practicals</h1>
     <p class="subtitle">Interactive step-by-step with binary breakdown · Teaching + Practice · All past-paper question types</p>
   </div>
 </header>
 
 <div class="wrap">
   <div class="tabs">
-    <button class="tab-btn active"  onclick="switchTab('subnet',   this)">Subnetting</button>
-    <button class="tab-btn"         onclick="switchTab('supernet', this)">Supernetting</button>
-    <button class="tab-btn"         onclick="switchTab('design',   this)">Subnet Design</button>
-    <button class="tab-btn"         onclick="switchTab('vlsm',     this)">VLSM</button>
-    <button class="tab-btn"         onclick="switchTab('layer1',   this)">Layer 1</button>
-    <button class="tab-btn"         onclick="switchTab('layer2',   this)">Layer 2</button>
-    <button class="tab-btn"         onclick="switchTab('tcp',      this)">TCP</button>
+    <button class="tab-btn active" data-topic="subnet" onclick="switchTab('subnet', this)">Subnetting</button>
+    <button class="tab-btn" data-topic="supernet" onclick="switchTab('supernet', this)">Supernetting</button>
+    <button class="tab-btn" data-topic="design" onclick="switchTab('design', this)">Subnet Design</button>
+    <button class="tab-btn" data-topic="vlsm" onclick="switchTab('vlsm', this)">VLSM</button>
+    <button class="tab-btn" data-topic="layer1" onclick="switchTab('layer1', this)">Layer 1</button>
+    <button class="tab-btn" data-topic="layer2" onclick="switchTab('layer2', this)">Layer 2</button>
+    <button class="tab-btn" data-topic="tcp" onclick="switchTab('tcp', this)">TCP</button>
   </div>
 
   <!-- ══════════════════════════════════════════════
@@ -715,6 +732,54 @@ function switchTab(name, btn) {
   btn.classList.add('active');
 }
 
+const TOPIC_PAGES = {
+  subnet: {
+    title: 'Subnetting Practical',
+    subtitle: 'Calculate network boundaries, masks, host ranges, and subnet requirements with a binary breakdown.'
+  },
+  supernet: {
+    title: 'Supernetting Practical',
+    subtitle: 'Combine adjacent networks and inspect the shared prefix that forms the smallest valid supernet.'
+  },
+  design: {
+    title: 'Subnet Design Practical',
+    subtitle: 'Choose the tightest subnet mask that satisfies both subnet-count and host-count requirements.'
+  },
+  vlsm: {
+    title: 'VLSM Practical',
+    subtitle: 'Allocate differently sized subnets from one address block while minimising wasted addresses.'
+  },
+  layer1: {
+    title: 'Layer 1 Practical',
+    subtitle: 'Review twisted pair wiring, RJ45 pinouts, line encoding, and fibre transmission.'
+  },
+  layer2: {
+    title: 'Layer 2 Practical',
+    subtitle: 'Work with frame structures, delineation, bit stuffing, and transmission-error handling.'
+  },
+  tcp: {
+    title: 'TCP Sequence Practical',
+    subtitle: 'Simulate sequence numbers, acknowledgements, payload lengths, and advertised windows.'
+  }
+};
+
+function applyTopicPage() {
+  const topic = new URLSearchParams(window.location.search).get('topic');
+  const config = TOPIC_PAGES[topic];
+  if (!config) return;
+
+  document.body.classList.add('focused-topic');
+  document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(button => button.classList.remove('active'));
+
+  document.getElementById('tab-' + topic).classList.add('active');
+  document.querySelector('.tab-btn[data-topic="' + topic + '"]').classList.add('active');
+  document.getElementById('page-title').textContent = config.title;
+  document.querySelector('.subtitle').textContent = config.subtitle;
+  document.getElementById('topic-breadcrumb').textContent = config.title.replace(' Practical', '');
+  document.title = 'COS332 ' + config.title;
+}
+
 function toggleMode(prefix, practice) {
   document.getElementById(prefix+'-teach').classList.toggle('hidden', practice);
   document.getElementById(prefix+'-practice').classList.toggle('hidden', !practice);
@@ -725,6 +790,9 @@ function toggleMode(prefix, practice) {
       if (prefix==='sp') genSpQuiz();
       if (prefix==='sd') genSdQuiz();
       if (prefix==='vl') genVlQuiz();
+      if (prefix==='l1') genL1Quiz();
+      if (prefix==='l2') genL2Quiz();
+      if (prefix==='tcp') genTcpQuiz();
     }
   }
 }
@@ -1580,6 +1648,7 @@ addSpRow(''); addSpRow('');
 addVlRow('Engineering', 50);
 addVlRow('Marketing', 25);
 addVlRow('HR', 10);
+applyTopicPage();
 </script>
 </body>
 </html>
