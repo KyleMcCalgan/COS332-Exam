@@ -312,7 +312,7 @@ Provide the values of the following header fields of the various messages.
 
 You are strongly encouraged to write your answers in your script and copy them afterwards to your answer sheet — in particular for this question.
 
-The computer H is a host on Acme Corporation's network. Its IP address is `222.222.222.222`. At this stage Acme Corporation does not use any subnetting. Provide all IP addresses in CIDR notation. Note that CIDR notation is never used for a netmask.
+The computer H is a host on Acme Corporation's network. Its IP address is `222.222.222.222/22`. At this stage Acme Corporation does not use any subnetting. Provide all IP addresses in CIDR notation. Note that CIDR notation is never used for a netmask.
 
 1. Provide Acme Corporation's network address.
 2. Provide the broadcast address for Acme Corporation.
