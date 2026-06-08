@@ -555,7 +555,7 @@
       </tr>
       <tr>
         <td>Q8</td>
-        <td>Wildcard: TCP timers / SMTP commands / routing table reading</td>
+        <td>Wildcard: Layer 1/2 theory / TCP timers / SMTP commands / routing table reading</td>
         <td><span class="badge badge-medium">Medium</span></td>
         <td><span class="marks-chip">~5</span></td>
       </tr>
@@ -693,17 +693,23 @@
           <div class="chip-list">
             <span class="chip chip-hot">IEEE 802.3=Ethernet, 802.5=Token ring, 802.11=Wireless LAN</span>
             <span class="chip chip-hot">HDLC transparency = bit stuffing (insert 0 after five 1s)</span>
-            <span class="chip chip-warm">FF:FF:FF:FF:FF:FF = broadcast; promiscuous mode = accepts all frames</span>
-            <span class="chip chip-warm">OUI = first 3 bytes of MAC = manufacturer</span>
+            <span class="chip chip-hot">MAC destination address — unicast vs. broadcast (FF:FF:FF:FF:FF:FF) vs. multicast</span>
+            <span class="chip chip-hot">Transmission error detection at Layer 2: CRC / FCS in Ethernet frames</span>
+            <span class="chip chip-warm">Promiscuous mode = NIC accepts frames not addressed to it</span>
+            <span class="chip chip-warm">OUI = first 3 bytes of MAC = manufacturer identifier</span>
             <span class="chip chip-note">Layer 2 does NOT do routing — that is layer 3</span>
           </div>
         </div>
         <hr>
         <div class="topic-group">
-          <h3>Physical / General — 2–3 Qs</h3>
+          <h3>Physical (Layer 1) — 2–4 Qs</h3>
           <div class="chip-list">
+            <span class="chip chip-hot">UTP (Unshielded Twisted Pair) vs. STP (Shielded Twisted Pair) — shielding reduces EMI</span>
+            <span class="chip chip-hot">RJ45 — the registered jack connector used for Ethernet (twisted pair)</span>
+            <span class="chip chip-hot">Wiring schema: T568A vs. T568B pin assignments; straight-through vs. crossover cables</span>
             <span class="chip chip-warm">GEO round-trip ≈ 0.24s; LEO = lower latency, smaller transmitter needed</span>
-            <span class="chip chip-warm">Manchester encoding = self-synchronising</span>
+            <span class="chip chip-warm">Manchester encoding = self-synchronising (clock embedded in signal transitions)</span>
+            <span class="chip chip-warm">NRZ vs. Manchester: NRZ has no guaranteed transitions; Manchester doubles baud rate</span>
             <span class="chip chip-warm">SAT3 = undersea cable (not a satellite)</span>
             <span class="chip chip-note">Cold War → ARPANET design; RICA = SA wiretapping act</span>
           </div>
@@ -959,7 +965,19 @@ Common blank types:
       <div class="q-card-body">
         <p class="note" style="margin-bottom: 14px;">This slot varies — most likely candidates in order of probability:</p>
         <div class="topic-group">
-          <h3>Option A — TCP Timers (ST2 2025 + ST2 2026)</h3>
+          <h3>Option A — Layer 1 / 2 Theory <span style="font-weight:400;color:var(--muted)">(class observations + lecturer weighting)</span></h3>
+          <p class="note" style="margin: 4px 0 10px;">The lecturer confirmed Layers 1 and 2 count for under 10 marks total, but specific terms surfaced in class that suggest short theory questions are likely. This may appear in the MCQ block rather than as a standalone long question.</p>
+          <div class="chip-list">
+            <span class="chip chip-hot">Shielded vs. Unshielded Twisted Pair (STP vs. UTP) — when to use each; shielding = protection from electromagnetic interference</span>
+            <span class="chip chip-hot">RJ45 plug — the physical connector standard for Ethernet; 8 pins; used with twisted pair</span>
+            <span class="chip chip-hot">Wiring schema — T568A and T568B are the two pin-assignment standards; straight-through cable uses same schema both ends; crossover uses different schemas</span>
+            <span class="chip chip-hot">MAC destination — the destination MAC address field in an Ethernet frame tells the NIC whether the frame is for it (unicast), everyone (broadcast FF:FF:FF:FF:FF:FF), or a group (multicast)</span>
+            <span class="chip chip-hot">Transmission error — Layer 2 detects bit errors using a CRC (cyclic redundancy check) stored in the FCS (Frame Check Sequence) field at the end of an Ethernet frame; a mismatch = frame discarded</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>Option B — TCP Timers (ST2 2025 + ST2 2026)</h3>
           <div class="chip-list">
             <span class="chip chip-hot">Retransmission → segment is retransmitted</span>
             <span class="chip chip-hot">Acknowledgement → cumulative ACK is sent</span>
@@ -970,7 +988,7 @@ Common blank types:
         </div>
         <hr>
         <div class="topic-group">
-          <h3>Option B — SMTP / FTP / POP3 Commands (2024 Q2)</h3>
+          <h3>Option C — SMTP / FTP / POP3 Commands (2024 Q2)</h3>
           <div class="chip-list">
             <span class="chip chip-warm">POP3: RETR 5 (download message 5)</span>
             <span class="chip chip-warm">SMTP: RCPT TO: d@xx.co.za</span>
@@ -981,7 +999,7 @@ Common blank types:
         </div>
         <hr>
         <div class="topic-group">
-          <h3>Option C — Routing Table Reading (2022 / 2026 ST2)</h3>
+          <h3>Option D — Routing Table Reading (2022 / 2026 ST2)</h3>
           <div class="chip-list">
             <span class="chip chip-warm">Given actual router output + tracert, determine topology and paths</span>
             <span class="chip chip-warm">Default gateway config determines which path is taken</span>
