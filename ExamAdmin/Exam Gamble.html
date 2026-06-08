@@ -1,0 +1,1087 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exam Gamble — COS332 2026</title>
+  <style>
+    :root {
+      --bg: #f5f7f9;
+      --surface: #ffffff;
+      --text: #17202a;
+      --muted: #607080;
+      --line: #d9dee7;
+
+      --accent: #0f766e;
+      --accent-dark: #0b5f59;
+      --accent-soft: #d9f1ed;
+      --accent-border: #5ebaae;
+
+      --red: #b91c1c;
+      --red-soft: #fee2e2;
+
+      --blue: #1d4ed8;
+      --blue-soft: #dbeafe;
+
+      --shadow: 0 16px 40px rgba(23, 32, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(120deg, rgba(15, 118, 110, 0.12), transparent 34%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      width: min(900px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 52px 0 80px;
+    }
+
+    /* ── Back link ── */
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 28px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .back:hover { color: var(--accent-dark); }
+    .back svg { flex-shrink: 0; }
+
+    /* ── Header ── */
+    header {
+      border-left: 4px solid var(--accent);
+      padding-left: 16px;
+      margin-bottom: 36px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 36px;
+      line-height: 1.08;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    /* ── Disclaimer banner ── */
+    .disclaimer {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 36px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--accent-dark);
+    }
+    .disclaimer .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Priority table ── */
+    .priority-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 40px;
+      font-size: 14px;
+    }
+    .priority-table thead tr {
+      background: var(--accent-soft);
+    }
+    .priority-table th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent-dark);
+      border-bottom: 2px solid var(--accent-border);
+    }
+    .priority-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    .priority-table tr:last-child td { border-bottom: none; }
+    .priority-table tr:hover td { background: #fafafa; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-certain   { background: var(--red-soft);  color: var(--red); }
+    .badge-high      { background: var(--accent-soft);  color: var(--accent-dark); }
+    .badge-medium    { background: var(--blue-soft);  color: var(--blue); }
+
+    .marks-chip {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* ── Section cards ── */
+    .section-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .q-card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .q-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      background: var(--accent-soft);
+      border-bottom: 1px solid var(--accent-border);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .q-card-header:hover { background: #fde68a44; }
+
+    .q-card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .q-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .q-name {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .q-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .chevron {
+      transition: transform 200ms ease;
+      color: var(--accent-dark);
+    }
+    .q-card.open .chevron { transform: rotate(180deg); }
+
+    .q-card-body {
+      display: none;
+      padding: 18px 20px;
+    }
+    .q-card.open .q-card-body { display: block; }
+
+    /* ── Sub-topic chips ── */
+    .topic-group {
+      margin-bottom: 18px;
+    }
+    .topic-group:last-child { margin-bottom: 0; }
+
+    .topic-group h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    .chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .chip {
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .chip-hot   { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+    .chip-warm  { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+    .chip-note  { background: #f0fdf4; border-color: #86efac; color: #166534; }
+
+    /* ── Key insights ── */
+    .insight-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .insight-list li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .insight-icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-size: 15px;
+    }
+
+    /* ── Formula boxes ── */
+    .formula-box {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-family: monospace;
+      line-height: 1.7;
+      margin-top: 12px;
+      white-space: pre-wrap;
+    }
+
+    /* ── Divider ── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--line);
+      margin: 16px 0;
+    }
+
+    p.note {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin: 8px 0 0;
+    }
+
+    /* ── Justification section ── */
+    .justification {
+      margin-top: 56px;
+      border-top: 1px solid var(--line);
+      padding-top: 44px;
+    }
+
+    .just-header {
+      max-width: 680px;
+      margin-bottom: 28px;
+    }
+
+    .just-header h2 {
+      margin: 0 0 10px;
+      font-size: 24px;
+      line-height: 1.15;
+    }
+
+    .just-header .lead {
+      font-size: 14px;
+    }
+
+    .just-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .just-card {
+      border: 1px solid var(--accent-border);
+      border-radius: 10px;
+      background: var(--surface);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .just-card-label {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--accent-dark);
+      background: var(--accent-soft);
+      border-radius: 4px;
+      padding: 3px 8px;
+      margin-bottom: 10px;
+    }
+
+    .just-card h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .just-card p {
+      margin: 0 0 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .just-quote {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--accent-dark);
+      border-left: 3px solid var(--accent-border);
+      padding-left: 10px;
+      font-style: italic;
+    }
+
+    .just-divider {
+      border-top: 1px dashed var(--line);
+      margin: 32px 0 24px;
+    }
+
+    .just-pattern-header {
+      margin-bottom: 16px;
+    }
+
+    .just-pattern-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 3px 8px;
+      margin-bottom: 8px;
+    }
+
+    .just-pattern-header p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .just-pattern-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .just-pattern-item {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px 15px;
+    }
+
+    .just-pattern-item strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .just-pattern-item span {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .just-weight {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+
+    .just-weight-icon {
+      font-size: 22px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .just-weight strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 6px;
+      color: var(--accent-dark);
+    }
+
+    .just-weight p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--accent-dark);
+    }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 26px; }
+      .q-name { font-size: 14px; }
+      .priority-table { font-size: 13px; }
+      .just-grid { grid-template-columns: 1fr; }
+      .just-pattern-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<main>
+
+  <a class="back" href="../index.html">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <path d="M8.5 2.5L4 7l4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Back to Hub
+  </a>
+
+  <header>
+    <p class="eyebrow">Prediction Engine</p>
+    <h1>The Exam Gamble</h1>
+    <p class="lead">A section-by-section prediction of the 2026 COS332 final exam, built from 5 years of past papers, both semester tests, and the lecturer's own hints.</p>
+  </header>
+
+  <div class="disclaimer">
+    <span class="icon">⚠️</span>
+    <div>
+      <strong>This is a prediction, not a guarantee.</strong> Based on pattern analysis across 2020–2025 exams plus the lecturer's direct hints. Use as a revision focus guide, not a replacement for understanding the full syllabus. Layer 5 = ~1 mark; Layers 1 &amp; 2 = &lt;10 marks; all remaining layers are approximately equally weighted.
+    </div>
+  </div>
+
+  <!-- Priority table -->
+  <table class="priority-table">
+    <thead>
+      <tr>
+        <th>Question</th>
+        <th>Topic</th>
+        <th>Confidence</th>
+        <th>Est. Marks</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Q1</td>
+        <td>MCQ — all layers</td>
+        <td><span class="badge badge-certain">Certain</span></td>
+        <td><span class="marks-chip">50</span></td>
+      </tr>
+      <tr>
+        <td>Q2</td>
+        <td>UTF-8 encode / decode / resync</td>
+        <td><span class="badge badge-certain">Certain</span></td>
+        <td><span class="marks-chip">10</span></td>
+      </tr>
+      <tr>
+        <td>Q3</td>
+        <td>Subnetting + Supernetting</td>
+        <td><span class="badge badge-certain">Certain</span></td>
+        <td><span class="marks-chip">10</span></td>
+      </tr>
+      <tr>
+        <td>Q4</td>
+        <td>TCP analysis (Wireshark trace or header fields)</td>
+        <td><span class="badge badge-high">Very High</span></td>
+        <td><span class="marks-chip">10</span></td>
+      </tr>
+      <tr>
+        <td>Q5</td>
+        <td>DNS Zone files</td>
+        <td><span class="badge badge-high">Very High</span></td>
+        <td><span class="marks-chip">10</span></td>
+      </tr>
+      <tr>
+        <td>Q6</td>
+        <td>Bellman-Ford routing tables</td>
+        <td><span class="badge badge-high">Very High</span></td>
+        <td><span class="marks-chip">5</span></td>
+      </tr>
+      <tr>
+        <td>Q7</td>
+        <td>Dijkstra table completion</td>
+        <td><span class="badge badge-high">High</span></td>
+        <td><span class="marks-chip">5</span></td>
+      </tr>
+      <tr>
+        <td>Q8</td>
+        <td>Wildcard: TCP timers / SMTP commands / routing table reading</td>
+        <td><span class="badge badge-medium">Medium</span></td>
+        <td><span class="marks-chip">~5</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <!-- QUESTION CARDS -->
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <div class="section-grid">
+
+    <!-- Q1: MCQ -->
+    <div class="q-card open">
+      <div class="q-card-header" onclick="toggleCard(this)">
+        <div class="q-card-title">
+          <span class="q-num">1</span>
+          <span class="q-name">MCQ — 50 questions</span>
+        </div>
+        <div class="q-meta">
+          <span class="marks-chip">50 marks</span>
+          <svg class="chevron" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4.5 6.75L9 11.25l4.5-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="q-card-body">
+        <div class="topic-group">
+          <h3>ISO/OSI Model — 3–5 Qs</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">"Layer provides services for layer above" — appears every exam</span>
+            <span class="chip chip-hot">Layer numbers: L4=process-to-process, L5=session, L6=presentation/MIME</span>
+            <span class="chip chip-warm">Layer 5 functions: checkpoints, rollback, synchronisation</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>ASN.1 / BER — 2–3 Qs</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">BER = type + length + value — appears every exam</span>
+            <span class="chip chip-hot">Invalid constructors: MESSAGE, ARRAY (valid: SEQUENCE, CHOICE, SET)</span>
+            <span class="chip chip-hot">Syntactic structure defined using a grammar — appears every exam</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>Application Layer (Email / HTTP / MIME) — 4–6 Qs</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">SMTP: rcpt to, mail from, data, "." ends body, ehlo→250</span>
+            <span class="chip chip-hot">MIME: multipart/mixed, multipart/alternative, boundary</span>
+            <span class="chip chip-warm">HTTP: Host: header → virtual hosting; Accept-Charset negotiation</span>
+            <span class="chip chip-warm">Content-Transfer-Encoding: base64 for binary; quoted-printable for mostly-ASCII</span>
+            <span class="chip chip-note">Header/body separator = blank line (across HTTP, SMTP, RFC822)</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>Character Encoding — 2–4 Qs</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">ASCII = 7-bit; extended ASCII characters above 127 may differ between systems</span>
+            <span class="chip chip-hot">UTF-8 self-synchronising: continuation bytes start with 10xxxxxx</span>
+            <span class="chip chip-warm">4-byte UTF-8 can encode 2²¹ characters (n=21)</span>
+            <span class="chip chip-warm">Accept-Charset with quality values: higher q = more preferred</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>TCP — 8–10 Qs (heavily tested)</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">LISTEN = server waiting for SYN</span>
+            <span class="chip chip-hot">TIME-WAIT = waiting for lost traffic before port reuse</span>
+            <span class="chip chip-hot">Persistence timer = window=0, waiting for space; sends probe byte</span>
+            <span class="chip chip-hot">No NAK in TCP — sender retransmission timer expires instead</span>
+            <span class="chip chip-hot">ACK flag not set → acknowledgement field has no meaning</span>
+            <span class="chip chip-hot">No Length field in TCP header (derived from IP total length)</span>
+            <span class="chip chip-warm">netstat = view transport layer connections</span>
+            <span class="chip chip-warm">Port ranges: well-known &lt;1024, registered 1024–49151, dynamic &gt;49151</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>QUIC — 3–4 Qs (appeared in every exam 2023–2025)</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">"Quick" = reduces latency in connection establishment / re-establishment</span>
+            <span class="chip chip-hot">Migration: only the CLIENT can initiate in QUICv1/v2</span>
+            <span class="chip chip-hot">Long header always has: Destination connection ID</span>
+            <span class="chip chip-warm">0-RTT data can be sent at t0; 1-RTT after handshake completes</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>UDP — 1–2 Qs</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">UDP flow control = unrestricted (none)</span>
+            <span class="chip chip-warm">Used for streams tolerant of loss/reorder: audio, video</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>IPv4 — 8–10 Qs</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">Private: 10.0.0.0/8 (A), 172.16.0.0–172.31.255.255 (B), 192.168.0.0/16 (C)</span>
+            <span class="chip chip-hot">Longest prefix match — given routing table, find correct next hop</span>
+            <span class="chip chip-hot">Default gateway entry = 0.0.0.0/0</span>
+            <span class="chip chip-hot">TTL=0 → discard AND send ICMP time exceeded (both — "more than one")</span>
+            <span class="chip chip-hot">Multicast: class D (224–239), delivered to all group members (not TCP)</span>
+            <span class="chip chip-warm">Fragmentation: to fit layer 2 MTU constraints</span>
+            <span class="chip chip-warm">ICMP: reports errors + tests functions (ping = echo request)</span>
+            <span class="chip chip-warm">Bitwise: i AND m = n; i OR (NOT m) = broadcast</span>
+            <span class="chip chip-note">CIDR block from range: count common bits. 41.32.0.0–41.39.255.255 → /13</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>Routing Protocols — 3–4 Qs</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">OSPF = IGP; BGP = only EGP discussed</span>
+            <span class="chip chip-hot">Dijkstra = algorithm (used by OSPF); Bellman-Ford = algorithm (used by RIP)</span>
+            <span class="chip chip-hot">OSPF broadcasts topology; RIP broadcasts routing tables</span>
+            <span class="chip chip-warm">RIP update: new_cost = received_cost + 1</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>IPv6 — 3–4 Qs</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">128 bits, 8 groups of 4 hex, routing prefix = first 64 bits</span>
+            <span class="chip chip-hot">fe80::/10 = link-local; fd00::/8 = unique local (private)</span>
+            <span class="chip chip-warm">IPv4-mapped: ::ffff:0/96</span>
+            <span class="chip chip-warm">fd prefix structure: 8-bit prefix + 40-bit random + 16-bit subnet + 64-bit interface</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>Layer 2 — 3–5 Qs</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">IEEE 802.3=Ethernet, 802.5=Token ring, 802.11=Wireless LAN</span>
+            <span class="chip chip-hot">HDLC transparency = bit stuffing (insert 0 after five 1s)</span>
+            <span class="chip chip-warm">FF:FF:FF:FF:FF:FF = broadcast; promiscuous mode = accepts all frames</span>
+            <span class="chip chip-warm">OUI = first 3 bytes of MAC = manufacturer</span>
+            <span class="chip chip-note">Layer 2 does NOT do routing — that is layer 3</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>Physical / General — 2–3 Qs</h3>
+          <div class="chip-list">
+            <span class="chip chip-warm">GEO round-trip ≈ 0.24s; LEO = lower latency, smaller transmitter needed</span>
+            <span class="chip chip-warm">Manchester encoding = self-synchronising</span>
+            <span class="chip chip-warm">SAT3 = undersea cable (not a satellite)</span>
+            <span class="chip chip-note">Cold War → ARPANET design; RICA = SA wiretapping act</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2: UTF-8 -->
+    <div class="q-card">
+      <div class="q-card-header" onclick="toggleCard(this)">
+        <div class="q-card-title">
+          <span class="q-num">2</span>
+          <span class="q-name">UTF-8 Encoding &amp; Decoding</span>
+        </div>
+        <div class="q-meta">
+          <span class="badge badge-certain">Certain</span>
+          <span class="marks-chip">10 marks</span>
+          <svg class="chevron" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4.5 6.75L9 11.25l4.5-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="q-card-body">
+        <ul class="insight-list">
+          <li><span class="insight-icon">🎯</span><div><strong>Parts a–c (3 marks):</strong> Convert 3 Unicode codepoints to UTF-8 hex. Expect one 2-byte, one 3-byte, one 4-byte character.</div></li>
+          <li><span class="insight-icon">🎯</span><div><strong>Parts d–h (5 marks):</strong> Given an invalid byte stream — find valid chars, identify invalid bytes, re-synchronise.</div></li>
+          <li><span class="insight-icon">🎯</span><div><strong>Part i (2 marks):</strong> Creative question — 2025 was the SA flag emoji (ZA = two 4-byte Regional Indicator Symbols). Could be similar in 2026.</div></li>
+          <li><span class="insight-icon">💡</span><div><strong>Lecturer's shortcut hint:</strong> Determine byte count from the magnitude of U+xxxx — no need to fully encode. U+0000–007F=1 byte, U+0080–07FF=2 bytes, U+0800–FFFF=3 bytes, U+10000–10FFFF=4 bytes.</div></li>
+        </ul>
+        <div class="formula-box">UTF-8 encoding table:
+U+0000–007F  →  0xxxxxxx                          (1 byte)
+U+0080–07FF  →  110xxxxx 10xxxxxx                 (2 bytes, 11 data bits)
+U+0800–FFFF  →  1110xxxx 10xxxxxx 10xxxxxx        (3 bytes, 16 data bits)
+U+10000–10FFFF → 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx (4 bytes, 21 data bits)
+
+Self-sync rule: start byte ≠ 10xxxxxx; continuation byte = 10xxxxxx (80–BF)
+Invalid: a lone continuation byte, or a start byte not followed by enough continuation bytes</div>
+      </div>
+    </div>
+
+    <!-- Q3: Subnetting -->
+    <div class="q-card">
+      <div class="q-card-header" onclick="toggleCard(this)">
+        <div class="q-card-title">
+          <span class="q-num">3</span>
+          <span class="q-name">Subnetting &amp; Supernetting</span>
+        </div>
+        <div class="q-meta">
+          <span class="badge badge-certain">Certain</span>
+          <span class="marks-chip">10 marks</span>
+          <svg class="chevron" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4.5 6.75L9 11.25l4.5-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="q-card-body">
+        <ul class="insight-list">
+          <li><span class="insight-icon">🎯</span><div>Given a CIDR block with a real-world context (ISP/org), subnet it into min X subnets with min Y hosts each.</div></li>
+          <li><span class="insight-icon">🎯</span><div>Find network addresses of specific subnets (1st, Nth) in CIDR notation.</div></li>
+          <li><span class="insight-icon">🎯</span><div>Supernet the last K subnets — find supernet network address + broadcast.</div></li>
+          <li><span class="insight-icon">💡</span><div>The lecturer's hint: you may be given a router and asked for a routing table entry for a specific subnet — destination = CIDR network address, next hop = IP of next router (or interface name if directly connected).</div></li>
+        </ul>
+        <div class="formula-box">Steps:
+1. Host bits h: 2^h - 2 ≥ required hosts → find minimum h
+2. Subnet bits s: remaining bits in the address (32 - original_prefix - h)
+3. New prefix = original_prefix + s
+4. Subnets created = 2^s
+5. Subnet N network address = base_address + N × (2^h)
+6. Broadcast = network_address + 2^h - 1
+
+Supernetting:
+- Merge 2^k aligned subnets → decrease prefix by k
+- Supernet must be naturally aligned (network address divisible by supernet size)</div>
+      </div>
+    </div>
+
+    <!-- Q4: TCP -->
+    <div class="q-card">
+      <div class="q-card-header" onclick="toggleCard(this)">
+        <div class="q-card-title">
+          <span class="q-num">4</span>
+          <span class="q-name">TCP Analysis</span>
+        </div>
+        <div class="q-meta">
+          <span class="badge badge-high">Very High</span>
+          <span class="marks-chip">10 marks</span>
+          <svg class="chevron" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4.5 6.75L9 11.25l4.5-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="q-card-body">
+        <div class="topic-group">
+          <h3>Format A — Wireshark trace (2025 style)</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">Which line completes the opening handshake?</span>
+            <span class="chip chip-hot">What does ACK=1 in line 2 imply about line 1? (phantom byte in SYN)</span>
+            <span class="chip chip-hot">Does an ACK segment include a phantom byte? (No — ACK itself consumes nothing)</span>
+            <span class="chip chip-warm">How many bytes consumed when server first ACKs? (all 365 = Ack 366)</span>
+            <span class="chip chip-warm">Why was line 10 necessary? (retransmit of lost FIN)</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>Format B — Header field values (2024 style)</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">Sequence number = next byte to send from this side</span>
+            <span class="chip chip-hot">Acknowledgement number = next byte expected from remote</span>
+            <span class="chip chip-hot">Length = min(data_to_send, their_window)</span>
+            <span class="chip chip-warm">Window advertisement = your remaining receive buffer space</span>
+            <span class="chip chip-warm">SYN flag = 0 once connection is established</span>
+          </div>
+        </div>
+        <hr>
+        <ul class="insight-list">
+          <li><span class="insight-icon">💡</span><div><strong>Lecturer's explicit hint:</strong> The ACK flag acknowledges the phantom byte during the handshake (Ack = SYN seq + 1) and acknowledges real data after. The mechanism is identical — you can tell which it is by whether Ack = remote's initial seq + 1.</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Q5: DNS Zone Files -->
+    <div class="q-card">
+      <div class="q-card-header" onclick="toggleCard(this)">
+        <div class="q-card-title">
+          <span class="q-num">5</span>
+          <span class="q-name">DNS Zone Files</span>
+        </div>
+        <div class="q-meta">
+          <span class="badge badge-high">Very High</span>
+          <span class="marks-chip">10 marks</span>
+          <svg class="chevron" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4.5 6.75L9 11.25l4.5-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="q-card-body">
+        <ul class="insight-list">
+          <li><span class="insight-icon">🎯</span><div><strong>Parts a–f:</strong> Write resource records for specific zone files given facts about a domain (NS, A, AAAA, MX, CNAME, TXT, PTR).</div></li>
+          <li><span class="insight-icon">🎯</span><div><strong>Parts g–j:</strong> Perform recursive name resolutions OR insert records for MX primary/backup, CNAME alias, AAAA, TXT.</div></li>
+        </ul>
+        <div class="formula-box">Record types to know:
+NS   → delegates zone to a name server
+       example: za  NS  za1.dnsnode.net.
+A    → IPv4 address
+       example: ftp  A  197.221.2.30
+AAAA → IPv6 address
+       example: ftp  AAAA  2606:4700:20::ec5
+MX   → mail exchange (lower priority number = higher preference)
+       example: @  MX  10  ASPMX.L.GOOGLE.COM.
+               @  MX  20  ALT1.ASPMX.L.GOOGLE.COM.
+CNAME → alias (canonical name)
+        example: zz  CNAME  example.com.
+SOA  → start of authority (primary NS declaration)
+       example: @  SOA  ns1.host-h-net. ...
+PTR  → reverse DNS: 5.98.215.137.in-addr.arpa → 137.215.98.5
+TXT  → arbitrary text: @  TXT  "x=1"
+
+Zone file relative names:
+- In xx.co.za zone, "ftp" means ftp.xx.co.za
+- Trailing dot makes name absolute: "ns1.host-h-net." is FQDN
+- "@" refers to the zone apex (xx.co.za itself)</div>
+      </div>
+    </div>
+
+    <!-- Q6: Bellman-Ford -->
+    <div class="q-card">
+      <div class="q-card-header" onclick="toggleCard(this)">
+        <div class="q-card-title">
+          <span class="q-num">6</span>
+          <span class="q-name">Bellman-Ford Routing Tables</span>
+        </div>
+        <div class="q-meta">
+          <span class="badge badge-high">Very High</span>
+          <span class="marks-chip">5 marks</span>
+          <svg class="chevron" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4.5 6.75L9 11.25l4.5-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="q-card-body">
+        <ul class="insight-list">
+          <li><span class="insight-icon">🎯</span><div>Given routing tables at C, D, E at t0. At t1 node C sends its table to D. At t2 node E sends its table to D. Answer: what is D's entry for destinations A, B, F after each exchange?</div></li>
+        </ul>
+        <div class="formula-box">Algorithm when D receives table from C:
+  For each destination X in C's table:
+    proposed_cost = D's_current_cost_to_C + C's_cost_to_X
+    if proposed_cost &lt; D's_current_cost_to_X:
+      D's entry for X = (X, proposed_cost, next_hop=C)
+    else:
+      D's entry for X unchanged
+
+  Note: D's cost to C is found in D's own routing table.
+
+Entry format: destination | cost | next_hop
+Example: A | 10 | C</div>
+      </div>
+    </div>
+
+    <!-- Q7: Dijkstra -->
+    <div class="q-card">
+      <div class="q-card-header" onclick="toggleCard(this)">
+        <div class="q-card-title">
+          <span class="q-num">7</span>
+          <span class="q-name">Dijkstra's Algorithm</span>
+        </div>
+        <div class="q-meta">
+          <span class="badge badge-high">High</span>
+          <span class="marks-chip">5 marks</span>
+          <svg class="chevron" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4.5 6.75L9 11.25l4.5-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="q-card-body">
+        <ul class="insight-list">
+          <li><span class="insight-icon">🎯</span><div>Partially completed table with columns: Step, S (settled set), W (working set), X (node added this step), cost and predecessor columns for each node.</div></li>
+          <li><span class="insight-icon">🎯</span><div>Fill in the blanks marked (a), (b), (c) etc. Usually 5 blanks = 5 marks.</div></li>
+        </ul>
+        <div class="formula-box">Algorithm from source A:
+1. S = {A}, cost[A] = 0, cost[others] = ∞
+2. Each step: X = lowest-cost node NOT in S
+3. Add X to S
+4. For each neighbour N of X not in S:
+     new_cost = cost[X] + edge(X, N)
+     if new_cost &lt; cost[N]:
+       cost[N] = new_cost
+       prior[N] = X
+5. Repeat until all nodes in S
+
+Common blank types:
+- Cost of a node after relaxation through newly added X
+- Predecessor of a node
+- Which node X is added at each step
+- The contents of S or W</div>
+      </div>
+    </div>
+
+    <!-- Q8: Wildcard -->
+    <div class="q-card">
+      <div class="q-card-header" onclick="toggleCard(this)">
+        <div class="q-card-title">
+          <span class="q-num">8</span>
+          <span class="q-name">Wildcard Question</span>
+        </div>
+        <div class="q-meta">
+          <span class="badge badge-medium">Medium</span>
+          <span class="marks-chip">~5 marks</span>
+          <svg class="chevron" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4.5 6.75L9 11.25l4.5-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="q-card-body">
+        <p class="note" style="margin-bottom: 14px;">This slot varies — most likely candidates in order of probability:</p>
+        <div class="topic-group">
+          <h3>Option A — TCP Timers (ST2 2025 + ST2 2026)</h3>
+          <div class="chip-list">
+            <span class="chip chip-hot">Retransmission → segment is retransmitted</span>
+            <span class="chip chip-hot">Acknowledgement → cumulative ACK is sent</span>
+            <span class="chip chip-hot">Persistence → probe byte sent (window was 0)</span>
+            <span class="chip chip-warm">Keepalive → keepalive probe sent to check connection still alive</span>
+            <span class="chip chip-warm">Quiet timer → prevents use of old sequence numbers after reconnect</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>Option B — SMTP / FTP / POP3 Commands (2024 Q2)</h3>
+          <div class="chip-list">
+            <span class="chip chip-warm">POP3: RETR 5 (download message 5)</span>
+            <span class="chip chip-warm">SMTP: RCPT TO: d@xx.co.za</span>
+            <span class="chip chip-warm">SMTP: DATA (start of message body)</span>
+            <span class="chip chip-warm">HTTP: GET / HTTP/1.1</span>
+            <span class="chip chip-warm">FTP: PASV (passive mode)</span>
+          </div>
+        </div>
+        <hr>
+        <div class="topic-group">
+          <h3>Option C — Routing Table Reading (2022 / 2026 ST2)</h3>
+          <div class="chip-list">
+            <span class="chip chip-warm">Given actual router output + tracert, determine topology and paths</span>
+            <span class="chip chip-warm">Default gateway config determines which path is taken</span>
+            <span class="chip chip-note">nslookup: set type=AAAA for IPv6; PTR format = reversed address + .in-addr.arpa</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /section-grid -->
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <!-- JUSTIFICATION SECTION -->
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <section class="justification">
+
+    <div class="just-header">
+      <p class="eyebrow">Source Analysis</p>
+      <h2>Why these topics — lecturer's input vs. pattern inference</h2>
+      <p class="lead">Not all predictions carry the same weight. The four topics below are directly signalled by the lecturer's own pre-exam messages. Everything else is pattern inference from past papers and should be weighted accordingly.</p>
+    </div>
+
+    <div class="just-grid">
+
+      <div class="just-card just-direct">
+        <div class="just-card-label">Direct lecturer signal</div>
+        <h3>UTF-8 byte counting</h3>
+        <p>The lecturer did not merely mention UTF-8 — he worked through a specific technique in full: determining byte count from the magnitude of a U+xxxx code point without performing the full encoding. He chose U+1003, U+AA80, and U+2C03 as examples and solved all three step by step. A lecturer does not spend that kind of space in a pre-exam message on a technique unless it appears on the paper. This is the strongest individual signal in either message.</p>
+        <div class="just-quote">"Would you be able to do this without fully encoding each of the three Unicode characters?"</div>
+      </div>
+
+      <div class="just-card just-direct">
+        <div class="just-card-label">Direct lecturer signal</div>
+        <h3>TCP ACK flag — handshake vs. data</h3>
+        <p>He gave a complete worked discussion specifically about how the ACK flag is used during the three-way handshake versus after the connection is established, and then pushed further to the question of how you would distinguish the two cases. He called it "perhaps a trick question" — which is an explicit warning that this exact angle will appear. When a lecturer flags something as a potential trick, they are pointing at the question, not just the topic.</p>
+        <div class="just-quote">"Suppose I ask you how one would know whether a given instance of the ACK flag acknowledges a SYN or acknowledges receipt of some data."</div>
+      </div>
+
+      <div class="just-card just-direct">
+        <div class="just-card-label">Direct lecturer signal</div>
+        <h3>Subnetting chained to routing tables</h3>
+        <p>He constructed a deliberate three-step narrative: subnet a block → find subnet X's network address → provide a routing table entry for subnet X at a specific router. He then spelled out every field of that routing table entry. The important part is the chain — he is signalling that a question will combine subnetting with routing table construction, not test them separately. Knowing subnetting alone is not enough if the question asks you to then write the routing table entry.</p>
+        <div class="just-quote">"Suppose I ask you to provide a routing table entry at some router for the network X … the destination will then be the network address … the next hop could literally be the IP address of the next router."</div>
+      </div>
+
+      <div class="just-card just-direct">
+        <div class="just-card-label">Direct lecturer signal</div>
+        <h3>IGP / EGP / BGP / OSPF / Dijkstra / Bellman-Ford</h3>
+        <p>He wrote out the full reasoning dialogue for the IGP question word for word: BGP is an EGP, OSPF is an IGP, Dijkstra is an algorithm not a protocol (used by OSPF), Bellman-Ford is the algorithm used by RIP. He then said the odds of that specific question appearing are small but the odds of a question involving one of those concepts are high. Notably, that exact IGP question appeared verbatim in the 2025 exam — meaning his example was drawn directly from a question he had already written. The dialogue he provided is a map of what he considers examinable within this concept cluster.</p>
+        <div class="just-quote">"The odds that you will be asked this specific question are small. The odds that a question will involve one or more of the options are significantly higher."</div>
+      </div>
+
+    </div>
+
+    <div class="just-divider"></div>
+
+    <div class="just-pattern-header">
+      <span class="just-pattern-label">Pattern inference only — not directly signalled by the lecturer</span>
+      <p>The following topics were selected based on frequency across 2020–2025 past papers. The lecturer gave no specific hint toward any of them. Treat them as probable based on history, not confirmed based on instruction.</p>
+    </div>
+
+    <div class="just-pattern-grid">
+      <div class="just-pattern-item">
+        <strong>DNS Zone Files</strong>
+        <span>Appeared in 2023, 2024, and 2025 exams as a 10-mark long question. The lecturer said nothing about DNS in either message.</span>
+      </div>
+      <div class="just-pattern-item">
+        <strong>Dijkstra table completion</strong>
+        <span>The lecturer mentioned Dijkstra only as "an algorithm, not a protocol." The specific table-filling format comes from past papers (2022, 2023, 2024), not from any hint.</span>
+      </div>
+      <div class="just-pattern-item">
+        <strong>Wireshark trace analysis</strong>
+        <span>Appeared in the 2025 exam. The lecturer did not reference Wireshark or trace reading in either message.</span>
+      </div>
+      <div class="just-pattern-item">
+        <strong>TCP timers</strong>
+        <span>Appeared in ST2 2025 and ST2 2026. The lecturer discussed TCP in the context of ACK flags, not timers specifically.</span>
+      </div>
+      <div class="just-pattern-item">
+        <strong>SMTP / FTP / POP3 commands</strong>
+        <span>Appeared in 2024 Q2 as a 5-mark structured question. Not referenced in either lecturer message.</span>
+      </div>
+    </div>
+
+    <div class="just-weight">
+      <div class="just-weight-icon">⚖️</div>
+      <div>
+        <strong>Layer weighting — the one structural anchor from message 1</strong>
+        <p>The lecturer stated: Layer 5 = ~1 mark, Layers 1 and 2 = under 10 marks combined, all remaining layers approximately equally weighted. With 50 marks in MCQ and 50 in long questions, this means Layers 3, 4, 6, and the Application layer each carry roughly 15–20 marks. His four explicit hints map exactly onto these layers: UTF-8 → Layer 6, TCP ACK → Layer 4, Subnetting + routing tables → Layer 3, IGP/EGP dialogue → Layer 3. He covered every high-weight layer in his examples — that is unlikely to be coincidental.</p>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<script>
+  function toggleCard(header) {
+    header.closest('.q-card').classList.toggle('open');
+  }
+</script>
+</body>
+</html>
